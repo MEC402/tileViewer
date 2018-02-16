@@ -464,7 +464,7 @@ int main(int argc, char* argv[]) {
 
 	// Create the window with the title "Hello,GL"
 	glutCreateWindow("Hello world, GL");
-	glutGameModeString("3840x2160");
+	glutGameModeString("1920x1080");
 	glutEnterGameMode();
 	//glutFullScreen();
 
