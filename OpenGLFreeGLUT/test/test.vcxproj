@@ -140,10 +140,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="IOManager.cpp" />
+    <ClCompile Include="PicoPNG.cpp" />
+    <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="RgbImage.cpp" />
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="IOManager.h" />
+    <ClInclude Include="PicoPNG.h" />
+    <ClInclude Include="TextureCache.h" />
     <ClInclude Include="RgbImage.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

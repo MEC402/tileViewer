@@ -1,4 +1,5 @@
 //Jeff Chastine
+#pragma once
 #include <Windows.h>
 #include <GL\glew.h>
 #include <GL\freeglut.h>
@@ -13,7 +14,8 @@ boolean pause = false;
 boolean reset = false;
 float speed = 0;
 boolean Switch = false;
-							
+
+
 void loadTextureFromFile(char *filename)
 {
 	glClearColor(0.0, 0.0, 0.0, 0.0);
