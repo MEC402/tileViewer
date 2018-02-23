@@ -5,6 +5,7 @@
 #include <GL\freeglut.h>
 #include <iostream>
 #include "RgbImage.h"
+#include "TextureCache.h"
 GLfloat xRotated, yRotated, zRotated;
 GLuint	texture[1];			// Storage For One Texture ( NEW )
 char* filename = "./texture.bmp";							
