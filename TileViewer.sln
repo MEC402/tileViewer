@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{42F94E5B-372C-4DA2-AA39-25FF56E0901C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "src\test\test.vcxproj", "{42F94E5B-372C-4DA2-AA39-25FF56E0901C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureTest", "src\textureTest\textureTest.vcxproj", "{531FC59A-39E0-42F0-AA3F-97A3D6A65784}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "teapotTest", "src\teapotTest\teapotTest.vcxproj", "{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,22 @@ Global
 		{42F94E5B-372C-4DA2-AA39-25FF56E0901C}.Release|x64.Build.0 = Release|x64
 		{42F94E5B-372C-4DA2-AA39-25FF56E0901C}.Release|x86.ActiveCfg = Release|Win32
 		{42F94E5B-372C-4DA2-AA39-25FF56E0901C}.Release|x86.Build.0 = Release|Win32
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Debug|x64.ActiveCfg = Debug|x64
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Debug|x64.Build.0 = Debug|x64
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Debug|x86.ActiveCfg = Debug|Win32
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Debug|x86.Build.0 = Debug|Win32
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Release|x64.ActiveCfg = Release|x64
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Release|x64.Build.0 = Release|x64
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Release|x86.ActiveCfg = Release|Win32
+		{531FC59A-39E0-42F0-AA3F-97A3D6A65784}.Release|x86.Build.0 = Release|Win32
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Debug|x64.ActiveCfg = Debug|x64
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Debug|x64.Build.0 = Debug|x64
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Debug|x86.ActiveCfg = Debug|Win32
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Debug|x86.Build.0 = Debug|Win32
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Release|x64.ActiveCfg = Release|x64
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Release|x64.Build.0 = Release|x64
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Release|x86.ActiveCfg = Release|Win32
+		{2744A280-92E3-45F5-BF80-5BEB28C1A7C2}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
