@@ -1,10 +1,11 @@
 //Jeff Chastine
 #pragma once
 #include <Windows.h>
-#include <GL\glew.h>
+#include <GLEW\glew.h>
 #include <GL\freeglut.h>
 #include <iostream>
 #include "RgbImage.h"
+#include "Cube.h"
 GLfloat xRotated, yRotated, zRotated;
 GLuint	texture[1];			// Storage For One Texture ( NEW )
 char* filename = "./texture.bmp";							
@@ -450,6 +451,7 @@ void keyboard(unsigned char key, int x, int y) {
 }
 
 int main(int argc, char* argv[]) {
+
 	static int mtmp = 0;
 	int left_light_m, right_light_m, torus_m, teapot_m, ico_m;
 	// Initialize GLUT
@@ -503,7 +505,8 @@ glGetIntegerv(GL_VIEWPORT, m_viewport);
 		return 1;
 	}
 
-	
+	Cube cube(1);
+
 	glutMainLoop();
 	return 0;
 }

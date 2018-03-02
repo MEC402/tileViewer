@@ -1,6 +1,6 @@
 #pragma once
 #include <map>
-#include <GL\glew.h>
+#include <GLEW\glew.h>
 
 
 /* Contains an ID and dimentions.
