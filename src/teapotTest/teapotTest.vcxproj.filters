@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -27,11 +24,11 @@
     <ClInclude Include="teapotTest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SOIL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="teapotTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,5 +45,11 @@
     <Image Include="teapotTest.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="checkerboard-256x256.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="SOIL.lib" />
   </ItemGroup>
 </Project>
