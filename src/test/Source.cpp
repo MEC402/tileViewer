@@ -277,6 +277,126 @@ glMatrixMode(GL_PROJECTION);
 	//angle+=.05;
 }
 
+void simpleDraw(float angle) {
+	GLint m_viewport[4];
+
+	//static float angle = 0.1;
+	glGetIntegerv(GL_VIEWPORT, m_viewport);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_COLOR_MATERIAL);
+	glColor3f(.2, .5, .9);
+	//glEnable(GL_LIGHTING);
+	////glShadeModel(GL_FLAT);
+	//GLfloat global_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	//glLightModelfv(GL_FLAT, global_ambient);
+	glShadeModel(GL_SMOOTH);
+
+	glMatrixMode(GL_PROJECTION);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);
+	glLoadIdentity();
+	//	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+	gluPerspective(45, 16 / 9, 0.01, 2000);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glScalef(.3, .3, .3);
+	glRotatef(angle, 0, 1, 0);
+	//glutSolidTeapot(.5);
+	//glColor3f(.2, .5, 0);
+	glutSolidCube(.65);
+/*
+	glBegin(GL_TRIANGLES);
+	//glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, 1.0f);
+	//glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, -1.0f, 1.0f);
+	//glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, 1.0f);
+	//glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f, 1.0f, 1.0f);
+
+	glTexCoord2f(0.0f, 0.0f);	glVertex3f(0.5, 0.5, -0.5);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(-.1, -0.5, -0.5);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5, -2, -0.5);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0, .5, -0.5);
+
+	glColor3f(.5, 1, 0);
+	glColor3f(0, .8, .5);
+	glRasterPos2f(-.1, -.8);
+	glBegin(GL_TRIANGLES);
+	glTexCoord2f(0.0f, .0f); glVertex3f(0.5, 0.0, 0.5);
+	glTexCoord2f(1.0f, .0f); glVertex3f(-.1, 0.5, 0.5);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(0.5, -2, 0.5);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.9, .5, 0.5);
+	glColor3f(0, .3, .7);
+	glRasterPos2f(-.9, .9); 
+	*/
+
+	//back
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(-1, 1, -1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(1, 1, -1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(1, -1, -1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-1, -1, -1);
+	glEnd();
+	//left
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(-1, 1, -1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(-1, 1, 1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(-1, -1, 1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-1, -1, -1);
+	glEnd();
+	//right
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(1, 1, -1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(1, 1, 1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(1, -1, 1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(1, -1, -1);
+	glEnd();
+	//front
+	/*
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(-1, 1, 1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(1, 1, 1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(1, -1, 1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-1, -1, 1);
+	glEnd();
+	*/
+	//top
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(-1, 1, 1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(1, 1, 1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(1, 1, -1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-1, 1, -1);
+	glEnd();
+	//bottom
+	glBegin(GL_POLYGON);
+	glTexCoord2f(.0f, .0f); glVertex3f(-1, -1, 1);
+	glTexCoord2f(1.0f, .0f); glVertex3f(1, -1, 1);
+	glTexCoord2f(1.0f, 1.0f); glVertex3f(1, -1, -1);
+	glTexCoord2f(0.0f, 1.0f); glVertex3f(-1, -1, -1);
+	glEnd();
+	/*
+	glColor3f(1, 1, 1);
+	glRasterPos2f(.5, 0.5);
+	glBegin(GL_LINE);
+	glVertex2f(150, 145);
+	glVertex2f(156, 189);
+	*/
+	glEnd(); 
+	
+
+	glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_10, 54);
+	glColor3f(1, 1, 1);
+	renderBitmapString(.5, .5, GLUT_BITMAP_TIMES_ROMAN_24, "HELLO WORLD!!!!!!!!!!!!	");
+
+	glPopMatrix();
+	//glColor3f(.5, 0, 0);
+	//
+	//glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, 54);
+	//glColor3f(1, 1, 1);
+	//renderBitmapString(.1, .5, GLUT_BITMAP_TIMES_ROMAN_24, "hello world!!!!!!!!!!!!	");
+	glPopAttrib();
+
+	//angle+=.05;
+}
+
 void displayStero(void) {
 	static int vtmp = 0;
 	static float angle = 0.1;
@@ -305,7 +425,7 @@ void displayStero(void) {
 		}else if(Switch == true){
 			gluLookAt(camraNegative, 0, 1, 0, 0, 0.0, 0, 1.0, 0.0);
 		}
-		draw(angle);
+		simpleDraw(angle);
 		if (pause == true) {
 		}
 		else {
@@ -322,7 +442,7 @@ void displayStero(void) {
 			gluLookAt(camraPositive, 0, 1, 0, 0, 0.0, 0, 1.0, 0.0);
 		}
 
-		draw(angle);
+		simpleDraw(angle);
 	}
 
 	
@@ -466,9 +586,9 @@ int main(int argc, char* argv[]) {
 
 	// Create the window with the title "Hello,GL"
 	glutCreateWindow("Hello world, GL");
-	glutGameModeString("1920x1080");
-	glutEnterGameMode();
-	//glutFullScreen();
+	//glutGameModeString("1920x1080");
+	//glutEnterGameMode();
+	glutFullScreen();
 
 int width = glutGet(GLUT_WINDOW_WIDTH);
 int height = glutGet(GLUT_WINDOW_HEIGHT);
