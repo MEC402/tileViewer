@@ -9,6 +9,7 @@ Cube::Cube(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	m_numVerticies = m_faceQuads * 6 * 6;
 	m_positions.resize(m_numVerticies);
 	m_uvs.resize(m_numVerticies);
+
 	// Make an array which maps the structure of a quad in triangles
 	// corner{x,y}
 	// Triangle 1
@@ -19,6 +20,7 @@ Cube::Cube(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	// 3{0,1} 5{1,1}
 	float xMod[]{ 0, 1, 0, 0, 1, 1 };
 	float yMod[]{ 0, 0, 1, 1, 0, 1 };
+
 	const float vertexIncrement = 2.0f / m_faceDimentions;
 	// For each face
 	for (int face = 0; face < 6; ++face) {
