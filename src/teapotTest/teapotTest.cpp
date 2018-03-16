@@ -4,7 +4,8 @@
 	#include <SOIL.h>
 #endif // Windows Headers
 #ifdef __linux__
-	#include <gl/glut.h>
+	#include <GL/glut.h>
+	#include "SOIL.h"
 #endif
 
 
