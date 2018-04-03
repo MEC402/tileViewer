@@ -5,14 +5,20 @@ An OpenGL program for displaying tiled imagery from a remote URL on Large Format
 # Project Set-up
 
 ## Windows
+Using the Visual Studio Installer install the Window SDK version 10.0.16299.0
+
 In the TileViewer Folder that contains TileViewer.sln (SolutionFolder)
 Create three folders, "dll", "include", "lib"
 Inside of the "include" directory, create a folder named "GL"
 
 Download glew version 2.1.0 binaries for Windows from glew.sourceforge.net
-Extract the glew folder and copy glew32.dll to the folder (SolutionFolder)\dll
-Copy glew32.lib to the folder (SolutionFolder)\lib
-Copy the contents of the GL folder to (SolutionFolder)\include\GL
+Extract the download glew zip file
+Open the extracted folder and copy bin/Release/Win32/glew32.dll to the folder (SolutionFolder)/dll
+Copy lib/Release/Win32/glew32.lib to the folder (SolutionFolder)/lib
+Copy the contents of include/GL to (SolutionFolder)/include/GL
 
-Download freeglut version -
-do the same
+Download the latest freeglut version
+Extract the downloaded zip file
+Open the extracted folder and copy freeglut.dll to the folder (SolutionFolder)/dll
+Copy freeglut.lib to the folder (SolutionFolder)/lib
+Copy the contents of include/GL to (SolutionFolder)/include/GL
