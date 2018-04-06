@@ -108,14 +108,14 @@ void Cube::m_setupOGL() {
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	// Give data
 	// https://www.opengl.org/sdk/docs/man/html/glBufferData.xhtml
-	GLfloat* tempArray = new GLfloat[m_positions.size() * 3];
+	/*GLfloat* tempArray = new GLfloat[m_positions.size() * 3];
 	for (int i = 0; i < m_positions.size(); i++) {
 		tempArray[3*i] = m_positions.data()[i].x;
 		tempArray[3*i + 1] = m_positions.data()[i].y;
 		tempArray[3*i + 2] = m_positions.data()[i].z;
 	}
-
-	glBufferData(GL_ARRAY_BUFFER, sizeof(tempArray), tempArray, GL_STATIC_DRAW);
+*/
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Position) * m_positions.size(), m_positions.data(), GL_STATIC_DRAW);
 	// Enable generic vertex attribute arrays
 	// https://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml
 	//glEnableVertexAttribArray(0);
