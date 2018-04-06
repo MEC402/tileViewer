@@ -10,6 +10,7 @@ public:
 	~Cube() = default;
 
 	void doubleUVs();
+	GLuint m_PositionVBOID{ 0 };
 
 private:
 
@@ -22,7 +23,6 @@ private:
 	std::vector<Position> m_positions;
 	std::vector<UVCords> m_uvs;
 	GLuint m_VAOID{ 0 };
-	GLuint m_PositionVBOID{ 0 };
 	GLuint m_UVCordsVBOID{ 0 };
 
 	void m_setupOGL();
