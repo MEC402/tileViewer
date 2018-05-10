@@ -21,7 +21,7 @@ Cube::Cube(int maxResDepth) : m_maxResDepth(maxResDepth) {
 
 	const float vertexIncrement = 2.0f / m_faceDimentions;
 	// For each face
-	for (int face = 0; face < 1; ++face) {
+	for (int face = 0; face < 6; ++face) {
 		// Get the start and end indecies for this face in 
 		int faceBegin = (m_numVerticies / 6) * face;
 		int faceEnd = (m_numVerticies / 6) * (face + 1);
