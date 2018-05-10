@@ -11,6 +11,7 @@ public:
 
 	void doubleUVs();
 	GLuint m_PositionVBOID{ 0 };
+	GLsizei m_NumVertices{ 0 };
 
 private:
 
