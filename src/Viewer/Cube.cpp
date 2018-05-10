@@ -70,7 +70,7 @@ Cube::Cube(int maxResDepth) : m_maxResDepth(maxResDepth) {
 					break;
 				}
 			}
-			if (quadX += vertexIncrement > 1) {
+			if ((quadX += vertexIncrement) >= 1.0f) {
 				quadX = -1;
 				quadY += vertexIncrement;
 			}
