@@ -22,3 +22,6 @@ Extract the downloaded zip file
 Open the extracted folder and copy freeglut.dll to the folder (SolutionFolder)/dll
 Copy freeglut.lib to the folder (SolutionFolder)/lib
 Copy the contents of include/GL to (SolutionFolder)/include/GL
+
+Make sure your build settings are set to Debug - Win32 (x86).  
+We're using 32bit GL libraries and the compiler gets mad otherwise.
