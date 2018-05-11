@@ -46,7 +46,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 				g_z = 0.00f;
 				break;
 			case 1: // Back face
-				x = quadX + xOffset; // -0.3f; // Debug value to make sure we're actually drawing these guys (we are)
+				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = m_faceDistance;
 				g_x = TILEWIDTH;
