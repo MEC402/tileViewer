@@ -7,6 +7,14 @@ An OpenGL program for displaying tiled imagery from a remote URL on Large Format
 ## Windows
 Using the Visual Studio Installer install the Window SDK version 10.0.16299.0
 
+### Installing libraries with Nuget:
+Open visual studio and install:
+freeglut
+glew
+glm
+
+### To install libraries manually:
+
 In the TileViewer Folder that contains TileViewer.sln (SolutionFolder)
 Create three folders, "dll", "include", "lib"
 Inside of the "include" directory, create a folder named "GL"
