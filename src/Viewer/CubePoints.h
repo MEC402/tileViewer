@@ -29,9 +29,8 @@ private:
 	int m_faceQuads{ 0 };
 	int m_perRow{ 0 };
 	float m_faceDistance{ 0.0f };
-
-	const float TILEWIDTH = 0.05f;
-	const float TILESTEP = 0.1f;
+	float m_TILEWIDTH{ 0.0f };
+	float m_TILESTEP{ 0.0f };
 
 	std::vector<float> m_positions;
 	std::vector<UVCords> m_uvs;

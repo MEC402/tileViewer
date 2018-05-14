@@ -6,7 +6,12 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	m_faceQuads = m_faceDimensions * m_faceDimensions;
 	m_positions.resize(6 * m_faceQuads * m_datasize);
 	m_perRow = m_faceDimensions * m_datasize;
-	m_faceDistance = TILESTEP * ((float)m_faceDimensions / 2.0f);
+
+	m_TILESTEP = (1.0f / (float)m_faceDimensions);
+	m_TILEWIDTH =  m_TILESTEP / 2.0f;
+
+	// Not sure if this is necessary now?
+	m_faceDistance = m_TILESTEP * ((float)m_faceDimensions / 2.0f);
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 	srand(time(NULL));
 
@@ -19,8 +24,8 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 		// Where in our vector to end
 		int faceEnd = (m_faceQuads * m_datasize) * (face + 1);
 
-		float quadX = -TILEWIDTH * m_maxResDepth;
-		float quadY = TILEWIDTH * m_maxResDepth;
+		float quadX = -m_TILEWIDTH * m_maxResDepth;
+		float quadY = m_TILEWIDTH * m_maxResDepth;
 		//float quadX = -1;
 		//float quadY = -1;
 		float xOffset = 0.0f;
@@ -45,16 +50,16 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = -m_faceDistance;
-				g_x = TILEWIDTH;
-				g_y = TILEWIDTH;
+				g_x = m_TILEWIDTH;
+				g_y = m_TILEWIDTH;
 				g_z = 0.00f;
 				break;
 			case 1: // Back face
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = m_faceDistance;
-				g_x = TILEWIDTH;
-				g_y = TILEWIDTH;
+				g_x = m_TILEWIDTH;
+				g_y = m_TILEWIDTH;
 				g_z = 0.00f;
 				break;
 			case 2: // Right face
@@ -62,32 +67,32 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 				y = quadY + yOffset;
 				z = quadX + xOffset;
 				g_x = 0.00f; //0.10f;
-				g_y = TILEWIDTH;
-				g_z = TILEWIDTH;
+				g_y = m_TILEWIDTH;
+				g_z = m_TILEWIDTH;
 				break;
 			case 3: // Left face
 				x = -m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
 				g_x = 0.00f;
-				g_y = TILEWIDTH;
-				g_z = TILEWIDTH;
+				g_y = m_TILEWIDTH;
+				g_z = m_TILEWIDTH;
 				break;
 			case 4: // Top face
 				x = quadX + xOffset;
 				y = m_faceDistance;
 				z = quadY + yOffset;
-				g_x = TILEWIDTH;
+				g_x = m_TILEWIDTH;
 				g_y = 0.00f;
-				g_z = TILEWIDTH;
+				g_z = m_TILEWIDTH;
 				break;
 			case 5:
 				x = quadX + xOffset;
 				y = -m_faceDistance;
 				z = quadY + yOffset;
-				g_x = TILEWIDTH;
+				g_x = m_TILEWIDTH;
 				g_y = 0.00f;
-				g_z = TILEWIDTH;
+				g_z = m_TILEWIDTH;
 				break;
 			}
 
@@ -107,10 +112,10 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 			m_positions[quadPoint++] = g_y;
 			m_positions[quadPoint++] = g_z;
 
-			xOffset += TILESTEP;
+			xOffset += m_TILESTEP;
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
 				xOffset = 0.0f;
-				yOffset -= TILESTEP;
+				yOffset -= m_TILESTEP;
 			}
 		}
 	}
