@@ -10,12 +10,19 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 	srand(time(NULL));
 
+	const float vertexIncrement = 2.0f / m_faceDimensions;
+
+	// Generate points for each of the 6 faces
 	for (int face = 0; face < 6; ++face) {
+		// Where in our vector to begin
 		int faceBegin = (m_faceQuads * m_datasize) * face;
+		// Where in our vector to end
 		int faceEnd = (m_faceQuads * m_datasize) * (face + 1);
 
-		float quadX = -TILEWIDTH;
-		float quadY = TILEWIDTH;
+		float quadX = -TILEWIDTH * m_maxResDepth;
+		float quadY = TILEWIDTH * m_maxResDepth;
+		//float quadX = -1;
+		//float quadY = -1;
 		float xOffset = 0.0f;
 		float yOffset = 0.0f;
 
@@ -101,7 +108,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 			m_positions[quadPoint++] = g_z;
 
 			xOffset += TILESTEP;
-			if (quadPoint != 0 && quadPoint % m_perRow == 0) {
+			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
 				xOffset = 0.0f;
 				yOffset -= TILESTEP;
 			}
