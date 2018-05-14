@@ -39,29 +39,43 @@ void main()
 	float z = vOffset[0].z;
 
 	//TODO: Need to figure out the pos/neg for z values for top/bottom/left/right tiles
-	//gl_Position = position + Scaling * (rotMat*(vec4(-x, -y, z, 0.0)));
-	//EmitVertex(); 			 
-	//			  			 
-	//gl_Position = position + Scaling * (rotMat*(vec4( x, -y, z, 0.0)));
-	//EmitVertex(); 			 
-	//			  			 
-	//gl_Position = position + Scaling * (rotMat*(vec4(-x,  y, z, 0.0)));
-	//EmitVertex(); 			 
-	//						 
-	//gl_Position = position + Scaling * (rotMat*(vec4( x,  y, z, 0.0)));
-	//EmitVertex();
+	if (y > 0.0) {
+		gl_Position = position + Scaling * (rotMat*(vec4(-x, -y, -z, 0.0)));
+		EmitVertex(); 			 
+					  			 
+		gl_Position = position + Scaling * (rotMat*(vec4( x, -y, z, 0.0)));
+		EmitVertex(); 			 
+					  			 
+		gl_Position = position + Scaling * (rotMat*(vec4(-x,  y, -z, 0.0)));
+		EmitVertex(); 			 
+								 
+		gl_Position = position + Scaling * (rotMat*(vec4( x,  y, z, 0.0)));
+		EmitVertex();
+	} else {
+		gl_Position = position + Scaling * (rotMat*(vec4(-x, -y, -z, 0.0)));
+		EmitVertex(); 			 
+					  			 
+		gl_Position = position + Scaling * (rotMat*(vec4( x, -y, -z, 0.0)));
+		EmitVertex(); 			 
+					  			 
+		gl_Position = position + Scaling * (rotMat*(vec4(-x,  y, z, 0.0)));
+		EmitVertex(); 			 
+								 
+		gl_Position = position + Scaling * (rotMat*(vec4( x,  y, z, 0.0)));
+		EmitVertex();
+	}
 
-	gl_Position = position + vec4(-x, -y, z, 0.0);
-       EmitVertex(); 
-				  
-       gl_Position = position + vec4( x, -y, z, 0.0);
-       EmitVertex(); 						  
-				  						  
-       gl_Position = position + vec4(-x,  y, z, 0.0);
-       EmitVertex(); 						  
-				  						  
-       gl_Position = position + vec4( x,  y, z, 0.0);
-       EmitVertex();
+	//gl_Position = position + vec4(-x, -y, z, 0.0);
+    //EmitVertex(); 
+	//  
+    //gl_Position = position + vec4( x, -y, z, 0.0);
+    //EmitVertex(); 						  
+	//  						  
+    //gl_Position = position + vec4(-x,  y, z, 0.0);
+    //EmitVertex(); 						  
+	//  						  
+    //gl_Position = position + vec4( x,  y, z, 0.0);
+    //EmitVertex();
 
 	EndPrimitive();
 }

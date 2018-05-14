@@ -10,10 +10,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 	srand(time(NULL));
 
-
-	// NOTE: This is set to only generate 4 faces right now, for debugging purposes
-	// ######################### pay attention to me so we don't forget about this later ####################
-	for (int face = 0; face < 4; ++face) {
+	for (int face = 0; face < 6; ++face) {
 		int faceBegin = (m_faceQuads * m_datasize) * face;
 		int faceEnd = (m_faceQuads * m_datasize) * (face + 1);
 
@@ -66,8 +63,8 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 				y = quadY + yOffset;
 				z = quadX + xOffset;
 				g_x = 0.00f;
-				g_y = 0.05f;
-				g_z = 0.05f;
+				g_y = TILEWIDTH;
+				g_z = TILEWIDTH;
 				break;
 			case 4: // Top face
 				x = quadX + xOffset;
