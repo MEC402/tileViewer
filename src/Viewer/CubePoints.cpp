@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include <time.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 	m_faceDimensions = maxResDepth + 1;
@@ -101,16 +103,18 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 			m_positions[quadPoint++] = y;
 			m_positions[quadPoint++] = z;
 
+			// What planes we want to create the quad on in our geometry shader
+			m_positions[quadPoint++] = g_x;
+			m_positions[quadPoint++] = g_y;
+			m_positions[quadPoint++] = g_z;
+
 			// Random colors so we can see if we're generating the right number of quads per face
 			// This will later be replaced with uv maps
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
-			// What planes we want to create the quad on in our geometry shader
-			m_positions[quadPoint++] = g_x;
-			m_positions[quadPoint++] = g_y;
-			m_positions[quadPoint++] = g_z;
+
 
 			xOffset += m_TILESTEP;
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
@@ -162,14 +166,46 @@ void CubePoints::m_setupOGL() {
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
 
-	// Bind our rgb
+	
+	// Bind our geometry plane
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
 
-	// Bind our geometry plane
+	// Bind our rgb
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// Bind our TX coords
+	//glEnableVertexAttribArray(2);
+	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+	//glEnableVertexAttribArray(3);
+	//glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(8 * sizeof(float)));
+
 	glBindVertexArray(0);
+
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+										   // set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	int width, height, nrChannels;
+	// The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
+	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		fprintf(stderr, "Failed to load image");
+	}
+	stbi_image_free(data);
 
 	// Enable generic vertex attribute arrays
 	// https://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml

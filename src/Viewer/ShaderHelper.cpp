@@ -20,7 +20,7 @@ std::string ShaderHelper::readFile(const char *filePath)
 	std::ifstream fileStream(filePath, std::ios::in);
 
 	if (!fileStream.is_open()) {
-		std::cerr << "Could not read file " << filePath << ". File does not exist." << std::endl;
+		fprintf(stderr, "Could not read file %s. File does not exist.", filePath);
 		return "";
 	}
 
@@ -46,7 +46,7 @@ GLuint ShaderHelper::loadShader(GLenum type, const char* path)
 {
 	std::string shaderData = readFile(path);
 	if (shaderData == "") {
-		fprintf(stderr, "Could not loader shader, terminating program.");
+		fprintf(stderr, "Could not loader shader.");
 		return -1;
 	}
 	const char *shaderSrc = shaderData.c_str();
