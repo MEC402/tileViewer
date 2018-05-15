@@ -3,13 +3,8 @@
 layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
-//in vec3 vColor[];
-//in vec3 vOffset[];
-
 in VOUT {
 	vec3 vColor;
-	//vec2 vTxStart;
-	//vec2 vTxEnd;
 	vec3 vOffset;
 } vin[];
 
@@ -19,8 +14,23 @@ out vec3 fColor;
 uniform mat4 MVP;
 uniform float Scaling;
 
+vec2 getTxCoord(vec4 pos, float x, float y)
+{
+	pos = (pos + vec4(1.0, 1.0, 1.0, 1.0)) / 2.0;
+	if (y != 0.0) {
+		if (x != 0.0) {
+			return Scaling * vec2(pos.x, pos.y);
+		} else {
+			return Scaling * vec2(pos.z, pos.y);
+		}
+	} else {
+		return Scaling * vec2(pos.x, pos.z);
+	}
+}
+
 void main()
 {
+	// Color is unnecessary but useful for debugging, can be removed in the final product
 	fColor = vin[0].vColor;
 	//fColor = vec3(1.0, 1.0, 1.0);
 	
@@ -29,69 +39,51 @@ void main()
 	float y = vin[0].vOffset.y;
 	float z = vin[0].vOffset.z;
 
-	//vec2 vTxStart = vin[0].vTxStart;
-	//vec2 vTxEnd = vin[0].vTxEnd;
-
-
 	vec4 position;
 	// TODO: I'm sure there's a better way to check which coordinates to use
 	if (y > 0.0) {
+		// Calculate the position of the vetex to be emitted
 		position = gl_in[0].gl_Position + vec4(-x, -y, -z, 0.0);
+		// Translate it against the MVP matrix
 		gl_Position = MVP * position;
-		if (x > 0.0) {
-			txCoord = vec2(position.x, position.y);//vTxStart;
-		} else {
-			txCoord = vec2(position.z, position.y);
-		}
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 					  			 
+		// Rinse, repeat
 		position = gl_in[0].gl_Position + vec4( x, -y, z, 0.0);
 		gl_Position = MVP * position;
-		if (x > 0.0) {
-			txCoord = vec2(position.x, position.y);//vTxStart;
-		} else {
-			txCoord = vec2(position.z, position.y);
-		}
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4(-x,  y, -z, 0.0);
 		gl_Position = MVP * position;
-		if (x > 0.0) {
-			txCoord = vec2(position.x, position.y);//vTxStart;
-		} else {
-			txCoord = vec2(position.z, position.y);
-		}
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 								 
 		position = gl_in[0].gl_Position + vec4( x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		if (x > 0.0) {
-			txCoord = vec2(position.x, position.y);//vTxStart;
-		} else {
-			txCoord = vec2(position.z, position.y);
-		}
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex();
 
 	} else {
-		
 		position = gl_in[0].gl_Position + vec4(-x, -y, -z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = vec2(position.x, position.z);
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4( x, -y, -z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = vec2(position.x, position.z);
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4(-x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = vec2(position.x, position.z);
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex(); 			 
 								 
 		position = gl_in[0].gl_Position + vec4( x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = vec2(position.x, position.z);
+		txCoord = getTxCoord(position, x, y);
 		EmitVertex();
 	}
 

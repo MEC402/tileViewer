@@ -3,7 +3,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
+CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) 
+{
 	m_faceDimensions = maxResDepth + 1;
 	m_faceQuads = m_faceDimensions * m_faceDimensions;
 	m_positions.resize(6 * m_faceQuads * m_datasize);
@@ -123,11 +124,12 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) {
 			}
 		}
 	}
-		
+	m_initTextureAtlas();
 	m_setupOGL();
 }
 
-void CubePoints::doubleUVs() {
+void CubePoints::doubleUVs() 
+{
 	if (m_currentResDepth < m_maxResDepth) {
 		for (auto&& uv : m_uvs) {
 			uv.u *= 2;
@@ -139,7 +141,38 @@ void CubePoints::doubleUVs() {
 	}
 }
 
-void CubePoints::m_setupOGL() {
+void CubePoints::m_initTextureAtlas()
+{
+	GLuint texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+	glActiveTexture(GL_TEXTURE0);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	loadTexture("container.jpg");
+}
+
+void CubePoints::loadTexture(const char *path)
+{
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+	if (data) {
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+	} else {
+		fprintf(stderr, "Failed to load image");
+	}
+	stbi_image_free(data);
+}
+
+void CubePoints::m_setupOGL() 
+{
 
 	// Generate vertex array object names
 	// https://www.opengl.org/sdk/docs/man/html/glGenVertexArrays.xhtml
@@ -183,30 +216,8 @@ void CubePoints::m_setupOGL() {
 
 	glBindVertexArray(0);
 
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-										   // set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load image, create texture and generate mipmaps
-	int width, height, nrChannels;
-	// The FileSystem::getPath(...) is part of the GitHub repository so we can find files on any IDE/platform; replace it with your own image path.
-	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		fprintf(stderr, "Failed to load image");
-	}
-	stbi_image_free(data);
-
+	
+	
 	// Enable generic vertex attribute arrays
 	// https://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml
 	//glEnableVertexAttribArray(0);

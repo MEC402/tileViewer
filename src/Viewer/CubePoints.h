@@ -10,6 +10,7 @@ public:
 	~CubePoints() = default;
 
 	void doubleUVs();
+	void loadTexture(const char *path);
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
 	GLsizei m_NumVertices{ 0 };
@@ -38,4 +39,5 @@ private:
 	GLuint m_UVCordsVBOID{ 0 };
 
 	void m_setupOGL();
+	void m_initTextureAtlas();
 };
