@@ -1,10 +1,11 @@
 #include "stdafx.h"
+#include <cmath>
 #include <time.h>
 
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) 
+CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 {
-	m_faceDimensions = maxResDepth + 1;
+	m_faceDimensions = pow(2, maxResDepth);
 	m_faceQuads = m_faceDimensions * m_faceDimensions;
 	m_positions.resize(6 * m_faceQuads * m_datasize);
 	m_perRow = m_faceDimensions * m_datasize;
