@@ -12,19 +12,19 @@ out vec2 txCoord;
 out vec3 fColor;
 
 uniform mat4 MVP;
-uniform float Scaling;
+uniform vec2 TxScaling;
 
 vec2 getTxCoord(vec4 pos, float x, float y)
 {
 	pos = (pos + vec4(1.0, 1.0, 1.0, 1.0)) / 2.0;
 	if (y != 0.0) {
 		if (x != 0.0) {
-			return Scaling * vec2(pos.x, pos.y);
+			return TxScaling * vec2(pos.x, pos.y);
 		} else {
-			return Scaling * vec2(pos.z, pos.y);
+			return TxScaling * vec2(pos.z, pos.y);
 		}
 	} else {
-		return Scaling * vec2(pos.x, pos.z);
+		return TxScaling * vec2(pos.x, pos.z);
 	}
 }
 

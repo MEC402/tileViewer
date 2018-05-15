@@ -13,7 +13,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 	m_TILESTEP = (1.0f / (float)m_faceDimensions);
 	m_TILEWIDTH =  m_TILESTEP / 2.0f;
 
-	// Not sure if this is necessary now?
 	m_faceDistance = m_TILESTEP * ((float)m_faceDimensions / 2.0f);
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 	srand(time(NULL));
@@ -46,8 +45,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 
 		for (int quadPoint = faceBegin; quadPoint < faceEnd;) {
 
-			// Pretty much just repeated what Cube.cpp() does when generating triangle quads, except the geometry
-			// shader appears to solve the issue of culling triangles for us so mirrored faces don't need flipped coordinates
+			// Set xyz position for vertex and plane direction for geometry shader to build quads in
 			switch (face) {
 			case 0: // Front face
 				x = quadX + xOffset;
@@ -69,7 +67,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 				x = m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
-				g_x = 0.00f; //0.10f;
+				g_x = 0.00f;
 				g_y = m_TILEWIDTH;
 				g_z = m_TILEWIDTH;
 				break;
@@ -110,7 +108,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 			m_positions[quadPoint++] = g_z;
 
 			// Random colors so we can see if we're generating the right number of quads per face
-			// This will later be replaced with uv maps
+			// This is unnecessary and can be removed from the final product, but it's useful for debugging
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -128,19 +126,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 	m_setupOGL();
 }
 
-void CubePoints::doubleUVs() 
-{
-	if (m_currentResDepth < m_maxResDepth) {
-		for (auto&& uv : m_uvs) {
-			uv.u *= 2;
-			uv.v *= 2;
-		}
-		++m_currentResDepth;
-		glBindBuffer(GL_ARRAY_BUFFER, m_UVCordsVBOID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(UVCords) * m_uvs.size(), m_uvs.data(), GL_DYNAMIC_DRAW);
-	}
-}
-
 void CubePoints::m_initTextureAtlas()
 {
 	GLuint texture;
@@ -151,10 +136,13 @@ void CubePoints::m_initTextureAtlas()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	// unused is...unused, but required to make the stbi_info call
+	int unused;
+	stbi_info("container_x4.jpg", &m_maxWidth, &m_maxHeight, &unused);
 
 	glActiveTexture(GL_TEXTURE0);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 512, 512, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_maxWidth, m_maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 
 	loadTexture("container.jpg");
 }
@@ -169,18 +157,22 @@ void CubePoints::loadTexture(const char *path)
 		fprintf(stderr, "Failed to load image");
 	}
 	stbi_image_free(data);
+	m_curWidth = width;
+	m_curHeight = height;
+}
+
+float CubePoints::TxScalingX()
+{
+	return (float)m_curWidth / (float)m_maxWidth;
+}
+
+float CubePoints::TxScalingY()
+{
+	return (float)m_curHeight / (float)m_maxHeight;
 }
 
 void CubePoints::m_setupOGL() 
 {
-
-	// Generate vertex array object names
-	// https://www.opengl.org/sdk/docs/man/html/glGenVertexArrays.xhtml
-	// Binding this will save the following code settings for later use
-	// https://www.opengl.org/sdk/docs/man/html/glBindVertexArray.xhtml
-	//glGenVertexArrays(1, &m_VAOID);
-	//glBindVertexArray(m_VAOID);
-
 	// Binding this will create a vertex buffer in your GPU
 	// https://www.opengl.org/sdk/docs/man/html/glGenBuffers.xhtml
 	glGenBuffers(1, &m_PositionVBOID);
@@ -199,7 +191,6 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
 
-	
 	// Bind our geometry plane
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
@@ -208,32 +199,5 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
 
-	// Bind our TX coords
-	//glEnableVertexAttribArray(2);
-	//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
-	//glEnableVertexAttribArray(3);
-	//glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(8 * sizeof(float)));
-
 	glBindVertexArray(0);
-
-	
-	
-	// Enable generic vertex attribute arrays
-	// https://www.opengl.org/sdk/docs/man/html/glEnableVertexAttribArray.xhtml
-	//glEnableVertexAttribArray(0);
-	// https://www.opengl.org/sdk/docs/man/html/glVertexAttribPointer.xhtml
-	// Position attribute
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-	//glGenBuffers(1, &m_UVCordsVBOID);
-	//glBindBuffer(GL_ARRAY_BUFFER, m_UVCordsVBOID);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(UVCords) * m_uvs.size(), m_uvs.data(), GL_DYNAMIC_DRAW);
-	//glEnableVertexAttribArray(1);
-	//// UV attribute
-	//glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-	//// "Close" VBOs
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//// "Close" VAO
-	//glBindVertexArray(0);
 }
