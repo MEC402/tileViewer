@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include <time.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+
 
 CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth) 
 {
@@ -17,10 +16,8 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 	srand(time(NULL));
 
-	const float vertexIncrement = 2.0f / m_faceDimensions;
-
 	// Generate points for each of the 6 faces
-	for (int face = 0; face < 6; ++face) {
+	for (int face = 0; face < 6; face++) {
 		// Where in our vector to begin
 		int faceBegin = (m_faceQuads * m_datasize) * face;
 		// Where in our vector to end
@@ -109,11 +106,15 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 
 			// Random colors so we can see if we're generating the right number of quads per face
 			// This is unnecessary and can be removed from the final product, but it's useful for debugging
-			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			m_positions[quadPoint++] = 1.0f;
+			m_positions[quadPoint++] = 1.0f;
+			m_positions[quadPoint++] = 1.0f;
 
-
+			// So we know which texture to use
+			m_positions[quadPoint++] = (float)face;
 
 			xOffset += m_TILESTEP;
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
@@ -122,53 +123,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(maxResDepth)
 			}
 		}
 	}
-	m_initTextureAtlas();
 	m_setupOGL();
-}
-
-void CubePoints::m_initTextureAtlas()
-{
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// unused is...unused, but required to make the stbi_info call
-	int unused;
-	stbi_info("container_x4.jpg", &m_maxWidth, &m_maxHeight, &unused);
-
-	glActiveTexture(GL_TEXTURE0);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_maxWidth, m_maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-
-	loadTexture("container.jpg");
-}
-
-void CubePoints::loadTexture(const char *path)
-{
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
-	if (data) {
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
-	} else {
-		fprintf(stderr, "Failed to load image");
-	}
-	stbi_image_free(data);
-	m_curWidth = width;
-	m_curHeight = height;
-}
-
-float CubePoints::TxScalingX()
-{
-	return (float)m_curWidth / (float)m_maxWidth;
-}
-
-float CubePoints::TxScalingY()
-{
-	return (float)m_curHeight / (float)m_maxHeight;
 }
 
 void CubePoints::m_setupOGL() 
@@ -198,6 +153,10 @@ void CubePoints::m_setupOGL()
 	// Bind our rgb
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// Which face the quad belongs to
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(9 * sizeof(float)));
 
 	glBindVertexArray(0);
 }
