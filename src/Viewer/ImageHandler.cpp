@@ -26,7 +26,7 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
-		LoadImageFromPath(path, i, 0);
+		LoadImageFromPath(path, i, maxDepth);
 	}
 
 	//std::thread threads[6];
