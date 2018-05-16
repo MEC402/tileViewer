@@ -9,7 +9,6 @@ public:
 	CubePoints(int maxResDepth);
 	~CubePoints() = default;
 
-	void doubleUVs();
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
 	GLsizei m_NumVertices{ 0 };
@@ -19,11 +18,9 @@ private:
 	int m_maxResDepth{ 0 };
 	int m_currentResDepth{ 0 };
 
-
 	// Magic hardcoded number please do not forget about me
-	int m_datasize{ 9 };
+	int m_datasize{ 10 };
 	// No really don't forget about it look right here
-
 
 	int m_faceDimensions{ 0 };
 	int m_faceQuads{ 0 };
@@ -38,4 +35,5 @@ private:
 	GLuint m_UVCordsVBOID{ 0 };
 
 	void m_setupOGL();
+	
 };
