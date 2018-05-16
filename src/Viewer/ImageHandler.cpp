@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 #include <windows.h>
+#include <thread>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -22,70 +24,88 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	int maxDepth = maxResDepth(path);
 	fprintf(stderr, "Maximum depth level found: %d\n", maxDepth);
 
-	//TODO Parameterize depth levels
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
-		LoadImageFromPath(path, i, maxDepth);
+		LoadImageFromPath(path, i, 0);
 	}
+
+	//std::thread threads[6];
+	////TODO Parameterize depth levels
+	//for (int i = 0; i < 6; i++) {
+	//	initFaceAtlas(i, maxDepth, program);
+	//	threads[i] = std::thread(LoadImageFromPath, path, i, maxDepth);
+	//}
+	//for (int i = 0; i < 6; i++) {
+	//	threads[i].join();
+	//}
+	fprintf(stderr, "Done loading images\n");
 }
 
 void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 {
 	const char *facename = "";
+	int activeTexture;
 	switch (face) {
 	case 0:
 		facename = "f";
-		glActiveTexture(GL_TEXTURE0);
+		activeTexture = GL_TEXTURE0;
 		break;
 	case 1:
 		facename = "b";
-		glActiveTexture(GL_TEXTURE1);
+		activeTexture = GL_TEXTURE1;
 		break;
 	case 2:
 		facename = "r";
-		glActiveTexture(GL_TEXTURE2);
+		activeTexture = GL_TEXTURE2;
 		break;
 	case 3:
 		facename = "l";
-		glActiveTexture(GL_TEXTURE3);
+		activeTexture = GL_TEXTURE3;
 		break;
 	case 4:
 		facename = "u";
-		glActiveTexture(GL_TEXTURE4);
+		activeTexture = GL_TEXTURE4;
 		break;
 	case 5:
 		facename = "d";
-		glActiveTexture(GL_TEXTURE5);
+		activeTexture = GL_TEXTURE5;
 		break;
 	}
+
 	fprintf(stderr, "Loading tile data for face: %s At depth level: %d\n", facename, depth+1);
 	// This seems to work pretty nicely
 	int w_offset = 0;
 	int h_offset = 0;
 	int maxDepth = pow(2, depth);
-	int width, height, nrChannels;
-	for (int j = 0; j < maxDepth; j++) {
-		for (int i = 0; i < maxDepth; i++) {
-			char buf[60];
-			sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", 
-				path, depth+1, facename, j, i);
-			//fprintf(stderr, "%s\n", buf);
-			unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
-			if (d) {
-				glTexSubImage2D(GL_TEXTURE_2D, 0, w_offset, h_offset, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+//	int width, height, nrChannels;
+	std::vector<std::thread> threads(maxDepth);
+	imageData *imgData = new imageData[maxDepth];
+	//unsigned char *imgData = new unsigned char[maxDepth];
+	stbi_set_flip_vertically_on_load(1);
+
+	//std::vector<std::vector<unsigned char*>> imgData(maxDepth, std::vector<unsigned char*>(maxDepth));
+	//for (int i = maxDepth - 1; i > -1; i--) {
+	for (int i = 0; i < maxDepth; i++) {
+		for (int j = 0; j < maxDepth; j++) {
+			threads[j] = std::thread(threadedImageLoad, path, depth, facename, i, j, &imgData[j]);
+		}
+		for (int k = 0; k < maxDepth; k++) {
+			threads[k].join();
+		}
+		for (int k = 0; k < maxDepth; k++) {
+			imageData d = imgData[k];
+			if (d.data) {
+				glTexSubImage2D(GL_TEXTURE_2D, 0, d.w_offset, d.h_offset, d.width, d.height, GL_RGB, GL_UNSIGNED_BYTE, d.data);
 			}
 			else {
-				fprintf(stderr, "Failed to load image\n");
+				fprintf(stderr, "Error loading image file!\n");
 			}
-			stbi_image_free(d);
-			w_offset += width;
+			stbi_image_free(d.data);
 		}
-		h_offset += height;
-		w_offset = 0;
 	}
-	
-	m_faceWidth[face] = width * pow(2, depth);
-	m_faceHeight[face] = height * pow(2, depth);
+	m_faceWidth[face] = 512 * maxDepth;
+	m_faceHeight[face] = 512 * maxDepth;
+	delete[] imgData;
 }
 
 float ImageHandler::TxScalingX(int face)
@@ -99,6 +119,21 @@ float ImageHandler::TxScalingY(int face)
 }
 
 /* ---------------- Private Functions ---------------- */
+
+void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
+{
+	char buf[60];
+	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg",
+		path, depth + 1, facename, i, j);
+	int width, height, nrChannels;
+	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
+	if (d) {
+		*data = { d, width, height, width * j, height * i };
+	}
+	else {
+		fprintf(stderr, "Failed to load image\n");
+	}
+}
 
 void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 {

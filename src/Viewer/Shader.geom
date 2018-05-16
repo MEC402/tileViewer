@@ -6,37 +6,33 @@ layout(triangle_strip, max_vertices = 4) out;
 in VOUT {
 	vec3 vColor;
 	vec3 vOffset;
-	float vFace;
+	flat highp int vFace;
 } vin[];
 
 out vec2 txCoord;
 out vec3 fColor;	
-out float fFace;
+flat out highp int fFace;
 
 
 uniform mat4 MVP;
 uniform vec2 TxScaling;
 
-vec2 getTxCoord(vec4 pos, float face)
+vec2 getTxCoord(vec4 pos, int face)
 {
 	pos = pos + vec4(0.5, 0.5, 0.5, 1.0);
-	if (face == 0.0) { // Front
-		return TxScaling * vec2(pos.x, -pos.y);
-	}
-	if (face == 1.0) { // Back
-		return TxScaling * vec2(-pos.x, -pos.y);
-	}
-	if (face == 2.0) { // Right
-		return TxScaling * vec2(pos.z, -pos.y);
-	}
-	if (face == 3.0) { // Left
-		return TxScaling * vec2(-pos.z, -pos.y);
-	}
-	if (face == 4.0) { // Top
-		return TxScaling * vec2(pos.x, -pos.z);
-	}
-	if (face == 5.0) { // Bottom
-		return TxScaling * vec2(pos.x, pos.z);
+	switch (face) {
+		case 0:
+			return TxScaling * vec2(pos.x, pos.y);
+		case 1:
+			return TxScaling * vec2(-pos.x, pos.y);
+		case 2:
+			return TxScaling * vec2(pos.z, pos.y);
+		case 3:
+			return TxScaling * vec2(-pos.z, pos.y);
+		case 4:
+			return TxScaling * vec2(pos.x, -pos.z);
+		case 5:
+			return TxScaling * vec2(pos.x, pos.z);
 	}
 }
 
