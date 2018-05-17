@@ -6,6 +6,7 @@ class ImageHandler {
 public:
 	static void InitTextureAtlas(GLuint program);
 	static void LoadImageFromPath(const char *path, int face, int depth);
+	static void LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth);
 	static float TxScalingX(int face);
 	static float TxScalingY(int face);
 

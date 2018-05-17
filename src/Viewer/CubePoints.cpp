@@ -145,6 +145,33 @@ void CubePoints::FaceNextDepth(int face)
 		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
 	}
 
+
+	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// Look into glBufferSubData() and see if we can't use that instead
+	glBindVertexArray(m_PositionVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	
+	glBindVertexArray(0);
+}
+
+int CubePoints::QuadCurrentDepth(int face, int row, int col)
+{
+	int startIndex = face * (m_datasize * m_faceQuads);
+	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	return m_positions[quadToChange + 10];
+}
+
+void CubePoints::QuadNextDepth(int face, int row, int col)
+{
+	int startIndex = face * (m_datasize * m_faceQuads);
+	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	m_positions[quadToChange + 10]++;
+
+	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
@@ -152,12 +179,6 @@ void CubePoints::FaceNextDepth(int face)
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 
 	glBindVertexArray(0);
-}
-
-void CubePoints::QuadNextDepth(int face, int row, int col)
-{
-	fprintf(stderr, "QuadNextDepth Not implemented!\n");
-	return;
 }
 
 void CubePoints::m_setupOGL() 

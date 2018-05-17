@@ -10,6 +10,7 @@ public:
 	~CubePoints() = default;
 	int FaceCurrentDepth(int face);
 	void FaceNextDepth(int face);
+	int QuadCurrentDepth(int face, int row, int col);
 	void QuadNextDepth(int face, int row, int col);
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };

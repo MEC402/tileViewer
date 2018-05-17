@@ -41,6 +41,71 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	fprintf(stderr, "Done loading images\n");
 }
 
+void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth)
+{
+	const char *facename = "";
+	int activeTexture;
+
+	// TODO: We need to keep setting facename, but activeTexture no longer does anything in here
+	// This is because we're executing initFaceAtlas and then LoadImageFromPath sequentially on the main thread,
+	// so the OpenGL context still has the active texture from initFaceAtlas
+	// This WILL break if we change that call structure, make sure we don't forget about it
+	switch (face) {
+	case 0:
+		facename = "f";
+		activeTexture = GL_TEXTURE0;
+		break;
+	case 1:
+		facename = "b";
+		activeTexture = GL_TEXTURE1;
+		break;
+	case 2:
+		facename = "r";
+		activeTexture = GL_TEXTURE2;
+		break;
+	case 3:
+		facename = "l";
+		activeTexture = GL_TEXTURE3;
+		break;
+	case 4:
+		facename = "u";
+		activeTexture = GL_TEXTURE4;
+		break;
+	case 5:
+		facename = "d";
+		activeTexture = GL_TEXTURE5;
+		break;
+	}
+
+	char buf[60];
+	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, facename, row, col);
+	int width, height, nrChannels;
+	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
+	if (d) {
+		glActiveTexture(activeTexture);
+		//glTexSubImage2D(GL_TEXTURE_2D, 0, col * 512, row * 512, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 1024, 1024, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+		switch (glGetError()) {
+		case GL_INVALID_ENUM:
+			fprintf(stderr, "Got INVALID_ENUM return\n");
+			break;
+		case GL_INVALID_OPERATION:
+			fprintf(stderr, "Got INVALID_OPERATION return\n");
+			break;
+		case GL_INVALID_VALUE:
+			fprintf(stderr, "Got INVALID_VALUE return\n");
+			break;
+		default:
+			fprintf(stderr, "No error returned\n");
+			break;
+		}
+	}
+	else {
+		fprintf(stderr, "Error loading image file!\n");
+	}
+	stbi_image_free(d);
+}
+
 void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 {
 	const char *facename = "";
@@ -187,8 +252,8 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	}
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

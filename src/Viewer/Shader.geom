@@ -24,11 +24,22 @@ float segl = 1.0 / (wl * 1.0);
 
 vec2 getST(vec4 pos, int face)
 {
-	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
-	
 	if (Debug) {
-		return vec2(1.0, 1.0);
+		pos = pos + vec4(0.5, 0.5, 0.5, 1.0);
+		switch (face) {
+			case 0:
+			case 1:
+				return vec2(pos.x, pos.y);
+			case 2:
+			case 3:
+				return vec2(pos.z, pos.y);
+			case 4:
+			case 5:
+				return vec2(pos.x, pos.z);
+		}
 	}
+
+	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
 
 	switch (face) {
 		case 0:
