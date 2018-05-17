@@ -45,6 +45,11 @@ void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 {
 	const char *facename = "";
 	int activeTexture;
+
+	// TODO: We need to keep setting facename, but activeTexture no longer does anything in here
+	// This is because we're executing initFaceAtlas and then LoadImageFromPath sequentially on the main thread,
+	// so the OpenGL context still has the active texture from initFaceAtlas
+	// This WILL break if we change that call structure, make sure we don't forget about it
 	switch (face) {
 	case 0:
 		facename = "f";
@@ -73,25 +78,31 @@ void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 	}
 
 	fprintf(stderr, "Loading tile data for face: %s At depth level: %d\n", facename, depth+1);
+	
 	// This seems to work pretty nicely
-	int w_offset = 0;
-	int h_offset = 0;
-	int maxDepth = pow(2, depth);
-//	int width, height, nrChannels;
+	
+	int w_offset = 0; // No longer necessary?
+	int h_offset = 0; // No longer necessary?
+	int maxDepth = pow(2, depth); // Get the 2^n maximal depth to search for
 	std::vector<std::thread> threads(maxDepth);
 	imageData *imgData = new imageData[maxDepth];
-	//unsigned char *imgData = new unsigned char[maxDepth];
-	stbi_set_flip_vertically_on_load(1);
+	//stbi_set_flip_vertically_on_load(1); // May or may not need this
 
-	//std::vector<std::vector<unsigned char*>> imgData(maxDepth, std::vector<unsigned char*>(maxDepth));
-	//for (int i = maxDepth - 1; i > -1; i--) {
 	for (int i = 0; i < maxDepth; i++) {
+
+		// Threaded calls to dump images from disk into an array of imageData structs
 		for (int j = 0; j < maxDepth; j++) {
 			threads[j] = std::thread(threadedImageLoad, path, depth, facename, i, j, &imgData[j]);
 		}
+
+		// Join the threads
 		for (int k = 0; k < maxDepth; k++) {
 			threads[k].join();
 		}
+
+		// Take all our imagedata and dump it into the GPU Texture Atlas
+		// TODO: This needs to factored out into Viewer.cpp:idleFunc() to read from a thread-safe queue
+		//		 That way we can run the load process in the background and stick tiles in as we load them, instead of blocking and waiting
 		for (int k = 0; k < maxDepth; k++) {
 			imageData d = imgData[k];
 			if (d.data) {
@@ -122,6 +133,7 @@ float ImageHandler::TxScalingY(int face)
 
 void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
 {
+	// Directory structure is: path\\depth level\\facename\\row\\column
 	char buf[60];
 	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg",
 		path, depth + 1, facename, i, j);
@@ -133,12 +145,13 @@ void ImageHandler::threadedImageLoad(const char *path, int depth, const char *fa
 	else {
 		fprintf(stderr, "Failed to load image\n");
 	}
+	// Don't call stbi_free() here, call it back in LoadImageFromPath after we try to dump images into the GPU
 }
 
 void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 {
 	int unused;
-	//TODO: Need to look at the deepest level *for this face*, not just hardcoded
+	//TODO: Need to look at the deepest level *for the given face*, not just hardcoded
 	stbi_info("f_0.jpg", &m_maxWidth[face], &m_maxHeight[face], &unused);
 	
 	m_maxWidth[face] *= pow(2, depth);
@@ -188,6 +201,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	}
 }
 
+// Gnarly WIN32 API calls to traverse a given directory and find out max resolution depth
 int ImageHandler::maxResDepth(const char *path)
 {
 	WIN32_FIND_DATAA findfiledata;
@@ -216,5 +230,6 @@ int ImageHandler::maxResDepth(const char *path)
 			depth = output[i];
 	}
 
+	// Reduce depth by 1, since folders are listed 1/2/3/4 instead of 0/1/2/3
 	return depth-1;
 }

@@ -19,7 +19,7 @@ private:
 	int m_currentResDepth{ 0 };
 
 	// Magic hardcoded number please do not forget about me
-	int m_datasize{ 10 };
+	int m_datasize{ 11 };
 	// No really don't forget about it look right here
 
 	int m_faceDimensions{ 0 };

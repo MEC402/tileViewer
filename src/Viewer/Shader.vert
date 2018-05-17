@@ -4,11 +4,13 @@ in vec3 pos;
 in vec3 offset;
 in vec3 color;
 in float face;
+in float depth;
 
 out VOUT {
 	vec3 vColor;
 	vec3 vOffset;
 	flat highp int vFace;
+	flat highp int vDepth;
 } vout;
 
 void main() 
@@ -17,4 +19,5 @@ void main()
 	vout.vColor = color;
 	vout.vOffset = offset;
 	vout.vFace = int(face);
+	vout.vDepth = int(depth);
 }

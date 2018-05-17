@@ -114,8 +114,12 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 			m_positions[quadPoint++] = 1.0f;
 			m_positions[quadPoint++] = 1.0f;
 
+
+
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
+
+			m_positions[quadPoint++] = 3.0f;
 
 			xOffset += m_TILESTEP;
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
@@ -158,6 +162,10 @@ void CubePoints::m_setupOGL()
 	// Which face the quad belongs to
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(9 * sizeof(float)));
+
+	// Depth level
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 
 	glBindVertexArray(0);
 }

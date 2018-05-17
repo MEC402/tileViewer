@@ -39,6 +39,25 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &src, nullptr);
 	glCompileShader(shader);
+	GLint isCompiled = 0;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+	if (isCompiled == GL_FALSE)
+	{
+		fprintf(stderr, "Error compiling shader: %d", type);
+		GLint maxLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+
+		// The maxLength includes the NULL character
+		std::vector<GLchar> errorLog(maxLength);
+		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
+		for (int i = 0; i < errorLog.size(); i++)
+			fprintf(stderr, "%c", errorLog[i]);
+		fprintf(stderr, "\n");
+		// Provide the infolog in whatever manor you deem best.
+		// Exit with failure.
+		glDeleteShader(shader); // Don't leak the shader.
+		return NULL;
+	}
 	return shader;
 }
 
