@@ -84,7 +84,7 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	if (d) {
 		glActiveTexture(activeTexture);
 		//glTexSubImage2D(GL_TEXTURE_2D, 0, col * 512, row * 512, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 1024, 1024, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, col * 512, row * 512, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 		switch (glGetError()) {
 		case GL_INVALID_ENUM:
 			fprintf(stderr, "Got INVALID_ENUM return\n");

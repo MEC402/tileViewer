@@ -168,7 +168,7 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 {
 	int startIndex = face * (m_datasize * m_faceQuads);
 	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
-	m_positions[quadToChange + 10]++;
+	m_positions[quadToChange + 10] = 3;
 
 	//TODO: This might be an incredibly expensive way to update our VBO/VAO
 	// Look into glBufferSubData() and see if we can't use that instead
