@@ -26,7 +26,7 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
-		LoadImageFromPath(path, i, maxDepth);
+		LoadImageFromPath(path, i, 0);
 	}
 
 	//std::thread threads[6];
@@ -106,6 +106,7 @@ void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 		for (int k = 0; k < maxDepth; k++) {
 			imageData d = imgData[k];
 			if (d.data) {
+				glActiveTexture(activeTexture);
 				glTexSubImage2D(GL_TEXTURE_2D, 0, d.w_offset, d.h_offset, d.width, d.height, GL_RGB, GL_UNSIGNED_BYTE, d.data);
 			}
 			else {
@@ -186,10 +187,10 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	}
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_maxWidth[face], m_maxHeight[face], 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	GLuint TxUniform = glGetUniformLocation(program, uniform);

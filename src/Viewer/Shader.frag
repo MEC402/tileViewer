@@ -31,7 +31,7 @@ void main()
 			outColor = texture(TxTop, txCoord)* vec4(fColor, 1.0);
 			break;
 		case 5:
-			outColor = texture(TxBottom, txCoord)* vec4(fColor, 1.0);
+			outColor = texture(TxBottom, txCoord) * vec4(fColor, 1.0);
 			break;
 	}
 }
