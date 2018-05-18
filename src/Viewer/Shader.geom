@@ -25,18 +25,7 @@ float segl = 1.0 / (wl * 1.0);
 vec2 getST(vec4 pos, int face)
 {
 	if (Debug) {
-		pos = pos + vec4(0.5, 0.5, 0.5, 1.0);
-		switch (face) {
-			case 0:
-			case 1:
-				return vec2(pos.x, pos.y);
-			case 2:
-			case 3:
-				return vec2(pos.z, pos.y);
-			case 4:
-			case 5:
-				return vec2(pos.x, pos.z);
-		}
+		segl = 1.0;
 	}
 
 	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
@@ -129,7 +118,7 @@ void main()
 {
 	// Color is unnecessary but useful for debugging, can be removed in the final product
 	fColor = vin[0].vColor;
-	//fColor = vec3(0.5, 0.5, 0.5)
+	//fColor = vec3(1.0, 0.5, 0.5)
 	
 	float x = vin[0].vOffset.x;
 	float y = vin[0].vOffset.y;

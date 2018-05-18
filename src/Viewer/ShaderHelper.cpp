@@ -1,17 +1,68 @@
 #include "stdafx.h"
+
+GLuint ShaderHelper::m_program;
+GLuint ShaderHelper::m_vertShader;
+GLuint ShaderHelper::m_geomShader;
+GLuint ShaderHelper::m_fragShader;
+
+/* ---------------- Public Functions ---------------- */
+
 GLuint ShaderHelper::CreateProgram()
 {
-	GLuint vertShader = loadShader(GL_VERTEX_SHADER, "Shader.vert");
-	GLuint geomShader = loadShader(GL_GEOMETRY_SHADER, "Shader.geom");
-	GLuint fragShader = loadShader(GL_FRAGMENT_SHADER, "Shader.frag");
+	m_vertShader = loadShader(GL_VERTEX_SHADER, "Shader.vert");
+	m_geomShader = loadShader(GL_GEOMETRY_SHADER, "Shader.geom");
+	m_fragShader = loadShader(GL_FRAGMENT_SHADER, "Shader.frag");
 
 	GLuint program = glCreateProgram();
-	glAttachShader(program, vertShader);
-	glAttachShader(program, geomShader);
-	glAttachShader(program, fragShader);
+	glAttachShader(program, m_vertShader);
+	glAttachShader(program, m_geomShader);
+	glAttachShader(program, m_fragShader);
 	glLinkProgram(program);
 	glUseProgram(program);
+	m_program = program;
 	return program;
+}
+
+GLuint ShaderHelper::ReloadShader(GLenum type)
+{
+	switch (type) {
+	case GL_VERTEX_SHADER:
+		return reloadShader(type, m_vertShader, "Shader.vert");
+		break;
+	case GL_GEOMETRY_SHADER:
+		return reloadShader(type, m_geomShader, "Shader.geom");
+		break;
+	case GL_FRAGMENT_SHADER:
+		return reloadShader(type, m_fragShader, "Shader.frag");
+		break;
+	default:
+		fprintf(stderr, "No such shader type found\n");
+		return -1;
+	}
+}
+
+/* ---------------- Private Functions ---------------- */
+
+
+GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char* path)
+{
+	glDetachShader(m_program, shader);
+	shader = loadShader(type, path);
+	glAttachShader(m_program, shader);
+	glLinkProgram(m_program);
+	glUseProgram(m_program);
+	return m_program;
+}
+
+GLuint ShaderHelper::loadShader(GLenum type, const char* path)
+{
+	std::string shaderData = readFile(path);
+	if (shaderData == "") {
+		fprintf(stderr, "Could not loader shader.");
+		return -1;
+	}
+	const char *shaderSrc = shaderData.c_str();
+	return createShader(type, shaderSrc);
 }
 
 std::string ShaderHelper::readFile(const char *filePath)
@@ -59,15 +110,4 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
 		return NULL;
 	}
 	return shader;
-}
-
-GLuint ShaderHelper::loadShader(GLenum type, const char* path)
-{
-	std::string shaderData = readFile(path);
-	if (shaderData == "") {
-		fprintf(stderr, "Could not loader shader.");
-		return -1;
-	}
-	const char *shaderSrc = shaderData.c_str();
-	return createShader(type, shaderSrc);
 }

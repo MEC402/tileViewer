@@ -9,6 +9,7 @@ public:
 	static void LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth);
 	static float TxScalingX(int face);
 	static float TxScalingY(int face);
+	static void RebindTextures(GLuint program);
 
 private:
 	struct imageData {
@@ -28,5 +29,5 @@ private:
 	static int m_faceWidth[6];
 	static int m_faceHeight[6];
 	static GLuint m_textures[6];
-
+	static const char *txUniforms[6];
 };

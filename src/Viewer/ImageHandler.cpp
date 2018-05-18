@@ -12,6 +12,8 @@ int ImageHandler::m_maxHeight[6];
 int ImageHandler::m_faceWidth[6];
 int ImageHandler::m_faceHeight[6];
 GLuint ImageHandler::m_textures[6];
+const char *ImageHandler::txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
+
 
 /* ---------------- Public Functions ---------------- */
 
@@ -195,6 +197,21 @@ float ImageHandler::TxScalingY(int face)
 	return (float)m_faceHeight[face] / (float)m_maxHeight[face];
 }
 
+
+// For use after doing a hot-reload on shaders
+void ImageHandler::RebindTextures(GLuint program)
+{
+	for (int i = 0; i < 6; i++) {
+		GLuint TxUniform = glGetUniformLocation(program, txUniforms[i]);
+		if (TxUniform == -1) {
+			fprintf(stderr, "Error getting %s uniform\n", txUniforms[i]);
+		}
+		else {
+			glUniform1i(TxUniform, i);
+		}
+	}
+}
+
 /* ---------------- Private Functions ---------------- */
 
 void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
@@ -223,33 +240,8 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	m_maxWidth[face] *= pow(2, depth);
 	m_maxHeight[face] *= pow(2, depth);
 
-	const char *uniform = "";
-	switch (face) {
-	case 0:
-		uniform = "TxFront";
-		glActiveTexture(GL_TEXTURE0);
-		break;
-	case 1:
-		uniform = "TxBack";
-		glActiveTexture(GL_TEXTURE1);
-		break;
-	case 2:
-		uniform = "TxRight";
-		glActiveTexture(GL_TEXTURE2);
-		break;
-	case 3:
-		uniform = "TxLeft";
-		glActiveTexture(GL_TEXTURE3);
-		break;
-	case 4:
-		uniform = "TxTop";
-		glActiveTexture(GL_TEXTURE4);
-		break;
-	case 5:
-		uniform = "TxBottom";
-		glActiveTexture(GL_TEXTURE5);
-		break;
-	}
+	const char *uniform = txUniforms[face];
+	glActiveTexture(GL_TEXTURE0 + face);
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
