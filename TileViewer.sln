@@ -5,12 +5,25 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C40B19F0-B57D-42C3-94A7-5A2E4D84675A}"
 	ProjectSection(SolutionItems) = preProject
+		deps\include\GLEW\eglew.h = deps\include\GLEW\eglew.h
+		deps\include\GLEW\glew.h = deps\include\GLEW\glew.h
+		deps\lib\x64\glew32s.lib = deps\lib\x64\glew32s.lib
+		deps\include\GLEW\glxew.h = deps\include\GLEW\glxew.h
 		README.md = README.md
+		bin\Release\x64\SDL2.dll = bin\Release\x64\SDL2.dll
+		deps\lib\x64\SDL2.lib = deps\lib\x64\SDL2.lib
+		deps\lib\x64\SDL2main.lib = deps\lib\x64\SDL2main.lib
+		deps\include\GLEW\wglew.h = deps\include\GLEW\wglew.h
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Viewer", "src\Viewer\Viewer.vcxproj", "{AA714E65-CFC8-4171-A514-7961713BAD41}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TileViewer", "Futhark\Futhark.vcxproj", "{3524243C-5261-4C55-BB04-22C23F473846}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Futhark", "Futhark\Futhark.vcxproj", "{3524243C-5261-4C55-BB04-22C23F473846}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TileViewer", "TileViewer\TileViewer.vcxproj", "{79929BD2-6646-4138-8574-C9C6206B14CB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3524243C-5261-4C55-BB04-22C23F473846} = {3524243C-5261-4C55-BB04-22C23F473846}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +49,14 @@ Global
 		{3524243C-5261-4C55-BB04-22C23F473846}.Release|x64.Build.0 = Release|x64
 		{3524243C-5261-4C55-BB04-22C23F473846}.Release|x86.ActiveCfg = Release|Win32
 		{3524243C-5261-4C55-BB04-22C23F473846}.Release|x86.Build.0 = Release|Win32
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Debug|x64.ActiveCfg = Debug|x64
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Debug|x64.Build.0 = Debug|x64
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Debug|x86.ActiveCfg = Debug|Win32
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Debug|x86.Build.0 = Debug|Win32
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Release|x64.ActiveCfg = Release|x64
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Release|x64.Build.0 = Release|x64
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Release|x86.ActiveCfg = Release|Win32
+		{79929BD2-6646-4138-8574-C9C6206B14CB}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -26,21 +26,25 @@
 
 #pragma once
 #include <vector>
+namespace fk {
 
-/* Decodes a PNG file buffer in memory, into a raw pixel buffer.
-(out_image)< The raw pixels after decoding. By default the output is 32-bit RGBA color.
-The std::vector is automatically resized to the correct size.
-(image_width)< The width of the image in pixels.
-(image_height)< The height of the image in pixels.
-(in_png) Pointer to the buffer of the PNG file in memory. To get it from a file on
-disk, load it and store it in a memory buffer yourself first.
-(in_size) Size of the input PNG file in bytes.
-(convert_to_rgba32) If the output should be in RGBA 32-bit (8 bit per channel) color format no matter
-what color type the original PNG image had. This gives predictable, useable data from any random input PNG.
-< If the function failed. */
-extern int decodePNG(
-	std::vector<unsigned char>& out_image,
-	unsigned long& image_width, unsigned long& image_height,
-	const unsigned char* in_png, size_t in_size,
-	bool convert_to_rgba32 = true
-);
+
+	/* Decodes a PNG file buffer in memory, into a raw pixel buffer.
+	(out_image)< The raw pixels after decoding. By default the output is 32-bit RGBA color.
+	The std::vector is automatically resized to the correct size.
+	(image_width)< The width of the image in pixels.
+	(image_height)< The height of the image in pixels.
+	(in_png) Pointer to the buffer of the PNG file in memory. To get it from a file on
+	disk, load it and store it in a memory buffer yourself first.
+	(in_size) Size of the input PNG file in bytes.
+	(convert_to_rgba32) If the output should be in RGBA 32-bit (8 bit per channel) color format no matter
+	what color type the original PNG image had. This gives predictable, useable data from any random input PNG.
+	< If the function failed. */
+	extern int decodePNG(
+		std::vector<unsigned char>& out_image,
+		unsigned long& image_width, unsigned long& image_height,
+		const unsigned char* in_png, size_t in_size,
+		bool convert_to_rgba32 = true
+	);
+
+}

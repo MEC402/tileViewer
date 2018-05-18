@@ -29,45 +29,45 @@
 namespace fk {
 
 
-static void clearGLErrors() {
-	while (glGetError() != GL_NO_ERROR);
-}
-static bool checkGLError(const char* function, const char* file, int line) {
-	bool returnVal = false;
-	while (GLenum error = glGetError()) {
-		std::cout << "[OpenGL Error] (" << error << ") with function:\n"
-			<< function << "\n"
-			<< "in " << file << "\n"
-			<< "at " << line << "\n\n";
-		returnVal = true;
+	static void clearGLErrors() {
+		while (glGetError() != GL_NO_ERROR);
 	}
-	return returnVal;
-}
-static void clearSDLErrors() {
-	while (SDL_GetError() != "") { SDL_ClearError(); }
-}
-static bool checkSDLError(const char* function, const char* file, int line) {
-	bool returnVal = false;
-	std::string error = SDL_GetError();
-	if (error != "") {
-		std::cout << "[SDL Error] (" << error.c_str() << ") with function:\n"
-			<< function << "\n"
-			<< "in " << file << "\n"
-			<< "at " << line << "\n\n";
-		returnVal = true;
+	static bool checkGLError(const char* function, const char* file, int line) {
+		bool returnVal = false;
+		while (GLenum error = glGetError()) {
+			std::cout << "[OpenGL Error] (" << error << ") with function:\n"
+				<< function << "\n"
+				<< "in " << file << "\n"
+				<< "at " << line << "\n\n";
+			returnVal = true;
+		}
+		return returnVal;
 	}
-	return returnVal;
-}
-static bool checkGLEWError(unsigned int errorCode, const char* function, const char* file, int line) {
-	bool returnVal = false;
-	if (errorCode != GLEW_OK) {
-		std::cout << "[GLEW Error] (" << glewGetErrorString(errorCode) << ") with function:\n"
-			<< function << "\n"
-			<< "in " << file << "\n"
-			<< "at " << line << "\n\n";
-		returnVal = true;
+	static void clearSDLErrors() {
+		while (SDL_GetError() != "") { SDL_ClearError(); }
 	}
-	return returnVal;
-}
+	static bool checkSDLError(const char* function, const char* file, int line) {
+		bool returnVal = false;
+		std::string error = SDL_GetError();
+		if (error != "") {
+			std::cout << "[SDL Error] (" << error.c_str() << ") with function:\n"
+				<< function << "\n"
+				<< "in " << file << "\n"
+				<< "at " << line << "\n\n";
+			returnVal = true;
+		}
+		return returnVal;
+	}
+	static bool checkGLEWError(unsigned int errorCode, const char* function, const char* file, int line) {
+		bool returnVal = false;
+		if (errorCode != GLEW_OK) {
+			std::cout << "[GLEW Error] (" << glewGetErrorString(errorCode) << ") with function:\n"
+				<< function << "\n"
+				<< "in " << file << "\n"
+				<< "at " << line << "\n\n";
+			returnVal = true;
+		}
+		return returnVal;
+	}
 
 }
