@@ -1,0 +1,330 @@
+{
+"title": "Rancho Las Cruces",
+"panos": [
+{"id": "BarDinning",
+ "name": "Casa Serena Sitting Room",
+ "left": "panodbase/rlctiles/BarDinning/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/BarDinning/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/BarDinning/thumb.png",
+ "icon": "icon-casa-serena-sitting-room.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "HouseHallway", "yaw": 2.5, "pitch": 0.0 }
+ ]}
+,
+{"id": "BigHouse_pool",
+ "name": "Casa Serena Poolside ",
+ "left": "panodbase/rlctiles/BigHouse_pool/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/BigHouse_pool/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/BigHouse_pool/thumb.png",
+ "icon": "icon-casa-serena-poolside.png",
+ "yaw": -2.0,
+ "navlink": [
+{ "id": "ThreeCroses3", "yaw": 0.1, "pitch": -0.1 }
+,
+{ "id": "SharkStand", "yaw": 1.65, "pitch": -0.08 }
+,
+{ "id": "HouseBeachView", "yaw": 2.5, "pitch": -0.1 }
+,
+{ "id": "HouseHallway", "yaw": -1.5, "pitch": 0.0 }
+ ]}
+,
+{"id": "ChurchDoors",
+ "name": "Church Lobby",
+ "left": "panodbase/rlctiles/ChurchDoors/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ChurchDoors/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ChurchDoors/left/1/f/0/0.jpg",
+ "icon": "icon-church-lobby.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "Church_statue", "yaw": -2.9, "pitch": 0.0 }
+ ]}
+,
+{"id": "Church_statue",
+ "name": "Church Veranda",
+ "left": "panodbase/rlctiles/Church_statue/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/Church_statue/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/Church_statue/left/1/f/0/0.jpg",
+ "icon": "icon-church-veranda.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "ChurchDoors", "yaw": 0.75, "pitch": 0.0 }
+,
+{ "id": "SharkStand", "yaw": 4.5, "pitch": -0.2 }
+ ]}
+,
+{"id": "DarkPoolTub",
+ "name": "Hacienda Santa Cruz Guest Home",
+ "left": "panodbase/rlctiles/DarkPoolTub/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/DarkPoolTub/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/DarkPoolTub/thumb.png",
+ "icon": "icon-hacienda-santa-cruz-guest-home.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "SharkStand", "yaw": 2.25, "pitch": 0.0 }
+ ]}
+,
+{"id": "DesiArnesHouse",
+ "name": "Private Oceanfront Home",
+ "left": "panodbase/rlctiles/DesiArnesHouse/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/DesiArnesHouse/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/DesiArnesHouse/thumb.png",
+ "icon": "icon-private-oceanfront-home.png",
+ "yaw": -2.0,
+ "navlink": [
+{ "id": "MainWalkwayLeft2", "yaw": 1.75, "pitch": -0.12 }
+ ]}
+,
+{"id": "EndFirePlace2",
+ "name": "Casa Serena Family Room",
+ "left": "panodbase/rlctiles/EndFirePlace2/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/EndFirePlace2/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/EndFirePlace2/left/1/f/0/0.jpg",
+ "icon": "icon-casa-serena-family-room.png",
+ "yaw": -1.8,
+ "navlink": [
+{ "id": "BigHouse_pool", "yaw": -0.5, "pitch": 0.0 }
+,
+{ "id": "HouseHallway", "yaw": 4.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "ExtHouseStones",
+ "name": "Las Cabanas Suite 4",
+ "left": "panodbase/rlctiles/ExtHouseStones/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ExtHouseStones/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ExtHouseStones/thumb.png",
+ "icon": "icon-las-cabanas-suite-4.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "IntGuestHouse-4", "yaw": -1.25, "pitch": 0.0 }
+,
+{ "id": "ExtHouseWalkway112", "yaw": 1.0, "pitch": 0.0 }
+,
+{ "id": "MainWalkwayLeft4", "yaw": 3.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "ExtHouseWalkway112",
+ "name": "Las Cabanas Suite 4 Malecon",
+ "left": "panodbase/rlctiles/ExtHouseWalkway112/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ExtHouseWalkway112/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ExtHouseWalkway112/left/1/f/0/0.jpg",
+ "icon": "icon-las-cabanas-suite-4-malecon.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "SharkStand", "yaw": -0.25, "pitch": 0.0 }
+,
+{ "id": "ExtHouseStones", "yaw": -2.2, "pitch": 0.0 }
+ ]}
+,
+{"id": "FirePlace",
+ "name": "Casa Serena Dining Room",
+ "left": "panodbase/rlctiles/FirePlace/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/FirePlace/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/FirePlace/left/1/f/0/0.jpg",
+ "icon": "icon-casa-serena-dining-room.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "BarDinning", "yaw": 1.0, "pitch": 0.0 }
+,
+{ "id": "HouseHallway", "yaw": -0.5, "pitch": 0.0 }
+ ]}
+,
+{"id": "HouseBeachView",
+ "name": "Hacienda Santa Cruz Vacation Home",
+ "left": "panodbase/rlctiles/HouseBeachView/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/HouseBeachView/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/HouseBeachView/left/1/f/0/0.jpg",
+ "icon": "icon-hacienda-santa-cruz-vacation-home.png",
+ "yaw": 1.0,
+ "navlink": [
+{ "id": "ThreeCroses3", "yaw": 2.7, "pitch": -0.1 }
+,
+{ "id": "InteriorGrillRoom", "yaw": 1.0, "pitch": 0.0 }
+,
+{ "id": "HouseFountain", "yaw": -0.5, "pitch": 0.0 }
+,
+{ "id": "SharkStand", "yaw": -1.7, "pitch": -0.1 }
+,
+{ "id": "BigHouse_pool", "yaw": 2.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "HouseFountain",
+ "name": "Hacienda Santa Cruz Garden Area",
+ "left": "panodbase/rlctiles/HouseFountain/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/HouseFountain/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/HouseFountain/thumb.png",
+ "icon": "icon-hacienda-santa-cruz-garden-area.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "Church_statue", "yaw": 3.0, "pitch": -0.12 }
+,
+{ "id": "HouseBeachView", "yaw": 0.75, "pitch": 0.0 }
+,
+{ "id": "SharkStand", "yaw": 2.5, "pitch": -0.1 }
+ ]}
+,
+{"id": "HouseHallway",
+ "name": "Casa Serena Foyer",
+ "left": "panodbase/rlctiles/HouseHallway/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/HouseHallway/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/HouseHallway/left/1/f/0/0.jpg",
+ "icon": "icon-casa-serena-foyer.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "EndFirePlace2", "yaw": -1.75, "pitch": 0.0 }
+,
+{ "id": "BarDinning", "yaw": 2.0, "pitch": 0.0 }
+,
+{ "id": "BigHouse_pool", "yaw": -2.5, "pitch": 0.0 }
+,
+{ "id": "FirePlace", "yaw": 2.5, "pitch": 0.0 }
+ ]}
+,
+{"id": "IntAlcoveStatue",
+ "name": "Resort Cafe Area",
+ "left": "panodbase/rlctiles/IntAlcoveStatue/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/IntAlcoveStatue/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/IntAlcoveStatue/left/1/f/0/0.jpg",
+ "icon": "icon-resort-cafe-area.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "IntDiningHall-2", "yaw": 2.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "IntDiningHall-2",
+ "name": "Resort Breakfast Room",
+ "left": "panodbase/rlctiles/IntDiningHall-2/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/IntDiningHall-2/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/IntDiningHall-2/left/1/f/0/0.jpg",
+ "icon": "icon-resort-breakfast-room.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "IntAlcoveStatue", "yaw": 0.5, "pitch": 0.0 }
+,
+{ "id": "IntResortSeaRoom2", "yaw": -2.0, "pitch": 0.0 }
+,
+{ "id": "SharkStand", "yaw": -1.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "InteriorGrillRoom",
+ "name": "Hacienda Santa Cruz Sitting Room",
+ "left": "panodbase/rlctiles/InteriorGrillRoom/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/InteriorGrillRoom/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/InteriorGrillRoom/left/1/f/0/0.jpg",
+ "icon": "icon-hacienda-santa-cruz-sitting-room.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "HouseBeachView", "yaw": -2.0, "pitch": 0.0 }
+,
+{ "id": "HouseFountain", "yaw": -0.4, "pitch": 0.0 }
+ ]}
+,
+{"id": "IntGuestHouse-4",
+ "name": "Las Cabanas Suite 4 Sitting Room",
+ "left": "panodbase/rlctiles/IntGuestHouse-4/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/IntGuestHouse-4/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/IntGuestHouse-4/thumb.png",
+ "icon": "icon-las-cabanas-suite-1-sitting-room.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "ExtHouseStones", "yaw": 2.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "IntResortSeaRoom2",
+ "name": "Poolside Rooms",
+ "left": "panodbase/rlctiles/IntResortSeaRoom2/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/IntResortSeaRoom2/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/IntResortSeaRoom2/thumb.png",
+ "icon": "icon-poolside-rooms.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "SharkStand", "yaw": -0.1, "pitch": 0.0 }
+ ]}
+,
+{"id": "MainWalkwayLeft2",
+ "name": "Las Cabanas Suite 1 Malecon",
+ "left": "panodbase/rlctiles/MainWalkwayLeft2/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/MainWalkwayLeft2/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/MainWalkwayLeft2/thumb.png",
+ "icon": "icon-las-cabanas-suite-1-malecon.png",
+ "yaw": -2.0,
+ "navlink": [
+{ "id": "DesiArnesHouse", "yaw": 1.6, "pitch": 0.0 }
+,
+{ "id": "MainWalkwayLeft4", "yaw": -1.5, "pitch": 0.0 }
+ ]}
+,
+{"id": "MainWalkwayLeft4",
+ "name": "Las Cabanas Suite 3 Malecon",
+ "left": "panodbase/rlctiles/MainWalkwayLeft4/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/MainWalkwayLeft4/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/MainWalkwayLeft4/thumb.png",
+ "icon": "icon-las-cabanas-suite-3-malecon.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "MainWalkwayLeft2", "yaw": 0.1, "pitch": 0.0 }
+,
+{ "id": "ExtHouseWalkway112", "yaw": -3.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "SharkStand",
+ "name": "Fishing & Private Harbor Access",
+ "left": "panodbase/rlctiles/SharkStand/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/SharkStand/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/SharkStand/left/1/f/0/0.jpg",
+ "icon": "icon-fishing-private-harbor-access.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "ThreeCroses3", "yaw": 3.4, "pitch": -0.2 }
+,
+{ "id": "IntResortSeaRoom2", "yaw": 3.4, "pitch": 0.0 }
+,
+{ "id": "ExtHouseWalkway112", "yaw": 0.4, "pitch": 0.0 }
+,
+{ "id": "IntDiningHall-2", "yaw": 3.0, "pitch": 0.0 }
+ ]}
+,
+{"id": "ThreeCroses1",
+ "name": "Las Cruces View 1",
+ "left": "panodbase/rlctiles/ThreeCroses1/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ThreeCroses1/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ThreeCroses1/left/1/f/0/0.jpg",
+ "icon": "icon-las-cruces-view-1.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "ThreeCroses4Left", "yaw": 0.8, "pitch": 0.0 }
+,
+{ "id": "ThreeCroses3", "yaw": 1.4, "pitch": 0.1 }
+,
+{ "id": "HouseBeachView", "yaw": 2.25, "pitch": 0.0 }
+,
+{ "id": "BigHouse_pool", "yaw": 2.75, "pitch": 0.0 }
+ ]}
+,
+{"id": "ThreeCroses3",
+ "name": "Las Cruces View 3",
+ "left": "panodbase/rlctiles/ThreeCroses3/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ThreeCroses3/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ThreeCroses3/left/1/f/0/0.jpg",
+ "icon": "icon-las-cruces-view-3.png",
+ "yaw": 0.0,
+ "navlink": [
+{ "id": "ThreeCroses1", "yaw": -2.0, "pitch": 0.0 }
+,
+{ "id": "ThreeCroses4Left", "yaw": 0.25, "pitch": 0.0 }
+ ]}
+,
+{"id": "ThreeCroses4Left",
+ "name": "Las Cruces View 4",
+ "left": "panodbase/rlctiles/ThreeCroses4Left/left/%d/%d/%d/%d.jpg",
+ "right": "panodbase/rlctiles/ThreeCroses4Left/right/%d/%d/%d/%d.jpg",
+ "thumb": "panodbase/rlctiles/ThreeCroses4Left/left/1/f/0/0.jpg",
+ "icon": "icon-las-cruces-view-4.png",
+ "yaw": 2.0,
+ "navlink": [
+{ "id": "ThreeCroses1", "yaw": -2.4, "pitch": 0.0 }
+,
+{ "id": "ThreeCroses3", "yaw": 3.0, "pitch": 0.0 }
+ ]}
+]
+}
