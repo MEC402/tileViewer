@@ -114,8 +114,12 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 			m_positions[quadPoint++] = 1.0f;
 			m_positions[quadPoint++] = 1.0f;
 
+
+
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
+
+			m_positions[quadPoint++] = 0.0f;
 
 			xOffset += m_TILESTEP;
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
@@ -125,6 +129,56 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 		}
 	}
 	m_setupOGL();
+}
+
+int CubePoints::FaceCurrentDepth(int face)
+{
+	int startIndex = face * (m_datasize * 64);
+	return m_positions[startIndex + 10];
+}
+
+void CubePoints::FaceNextDepth(int face)
+{
+	int startIndex = face * (m_datasize * m_faceQuads);
+	int currentDepth = m_positions[startIndex + m_datasize - 1];
+	for (int i = 1, j = m_datasize-1; i <= m_faceQuads; i++, j += m_datasize) {
+		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
+	}
+
+
+	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// Look into glBufferSubData() and see if we can't use that instead
+	glBindVertexArray(m_PositionVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	
+	glBindVertexArray(0);
+}
+
+int CubePoints::QuadCurrentDepth(int face, int row, int col)
+{
+	int startIndex = face * (m_datasize * m_faceQuads);
+	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	return m_positions[quadToChange + 10];
+}
+
+void CubePoints::QuadNextDepth(int face, int row, int col)
+{
+	int startIndex = face * (m_datasize * m_faceQuads);
+	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	m_positions[quadToChange + 10] = 3;
+
+	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// Look into glBufferSubData() and see if we can't use that instead
+	glBindVertexArray(m_PositionVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+
+	glBindVertexArray(0);
 }
 
 void CubePoints::m_setupOGL() 
@@ -158,6 +212,10 @@ void CubePoints::m_setupOGL()
 	// Which face the quad belongs to
 	glEnableVertexAttribArray(3);
 	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(9 * sizeof(float)));
+
+	// Depth level
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 
 	glBindVertexArray(0);
 }
