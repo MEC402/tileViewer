@@ -15,7 +15,7 @@ void Viewer::create(fk::Tools& tools) {
 	cam.setZoom(70);
 
 	std::vector<fk::Texture> textures;
-	textures.push_back(tools.textures.get("Selector.png", 1));
+	textures.push_back(tools.textures.get("DevGray128.png", 1));
 }
 void Viewer::destroy(fk::Tools& tools) {
 

@@ -53,7 +53,6 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{3524243C-5261-4C55-BB04-22C23F473846}</ProjectGuid>
     <RootNamespace>Futhark</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>Futhark</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
