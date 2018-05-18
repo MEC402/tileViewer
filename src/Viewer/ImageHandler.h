@@ -29,5 +29,6 @@ private:
 	static int m_faceWidth[6];
 	static int m_faceHeight[6];
 	static GLuint m_textures[6];
-	static const char *txUniforms[6];
+	static const char *m_txUniforms[6];
+	static const char *m_faceNames[6];
 };

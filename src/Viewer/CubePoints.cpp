@@ -2,6 +2,9 @@
 #include <cmath>
 #include <time.h>
 
+/* ----------- Layout of current data for each quad face ----------- */
+/* --------- [ x y z | g_x g_y g_z | r g b | face | depth ] -------- */
+/* ----------------------------------------------------------------- */
 
 CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 {
@@ -141,7 +144,7 @@ void CubePoints::FaceNextDepth(int face)
 {
 	int startIndex = face * (m_datasize * m_faceQuads);
 	int currentDepth = m_positions[startIndex + m_datasize - 1];
-	for (int i = 1, j = m_datasize-1; i <= m_faceQuads; i++, j += m_datasize) {
+	for (int i = 0, j = m_datasize-1; i < m_faceQuads; i++, j += m_datasize) {
 		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
 	}
 
@@ -159,6 +162,7 @@ void CubePoints::FaceNextDepth(int face)
 
 int CubePoints::QuadCurrentDepth(int face, int row, int col)
 {
+	row = (m_faceDimensions - row) - 1;
 	int startIndex = face * (m_datasize * m_faceQuads);
 	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
 	return m_positions[quadToChange + 10];
@@ -166,11 +170,55 @@ int CubePoints::QuadCurrentDepth(int face, int row, int col)
 
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
+	row = (m_faceDimensions - row);
+	// Get the start index of a given face
 	int startIndex = face * (m_datasize * m_faceQuads);
+
+	// Find the quad index we want
 	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
-	m_positions[quadToChange + 10] = 3;
+
+	// Get the next depth of the quad
+	int nextDepth = m_positions[quadToChange + 10] + 1;
+
+	if (nextDepth > m_maxResDepth) {
+		return;
+	}
+
+	// Number of quads per axis / Depth level tells us how many quads in each axis need updating
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, nextDepth);
+
+	// Calculate what the new level position of a quad will be (eg: Level 1 might be 0,0 or 1,0 or 1,1 etc)
+	int depthQuadRow = floor(row % (int)pow(2, nextDepth));
+	int depthQuadCol = floor(col % (int)pow(2, nextDepth));
+
+	// What is our offset between each row?
+	// m_datasize		-> Size of each quad
+	// m_faceDimensions	-> Number of quads per axis (row or column)
+	int dataPerRow = m_datasize * m_faceDimensions;
+
+	// What row we want to start making changes on
+	// numQuadsToChange * depthQuadRow	-> Which row we want
+	// * dataPerRow						-> Get the index of the first quad on that row
+	int startRow = numQuadsToChange * depthQuadRow * dataPerRow;
+
+	// What column we want to start making changes on
+	// numQuadsToChange * depthQuadCol	-> How many quads to step over
+	// * m_datasize						-> Size of each quad to step over
+	int startCol = numQuadsToChange * depthQuadCol * m_datasize;
+	int totalOffset = startRow + startCol;
+
+	// totalOffset		-> Our starting row/column index
+	// dataPerRow * i	-> Step up a row on each i iteration
+	// k				-> Step over one quad at a time
+	for (int i = 0; i < numQuadsToChange; i++) {
+		for (int j = 0, k = m_datasize-1; j < numQuadsToChange; j++, k += m_datasize) {
+			m_positions[totalOffset + (dataPerRow * i) + k] = nextDepth;
+		}
+	}
 
 	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// At 11 data points (3 points of color for debugging) we're sending 16MB over the bus if this is a full push
+	// At 8 data points (xyz/geometry/face/depth) we're still sending 12MB over the bus
 	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);

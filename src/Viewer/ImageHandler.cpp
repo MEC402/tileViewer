@@ -12,8 +12,8 @@ int ImageHandler::m_maxHeight[6];
 int ImageHandler::m_faceWidth[6];
 int ImageHandler::m_faceHeight[6];
 GLuint ImageHandler::m_textures[6];
-const char *ImageHandler::txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
-
+const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
+const char *ImageHandler::m_faceNames[6] = { "f", "b", "r", "l", "u", "d" };
 
 /* ---------------- Public Functions ---------------- */
 
@@ -45,111 +45,56 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 
 void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth)
 {
-	const char *facename = "";
-	int activeTexture;
+	// Calculate the relative quad based on the depth 
+	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
+	row = 8 - row;
+	int depthQuadRow = floor(row % (int)pow(2, depth));
+	int depthColRow = floor(col % (int)pow(2, depth));
 
-	// TODO: We need to keep setting facename, but activeTexture no longer does anything in here
-	// This is because we're executing initFaceAtlas and then LoadImageFromPath sequentially on the main thread,
-	// so the OpenGL context still has the active texture from initFaceAtlas
-	// This WILL break if we change that call structure, make sure we don't forget about it
-	switch (face) {
-	case 0:
-		facename = "f";
-		activeTexture = GL_TEXTURE0;
-		break;
-	case 1:
-		facename = "b";
-		activeTexture = GL_TEXTURE1;
-		break;
-	case 2:
-		facename = "r";
-		activeTexture = GL_TEXTURE2;
-		break;
-	case 3:
-		facename = "l";
-		activeTexture = GL_TEXTURE3;
-		break;
-	case 4:
-		facename = "u";
-		activeTexture = GL_TEXTURE4;
-		break;
-	case 5:
-		facename = "d";
-		activeTexture = GL_TEXTURE5;
-		break;
-	}
+	//for (int i = 0; i < (int)pow(2, depth) / 2; i++) {
+	//	for (int j = 0; j < (int)pow(2, depth) / 2; j++) {
+			char buf[60];
+			//sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow - i, depthColRow + j);
+			sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthColRow);
+			int width, height, nrChannels;
+			unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
+			if (d) {
+				glActiveTexture(GL_TEXTURE0 + face);
+				//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
+				glTexSubImage2D(GL_TEXTURE_2D, 0, depthColRow* 512, depthQuadRow * 512,
+					width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
-	char buf[60];
-	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, facename, row, col);
-	int width, height, nrChannels;
-	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
-	if (d) {
-		glActiveTexture(activeTexture);
-		//glTexSubImage2D(GL_TEXTURE_2D, 0, col * 512, row * 512, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, col * 512, row * 512, width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-		switch (glGetError()) {
-		case GL_INVALID_ENUM:
-			fprintf(stderr, "Got INVALID_ENUM return\n");
-			break;
-		case GL_INVALID_OPERATION:
-			fprintf(stderr, "Got INVALID_OPERATION return\n");
-			break;
-		case GL_INVALID_VALUE:
-			fprintf(stderr, "Got INVALID_VALUE return\n");
-			break;
-		default:
-			fprintf(stderr, "No error returned\n");
-			break;
-		}
-	}
-	else {
-		fprintf(stderr, "Error loading image file!\n");
-	}
-	stbi_image_free(d);
+				switch (glGetError()) {
+				case GL_INVALID_ENUM:
+					fprintf(stderr, "Got INVALID_ENUM return\n");
+					break;
+				case GL_INVALID_OPERATION:
+					fprintf(stderr, "Got INVALID_OPERATION return\n");
+					break;
+				case GL_INVALID_VALUE:
+					fprintf(stderr, "Got INVALID_VALUE return\n");
+					break;
+				default:
+					fprintf(stderr, "No error returned\n");
+					break;
+				}
+			}
+			else {
+				fprintf(stderr, "Error loading image file!\n");
+			}
+			stbi_image_free(d);
+	//	}
+	//}
 }
 
 void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 {
-	const char *facename = "";
-	int activeTexture;
-
-	// TODO: We need to keep setting facename, but activeTexture no longer does anything in here
-	// This is because we're executing initFaceAtlas and then LoadImageFromPath sequentially on the main thread,
-	// so the OpenGL context still has the active texture from initFaceAtlas
-	// This WILL break if we change that call structure, make sure we don't forget about it
-	switch (face) {
-	case 0:
-		facename = "f";
-		activeTexture = GL_TEXTURE0;
-		break;
-	case 1:
-		facename = "b";
-		activeTexture = GL_TEXTURE1;
-		break;
-	case 2:
-		facename = "r";
-		activeTexture = GL_TEXTURE2;
-		break;
-	case 3:
-		facename = "l";
-		activeTexture = GL_TEXTURE3;
-		break;
-	case 4:
-		facename = "u";
-		activeTexture = GL_TEXTURE4;
-		break;
-	case 5:
-		facename = "d";
-		activeTexture = GL_TEXTURE5;
-		break;
-	}
+	const char *facename = m_faceNames[face];
+	int activeTexture = GL_TEXTURE0 + face;
 
 	fprintf(stderr, "Loading tile data for face: %s At depth level: %d\n", facename, depth+1);
 	
 	// This seems to work pretty nicely
-	
-	int w_offset = 0; // No longer necessary?
-	int h_offset = 0; // No longer necessary?
 	int maxDepth = pow(2, depth); // Get the 2^n maximal depth to search for
 	std::vector<std::thread> threads(maxDepth);
 	imageData *imgData = new imageData[maxDepth];
@@ -202,9 +147,9 @@ float ImageHandler::TxScalingY(int face)
 void ImageHandler::RebindTextures(GLuint program)
 {
 	for (int i = 0; i < 6; i++) {
-		GLuint TxUniform = glGetUniformLocation(program, txUniforms[i]);
+		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
 		if (TxUniform == -1) {
-			fprintf(stderr, "Error getting %s uniform\n", txUniforms[i]);
+			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
 		}
 		else {
 			glUniform1i(TxUniform, i);
@@ -217,6 +162,7 @@ void ImageHandler::RebindTextures(GLuint program)
 void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
 {
 	// Directory structure is: path\\depth level\\facename\\row\\column
+	// Depth level is 1 indexed instead of 0 indexed (but row/col are 0 indexed?), so we're formatting with depth+1 
 	char buf[60];
 	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg",
 		path, depth + 1, facename, i, j);
@@ -240,7 +186,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	m_maxWidth[face] *= pow(2, depth);
 	m_maxHeight[face] *= pow(2, depth);
 
-	const char *uniform = txUniforms[face];
+	const char *uniform = m_txUniforms[face];
 	glActiveTexture(GL_TEXTURE0 + face);
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
