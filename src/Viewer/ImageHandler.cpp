@@ -1,6 +1,9 @@
 #include "stdafx.h"
+#include "PanoInfo.h"
+#include "InternetDownload.h"
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <windows.h>
 #include <thread>
 
@@ -15,6 +18,8 @@ GLuint ImageHandler::m_textures[6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char *ImageHandler::m_faceNames[6] = { "f", "b", "r", "l", "u", "d" };
 int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
+std::vector<PanoInfo> ImageHandler::m_panoList;
+
 
 /* ---------------- Public Functions ---------------- */
 
@@ -42,6 +47,20 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	//	threads[i].join();
 	//}
 	fprintf(stderr, "Done loading images\n");
+}
+
+
+void ImageHandler::InitPanoListFromOnlineFile(std::string url)
+{
+	DownloadedFile jsonFile;
+	downloadFile(&jsonFile, url);
+	if (jsonFile.data) {
+		std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
+		// Base URL is the substring before the last backslash or forward slash
+		size_t lastSlashPosition = url.find_last_of("/\\");
+		std::string baseURL = url.substr(0, lastSlashPosition);
+		m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+	}
 }
 
 void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth)

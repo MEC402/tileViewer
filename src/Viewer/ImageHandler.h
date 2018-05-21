@@ -1,10 +1,12 @@
 #pragma once
 #include <GL/glew.h>
 
+struct PanoInfo;
 
 class ImageHandler {
 public:
 	static void InitTextureAtlas(GLuint program);
+	static void InitPanoListFromOnlineFile(std::string url);
 	static void LoadImageFromPath(const char *path, int face, int depth);
 	static void LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth);
 	static float TxScalingX(int face);
@@ -33,4 +35,5 @@ private:
 	static const char *m_faceNames[6];
 
 	static int m_tileDepth[6][8][8];
+	static std::vector<PanoInfo> m_panoList;
 };
