@@ -33,9 +33,9 @@ static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std:
 			{
 				pano.id = panosArray[i]["id"].GetString();
 				pano.displayName = panosArray[i]["name"].GetString();
-				pano.leftAddress = baseImageURL + panosArray[i]["left"].GetString();
-				pano.rightAddress = baseImageURL + panosArray[i]["right"].GetString();
-				pano.thumbAddress = baseImageURL + panosArray[i]["thumb"].GetString();
+				pano.leftAddress = baseImageURL + '/' + panosArray[i]["left"].GetString();
+				pano.rightAddress = baseImageURL + '/' + panosArray[i]["right"].GetString();
+				pano.thumbAddress = baseImageURL + '/' + panosArray[i]["thumb"].GetString();
 			}
 			else
 			{

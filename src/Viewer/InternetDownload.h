@@ -3,7 +3,7 @@
 
 struct DownloadedFile
 {
-	char* data;
+	unsigned char* data;
 	unsigned int dataSize;
 	bool complete;
 };
@@ -12,7 +12,7 @@ size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, Dow
 {
 	// Files are progressivly written, so we append the new data to any previously downloaded data.
 	size_t newByteCount = size * nmemb;
-	file->data = (char*)realloc(file->data, file->dataSize + newByteCount);
+	file->data = (unsigned char*)realloc(file->data, file->dataSize + newByteCount);
 	memcpy(file->data + file->dataSize, newBytes, newByteCount);
 	file->dataSize += newByteCount;
 	return newByteCount;
