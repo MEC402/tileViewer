@@ -22,7 +22,7 @@ void downloadFile(DownloadedFile* out_file, const std::string url)
 {
 	*out_file = { 0 };
 	CURL* curl = curl_easy_init();
-	curl_easy_setopt(curl, CURLOPT_URL, url);
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
 	curl_easy_perform(curl);

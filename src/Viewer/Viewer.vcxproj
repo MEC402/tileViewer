@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -23,7 +23,7 @@
     <ProjectGuid>{AA714E65-CFC8-4171-A514-7961713BAD41}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Viewer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -103,7 +103,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\Users\mattsmith11\Documents\Dev\TileViewer\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glew32.lib;freeglut.lib;libcurl.dll.a;LibOVR.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(SolutionDir)dll\*.dll $(OutputPath) /Y</Command>
@@ -166,6 +166,8 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePoints.h" />
     <ClInclude Include="ImageHandler.h" />
+    <ClInclude Include="InternetDownload.h" />
+    <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="ShaderHelper.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stdafx.h" />
