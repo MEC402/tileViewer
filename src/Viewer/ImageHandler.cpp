@@ -49,19 +49,26 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
 	row = 8 - row;
 	int depthQuadRow = floor(row % (int)pow(2, depth));
-	int depthColRow = floor(col % (int)pow(2, depth));
+
+
+	int numQuadsToChange = 8 / (int)pow(2, depth);
+
+	//NOT CALCULATING CORRECTLY
+	int depthQuadCol = col / numQuadsToChange;
+
+	//int depthQuadCol = floor((float)col / (float)8);//floor(col % (int)pow(2, depth));
 
 	//for (int i = 0; i < (int)pow(2, depth) / 2; i++) {
 	//	for (int j = 0; j < (int)pow(2, depth) / 2; j++) {
 			char buf[60];
 			//sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow - i, depthColRow + j);
-			sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthColRow);
+			sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 			int width, height, nrChannels;
 			unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
 			if (d) {
 				glActiveTexture(GL_TEXTURE0 + face);
 				//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
-				glTexSubImage2D(GL_TEXTURE_2D, 0, depthColRow* 512, depthQuadRow * 512,
+				glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * 512, depthQuadRow * 512,
 					width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
 				switch (glGetError()) {

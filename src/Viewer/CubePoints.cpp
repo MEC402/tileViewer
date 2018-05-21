@@ -136,8 +136,8 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 
 int CubePoints::FaceCurrentDepth(int face)
 {
-	int startIndex = face * (m_datasize * 64);
-	return m_positions[startIndex + 10];
+	int faceIndex = face * (m_datasize * m_faceQuads);
+	return m_positions[faceIndex + 10];
 }
 
 void CubePoints::FaceNextDepth(int face)
@@ -163,24 +163,26 @@ void CubePoints::FaceNextDepth(int face)
 int CubePoints::QuadCurrentDepth(int face, int row, int col)
 {
 	row = (m_faceDimensions - row) - 1;
-	int startIndex = face * (m_datasize * m_faceQuads);
-	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	int faceIndex = face * (m_datasize * m_faceQuads);
+	int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
 	return m_positions[quadToChange + 10];
 }
 
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
+	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
 	row = (m_faceDimensions - row);
 	// Get the start index of a given face
-	int startIndex = face * (m_datasize * m_faceQuads);
+	int faceIndex = face * (m_datasize * m_faceQuads);
 
 	// Find the quad index we want
-	int quadToChange = startIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
 
 	// Get the next depth of the quad
 	int nextDepth = m_positions[quadToChange + 10] + 1;
 
-	if (nextDepth > m_maxResDepth) {
+	// Maaaagic numbers
+	if (nextDepth > 3) {
 		return;
 	}
 
@@ -189,7 +191,10 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 
 	// Calculate what the new level position of a quad will be (eg: Level 1 might be 0,0 or 1,0 or 1,1 etc)
 	int depthQuadRow = floor(row % (int)pow(2, nextDepth));
-	int depthQuadCol = floor(col % (int)pow(2, nextDepth));
+
+	//NOT CALCULATING CORRECTLY
+	//int depthQuadCol = floor(col % (int)pow(2, nextDepth));
+	int depthQuadCol = col / numQuadsToChange;
 
 	// What is our offset between each row?
 	// m_datasize		-> Size of each quad
@@ -204,15 +209,33 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 	// What column we want to start making changes on
 	// numQuadsToChange * depthQuadCol	-> How many quads to step over
 	// * m_datasize						-> Size of each quad to step over
+	// MIGHT BE CALCULATING CORRECTLY
 	int startCol = numQuadsToChange * depthQuadCol * m_datasize;
+	//int startCol = floor((float)col / (float)numQuadsToChange) * m_datasize;
 	int totalOffset = startRow + startCol;
 
 	// totalOffset		-> Our starting row/column index
 	// dataPerRow * i	-> Step up a row on each i iteration
 	// k				-> Step over one quad at a time
+	float r = 0.0f, g = 0.0f, b = 0.0f;
+	switch (nextDepth) {
+	case 1:
+		r = 1.0f;
+		break;
+	case 2:
+		g = 1.0f;
+		break;
+	case 3:
+		b = 1.0f;
+		break;
+	}
+
 	for (int i = 0; i < numQuadsToChange; i++) {
 		for (int j = 0, k = m_datasize-1; j < numQuadsToChange; j++, k += m_datasize) {
 			m_positions[totalOffset + (dataPerRow * i) + k] = nextDepth;
+			m_positions[totalOffset + (dataPerRow * i) + k - 2] = b;
+			m_positions[totalOffset + (dataPerRow * i) + k - 3] = g;
+			m_positions[totalOffset + (dataPerRow * i) + k - 4] = r;
 		}
 	}
 
@@ -223,6 +246,12 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+
+	// Bind our rgb FOR DEBUGGAN
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+
+	// Bind our depth level
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 

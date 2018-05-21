@@ -63,6 +63,9 @@ void main()
 	fColor = vin[0].vColor;
 	//fColor = vec3(1.0, 0.5, 0.5)
 	
+	//TODO: We can optimize these values out since we know what face we're drawing a quad for, we don't need
+	// to precalculate these CPU side.  We can just switch on them here based on the face and set the values
+	// as appropriate.
 	float x = vin[0].vOffset.x;
 	float y = vin[0].vOffset.y;
 	float z = vin[0].vOffset.z;
