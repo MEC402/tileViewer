@@ -4,9 +4,9 @@
 
 class ImageHandler {
 public:
-	static void InitTextureAtlas(GLuint program);
-	static void LoadImageFromPath(const char *path, int face, int depth);
-	static void LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth);
+	static void InitTextureAtlas(GLuint program, const char *path);
+	static void LoadFaceImage(int face, int depth);
+	static void LoadQuadImage(int face, int row, int col, int depth);
 	static float TxScalingX(int face);
 	static float TxScalingY(int face);
 	static void RebindTextures(GLuint program);
@@ -33,4 +33,5 @@ private:
 	static const char *m_faceNames[6];
 
 	static int m_tileDepth[6][8][8];
+	static const char *m_path;
 };

@@ -16,20 +16,24 @@ const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "T
 const char *ImageHandler::m_faceNames[6] = { "f", "b", "r", "l", "u", "d" };
 int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
+const char *ImageHandler::m_path;
+
 /* ---------------- Public Functions ---------------- */
 
-void ImageHandler::InitTextureAtlas(GLuint program) 
+void ImageHandler::InitTextureAtlas(GLuint program, const char *path) 
 {
 	glGenTextures(6, m_textures);
 
 	// TODO: This needs to be not hardcoded
-	const char *path = "C:\\Users\\W8\\Desktop\\ThreeCroses4Left\\left";
-	int maxDepth = maxResDepth(path);
+	//const char *path = "C:\\Users\\W8\\Desktop\\ThreeCroses4Left\\left";
+	m_path = path;
+	fprintf(stderr, "%s\n", m_path);
+	int maxDepth = maxResDepth(m_path);
 	fprintf(stderr, "Maximum depth level found: %d\n", maxDepth);
 
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
-		LoadImageFromPath(path, i, 0);
+		LoadFaceImage(i, 0);
 	}
 
 	//std::thread threads[6];
@@ -44,7 +48,7 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	fprintf(stderr, "Done loading images\n");
 }
 
-void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth)
+void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 {
 	// Invert rows because I structured this like a complete maniac and now I don't know how to undo the evil that is Aku
 	row = 7 - row;
@@ -70,7 +74,7 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	//int depthQuadCol = floor((float)col / (float)8);//floor(col % (int)pow(2, depth));
 	char buf[60];
 	//sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow - i, depthColRow + j);
-	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", m_path, depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 	int width, height, nrChannels;
 	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
 	if (d) {
@@ -100,7 +104,7 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	stbi_image_free(d);
 }
 
-void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
+void ImageHandler::LoadFaceImage(int face, int depth)
 {
 	const char *facename = m_faceNames[face];
 	int activeTexture = GL_TEXTURE0 + face;
@@ -117,7 +121,7 @@ void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 
 		// Threaded calls to dump images from disk into an array of imageData structs
 		for (int j = 0; j < maxDepth; j++) {
-			threads[j] = std::thread(threadedImageLoad, path, depth, facename, i, j, &imgData[j]);
+			threads[j] = std::thread(threadedImageLoad, m_path, depth, facename, i, j, &imgData[j]);
 		}
 
 		// Join the threads
@@ -133,6 +137,17 @@ void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)
 			if (d.data) {
 				glActiveTexture(activeTexture);
 				glTexSubImage2D(GL_TEXTURE_2D, 0, d.w_offset, d.h_offset, d.width, d.height, GL_RGB, GL_UNSIGNED_BYTE, d.data);
+				switch (glGetError()) {
+				case GL_INVALID_ENUM:
+					fprintf(stderr, "Got INVALID_ENUM return\n");
+					break;
+				case GL_INVALID_OPERATION:
+					fprintf(stderr, "Got INVALID_OPERATION return\n");
+					break;
+				case GL_INVALID_VALUE:
+					fprintf(stderr, "Got INVALID_VALUE return\n");
+					break;
+				}
 			}
 			else {
 				fprintf(stderr, "Error loading image file!\n");
