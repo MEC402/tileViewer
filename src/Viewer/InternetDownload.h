@@ -1,3 +1,6 @@
+#include <curl/curl.h>
+#include <string>
+
 struct DownloadedFile
 {
 	char* data;
