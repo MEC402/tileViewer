@@ -24,9 +24,6 @@ float segl = 1.0 / (wl * 1.0);
 
 vec2 getST(vec4 pos, int face)
 {
-	//wl = (0x01 << 1);
-	//segl = 1.0 / (wl * 1.0);
-
 	if (Debug) {
 		segl = 1.0;
 	}

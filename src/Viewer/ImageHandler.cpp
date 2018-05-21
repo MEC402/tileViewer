@@ -45,9 +45,12 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 
 void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, int col, int depth)
 {
+	// Invert rows because I structured this like a complete maniac and now I don't know how to undo the evil that is Aku
+	row = 7 - row;
+
 	// Calculate the relative quad based on the depth 
 	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
-	row = 8 - row;
+	
 	int depthQuadRow = floor(row % (int)pow(2, depth));
 
 
@@ -57,41 +60,36 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	int depthQuadCol = col / numQuadsToChange;
 
 	//int depthQuadCol = floor((float)col / (float)8);//floor(col % (int)pow(2, depth));
+	char buf[60];
+	//sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow - i, depthColRow + j);
+	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+	int width, height, nrChannels;
+	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
+	if (d) {
+		glActiveTexture(GL_TEXTURE0 + face);
+		//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
+		glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * 512, depthQuadRow * 512,
+			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
-	//for (int i = 0; i < (int)pow(2, depth) / 2; i++) {
-	//	for (int j = 0; j < (int)pow(2, depth) / 2; j++) {
-			char buf[60];
-			//sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow - i, depthColRow + j);
-			sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg", path, depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
-			int width, height, nrChannels;
-			unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
-			if (d) {
-				glActiveTexture(GL_TEXTURE0 + face);
-				//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
-				glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * 512, depthQuadRow * 512,
-					width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-
-				switch (glGetError()) {
-				case GL_INVALID_ENUM:
-					fprintf(stderr, "Got INVALID_ENUM return\n");
-					break;
-				case GL_INVALID_OPERATION:
-					fprintf(stderr, "Got INVALID_OPERATION return\n");
-					break;
-				case GL_INVALID_VALUE:
-					fprintf(stderr, "Got INVALID_VALUE return\n");
-					break;
-				default:
-					fprintf(stderr, "No error returned\n");
-					break;
-				}
-			}
-			else {
-				fprintf(stderr, "Error loading image file!\n");
-			}
-			stbi_image_free(d);
-	//	}
-	//}
+		switch (glGetError()) {
+		case GL_INVALID_ENUM:
+			fprintf(stderr, "Got INVALID_ENUM return\n");
+			break;
+		case GL_INVALID_OPERATION:
+			fprintf(stderr, "Got INVALID_OPERATION return\n");
+			break;
+		case GL_INVALID_VALUE:
+			fprintf(stderr, "Got INVALID_VALUE return\n");
+			break;
+		default:
+			fprintf(stderr, "No error returned\n");
+			break;
+		}
+	}
+	else {
+		fprintf(stderr, "Error loading image file!\n");
+	}
+	stbi_image_free(d);
 }
 
 void ImageHandler::LoadImageFromPath(const char *path, int face, int depth)

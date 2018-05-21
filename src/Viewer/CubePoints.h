@@ -31,6 +31,14 @@ private:
 	float m_TILEWIDTH{ 0.0f };
 	float m_TILESTEP{ 0.0f };
 
+	// 6 faces
+	// 8 quads X direction
+	// 8 quads Y direction
+	// Index of tile
+	// Depth of tile
+	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
+	//std::vector< std::vector <std::vector <std::vector<int>>>> m_tileMap;
+
 	std::vector<float> m_positions;
 	std::vector<UVCords> m_uvs;
 	GLuint m_VAOID{ 0 };

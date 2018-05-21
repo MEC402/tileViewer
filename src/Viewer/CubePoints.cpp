@@ -44,7 +44,10 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 		float g_y = 0.0f;
 		float g_z = 0.0f;
 
-		for (int quadPoint = faceBegin; quadPoint < faceEnd;) {
+		for (int quadPoint = faceBegin, xCoord = 0, yCoord = 0; quadPoint < faceEnd; xCoord++) {
+
+			m_tileMap[face][yCoord][xCoord][0] = quadPoint;
+			m_tileMap[face][yCoord][xCoord][1] = 0;
 
 			// Set xyz position for vertex and plane direction for geometry shader to build quads in
 			switch (face) {
@@ -128,6 +131,8 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 			if (quadPoint != faceBegin && quadPoint % m_perRow == 0) {
 				xOffset = 0.0f;
 				yOffset -= m_TILESTEP;
+				yCoord++;
+				xCoord = -1;
 			}
 		}
 	}
@@ -162,27 +167,33 @@ void CubePoints::FaceNextDepth(int face)
 
 int CubePoints::QuadCurrentDepth(int face, int row, int col)
 {
-	row = (m_faceDimensions - row) - 1;
-	int faceIndex = face * (m_datasize * m_faceQuads);
-	int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
-	return m_positions[quadToChange + 10];
+	row = (m_faceDimensions - 1) - row;
+	return m_tileMap[face][row][col][1];
+	//int faceIndex = face * (m_datasize * m_faceQuads);
+	//int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	//return m_positions[quadToChange + 10];
 }
 
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
 	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
-	row = (m_faceDimensions - row);
+	row = (m_faceDimensions - 1) - row;
+	
 	// Get the start index of a given face
-	int faceIndex = face * (m_datasize * m_faceQuads);
+	//int faceIndex = face * (m_datasize * m_faceQuads);
+	//
+	//// Find the quad index we want
+	//int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
+	//
+	//// Get the next depth of the quad
+	//int nextDepth = m_positions[quadToChange + 10] + 1;
 
-	// Find the quad index we want
-	int quadToChange = faceIndex + (m_datasize * row * m_faceDimensions) + (m_datasize * col);
-
-	// Get the next depth of the quad
-	int nextDepth = m_positions[quadToChange + 10] + 1;
-
+	int quadToChange = m_tileMap[face][row][col][0];
+	int nextDepth = m_tileMap[face][row][col][1] + 1;
+	fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, nextDepth);
 	// Maaaagic numbers
 	if (nextDepth > 3) {
+		fprintf(stderr, "Tile group is already at max depth, skipping\n");
 		return;
 	}
 
@@ -204,14 +215,17 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 	// What row we want to start making changes on
 	// numQuadsToChange * depthQuadRow	-> Which row we want
 	// * dataPerRow						-> Get the index of the first quad on that row
-	int startRow = numQuadsToChange * depthQuadRow * dataPerRow;
+	//int startRow = numQuadsToChange * depthQuadRow * dataPerRow;
+	int startRow = numQuadsToChange * depthQuadRow;
+
 
 	// What column we want to start making changes on
 	// numQuadsToChange * depthQuadCol	-> How many quads to step over
 	// * m_datasize						-> Size of each quad to step over
 	// MIGHT BE CALCULATING CORRECTLY
-	int startCol = numQuadsToChange * depthQuadCol * m_datasize;
+	//int startCol = numQuadsToChange * depthQuadCol * m_datasize;
 	//int startCol = floor((float)col / (float)numQuadsToChange) * m_datasize;
+	int startCol = numQuadsToChange * depthQuadCol;
 	int totalOffset = startRow + startCol;
 
 	// totalOffset		-> Our starting row/column index
@@ -230,12 +244,22 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 		break;
 	}
 
+	//int quadX = startRow / m_faceQuads;
+	//int quadY = startCol / m_faceDimensions;
+
+
 	for (int i = 0; i < numQuadsToChange; i++) {
 		for (int j = 0, k = m_datasize-1; j < numQuadsToChange; j++, k += m_datasize) {
-			m_positions[totalOffset + (dataPerRow * i) + k] = nextDepth;
-			m_positions[totalOffset + (dataPerRow * i) + k - 2] = b;
-			m_positions[totalOffset + (dataPerRow * i) + k - 3] = g;
-			m_positions[totalOffset + (dataPerRow * i) + k - 4] = r;
+			//fprintf(stderr, "Setting quad row/col %d/%d to depth level %d\n", quadX + j, quadY + i, nextDepth);
+			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = nextDepth;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 3] = b;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 4] = g;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 5] = r;
+			//m_positions[totalOffset + (dataPerRow * i) + k] = nextDepth;
+			//m_positions[totalOffset + (dataPerRow * i) + k - 2] = b;
+			//m_positions[totalOffset + (dataPerRow * i) + k - 3] = g;
+			//m_positions[totalOffset + (dataPerRow * i) + k - 4] = r;
 		}
 	}
 
