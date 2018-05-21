@@ -1,5 +1,6 @@
 #pragma once
 #include <GL/glew.h>
+#include "InternetDownload.h"
 
 struct PanoInfo;
 
@@ -15,16 +16,15 @@ public:
 	static void RebindTextures(GLuint program);
 
 private:
-	struct imageData {
-		int width;
-		int height;
+	struct ImageData {
+		DownloadedFile file;
 		int w_offset;
 		int h_offset;
 	};
 
 	static void initFaceAtlas(int face, int depth, GLuint program);
 	static int maxResDepth(const char *path);
-	static void threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data);
+	static void threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, ImageData *data);
 
 	static int m_maxWidth[6];
 	static int m_maxHeight[6];
@@ -36,4 +36,5 @@ private:
 
 	static int m_tileDepth[6][8][8];
 	static std::vector<PanoInfo> m_panoList;
+	static std::vector<ImageData> m_imageData;
 };

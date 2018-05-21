@@ -101,7 +101,7 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
 		// The maxLength includes the NULL character
 		std::vector<GLchar> errorLog(maxLength);
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
-		for (int i = 0; i < errorLog.size(); i++)
+		for (unsigned int i = 0; i < errorLog.size(); i++)
 			fprintf(stderr, "%c", errorLog[i]);
 		fprintf(stderr, "\n");
 		// Provide the infolog in whatever manor you deem best.

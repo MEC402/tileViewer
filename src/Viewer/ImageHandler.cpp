@@ -1,6 +1,6 @@
 #include "stdafx.h"
 #include "PanoInfo.h"
-#include "InternetDownload.h"
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -55,7 +55,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	
 	
 
-	int depthQuadRow = floor(row % (int)pow(2, depth));
+	int depthQuadRow = (int)floor(row % (int)pow(2, depth));
 
 
 	int numQuadsToChange = 8 / (int)pow(2, depth);
@@ -110,10 +110,9 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	fprintf(stderr, "Loading tile data for face: %c At depth level: %d\n", facename, depth+1);
 	
 	// This seems to work pretty nicely
-	int maxDepth = pow(2, depth); // Get the 2^n maximal depth to search for
+	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
 	std::vector<std::thread> threads(maxDepth);
 	std::vector<std::string> urls;
-	std::vector<imageData> imgData();
 	//stbi_set_flip_vertically_on_load(1); // May or may not need this
 
 	for (int i = 0; i < maxDepth; i++) {
@@ -212,8 +211,8 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	//
 	//m_maxWidth[face] *= pow(2, depth);
 	//m_maxHeight[face] *= pow(2, depth);
-	m_maxWidth[face] = 512 * pow(2, depth);
-	m_maxHeight[face] = 512 * pow(2, depth);
+	m_maxWidth[face] = 512 * (int)pow(2, depth);
+	m_maxHeight[face] = 512 * (int)pow(2, depth);
 
 	const char *uniform = m_txUniforms[face];
 	glActiveTexture(GL_TEXTURE0 + face);
@@ -258,7 +257,7 @@ int ImageHandler::maxResDepth(const char *path)
 		} while (FindNextFileA(hFind, &findfiledata) != 0);
 	}
 	int depth = 0;
-	for (int i = 0; i < output.size(); i++) {
+	for (unsigned int i = 0; i < output.size(); i++) {
 		if (output[i] > depth)
 			depth = output[i];
 	}
