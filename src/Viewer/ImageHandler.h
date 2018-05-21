@@ -31,4 +31,6 @@ private:
 	static GLuint m_textures[6];
 	static const char *m_txUniforms[6];
 	static const char *m_faceNames[6];
+
+	static int m_tileDepth[6][8][8];
 };

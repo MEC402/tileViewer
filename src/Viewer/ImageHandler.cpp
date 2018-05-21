@@ -14,6 +14,7 @@ int ImageHandler::m_faceHeight[6];
 GLuint ImageHandler::m_textures[6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char *ImageHandler::m_faceNames[6] = { "f", "b", "r", "l", "u", "d" };
+int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 /* ---------------- Public Functions ---------------- */
 
@@ -51,6 +52,8 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 	// Calculate the relative quad based on the depth 
 	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
 	
+	
+
 	int depthQuadRow = floor(row % (int)pow(2, depth));
 
 
@@ -58,6 +61,11 @@ void ImageHandler::LoadQuadImageFromPath(const char *path, int face, int row, in
 
 	//NOT CALCULATING CORRECTLY
 	int depthQuadCol = col / numQuadsToChange;
+
+	if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
+		return;
+	}
+	m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
 
 	//int depthQuadCol = floor((float)col / (float)8);//floor(col % (int)pow(2, depth));
 	char buf[60];
