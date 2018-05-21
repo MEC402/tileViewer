@@ -25,10 +25,10 @@ std::vector<PanoInfo> ImageHandler::m_panoList;
 void ImageHandler::InitTextureAtlas(GLuint program) 
 {
 	glGenTextures(6, m_textures);
-	int maxDepth = 4;
+	int maxDepth = 2;
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
-		//LoadFaceImage(i, 0);
+		LoadFaceImage(i, 0);
 	}
 }
 
