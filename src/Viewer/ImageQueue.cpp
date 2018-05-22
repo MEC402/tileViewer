@@ -4,7 +4,7 @@
 //TODO: Should we hold onto pointers instead?  This might be storing copies of our data
 
 std::mutex ImageQueue::mutex_;
-std::queue<ImageData> ImageQueue::queue_;
+std::queue<ImageData*> ImageQueue::queue_;
 
 bool ImageQueue::IsEmpty() 
 {
@@ -15,7 +15,7 @@ bool ImageQueue::IsEmpty()
 	return isEmpty;
 }
 
-void ImageQueue::Enqueue(ImageData file)
+void ImageQueue::Enqueue(ImageData *file)
 {
 	mutex_.lock();
 	queue_.push(file);
@@ -25,7 +25,7 @@ void ImageQueue::Enqueue(ImageData file)
 ImageData ImageQueue::Dequeue()
 {
 	mutex_.lock();
-	ImageData file = queue_.front();
+	ImageData file = *queue_.front();
 	queue_.pop();
 	mutex_.unlock();
 	return file;

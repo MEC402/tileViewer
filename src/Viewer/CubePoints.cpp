@@ -152,17 +152,12 @@ void CubePoints::FaceNextDepth(int face)
 	for (int i = 0, j = m_datasize-1; i < m_faceQuads; i++, j += m_datasize) {
 		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
 	}
+	Ready = true;
+}
 
-
-	//TODO: This might be an incredibly expensive way to update our VBO/VAO
-	// Look into glBufferSubData() and see if we can't use that instead
-	glBindVertexArray(m_PositionVAOID);
-	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
-	
-	glBindVertexArray(0);
+std::thread CubePoints::FaceNextDepthThread(int face)
+{
+	return std::thread([=] { FaceNextDepth(face); });
 }
 
 int CubePoints::QuadCurrentDepth(int face, int row, int col)
@@ -227,24 +222,44 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 5] = r;
 		}
 	}
+	Ready = true;
 
 	//TODO: This might be an incredibly expensive way to update our VBO/VAO
 	// At 11 data points (3 points of color for debugging) we're sending 16MB over the bus if this is a full push
 	// At 8 data points (xyz/geometry/face/depth) we're still sending 12MB over the bus
 	// Look into glBufferSubData() and see if we can't use that instead
+	//glBindVertexArray(m_PositionVAOID);
+	//glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	//
+	//// Bind our rgb FOR DEBUGGAN
+	////glEnableVertexAttribArray(2);
+	////glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+	//
+	//// Bind our depth level
+	//glEnableVertexAttribArray(4);
+	//glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	//
+	//glBindVertexArray(0);
+}
+
+std::thread CubePoints::QuadNextDepthThread(int face, int row, int col)
+{
+	return std::thread([=] { QuadNextDepth(face, row, col); });
+}
+
+void CubePoints::RebindVAO()
+{
+	//TODO: This might be an incredibly expensive way to update our VBO/VAO
+	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
-
-	// Bind our rgb FOR DEBUGGAN
-	//glEnableVertexAttribArray(2);
-	//glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
-
-	// Bind our depth level
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 
 	glBindVertexArray(0);
+	Ready = false;
 }
 
 void CubePoints::m_setupOGL() 

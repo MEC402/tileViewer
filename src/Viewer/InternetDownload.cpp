@@ -27,7 +27,7 @@ void downloadFile(ImageData *out_file, const std::string url)
 	out_file->complete = true;
 }
 
-void downloadMultipleFiles(ImageData *out_files, const std::string* urls, unsigned int fileCount)
+void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsigned int fileCount)
 {
 	CURLM* multi = curl_multi_init();
 	int transfersRunning = 0;
@@ -38,7 +38,7 @@ void downloadMultipleFiles(ImageData *out_files, const std::string* urls, unsign
 	// Intialize file requests
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
-		out_files[i] = { 0 };
+		//out_files[i] = new ImageData{ 0 };
 
 		// Why must C++ overcomplicate everything?
 		// Split our URL to pull out our row/column values to use as offsets when inputting to the texture atlas
@@ -49,14 +49,14 @@ void downloadMultipleFiles(ImageData *out_files, const std::string* urls, unsign
 			tokens.push_back(item);
 		}
 		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
-		out_files[i].w_offset = tokens[tokens.size() - 1][0] - 48;
-		out_files[i].h_offset = tokens[tokens.size() - 2][0] - 48;
+		out_files[i]->w_offset = tokens[tokens.size() - 1][0] - 48;
+		out_files[i]->h_offset = tokens[tokens.size() - 2][0] - 48;
 
 
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
-		curl_easy_setopt(eh, CURLOPT_WRITEDATA, &out_files[i]);
+		curl_easy_setopt(eh, CURLOPT_WRITEDATA, &(*out_files[i]));
 		curl_multi_add_handle(multi, eh);
 		curlHandles[i] = eh;
 	}
@@ -80,7 +80,7 @@ void downloadMultipleFiles(ImageData *out_files, const std::string* urls, unsign
 				for (unsigned int i = 0; i < fileCount; ++i)
 				{
 					if (curlHandles[i] == e) {
-						out_files[i].complete = true;
+						out_files[i]->complete = true;
 					}
 				}
 				curl_multi_remove_handle(multi, e);

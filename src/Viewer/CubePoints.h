@@ -1,6 +1,8 @@
 #pragma once
+#include <thread>
 #include <vector>
 #include "Vertex.h"
+
 
 class CubePoints {
 
@@ -10,15 +12,22 @@ public:
 	~CubePoints() = default;
 	int FaceCurrentDepth(int face);
 	void FaceNextDepth(int face);
+	std::thread FaceNextDepthThread(int face);
+
 	int QuadCurrentDepth(int face, int row, int col);
 	void QuadNextDepth(int face, int row, int col);
+	std::thread QuadNextDepthThread(int face, int row, int col);
+
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
 	GLsizei m_NumVertices{ 0 };
 
+	void RebindVAO();
+
 	// Magic hardcoded number please do not forget about me
 	int m_datasize{ 11 };
 	// No really don't forget about it look right here
+	bool Ready{ false };
 
 private:
 
