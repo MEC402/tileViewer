@@ -178,6 +178,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
+    <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

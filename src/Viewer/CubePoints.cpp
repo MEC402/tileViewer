@@ -6,9 +6,9 @@
 /* --------- [ x y z | g_x g_y g_z | r g b | face | depth ] -------- */
 /* ----------------------------------------------------------------- */
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
+CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) - 1)
 {
-	m_faceDimensions = pow(2, maxResDepth);
+	m_faceDimensions = (int)pow(2, maxResDepth);
 	m_faceQuads = m_faceDimensions * m_faceDimensions;
 	m_positions.resize(6 * m_faceQuads * m_datasize);
 	m_perRow = m_faceDimensions * m_datasize;
@@ -18,7 +18,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 
 	m_faceDistance = m_TILESTEP * ((float)m_faceDimensions / 2.0f);
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 
 	// Generate points for each of the 6 faces
 	for (int face = 0; face < 6; face++) {
@@ -142,13 +142,13 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth(pow(2,maxResDepth) - 1)
 int CubePoints::FaceCurrentDepth(int face)
 {
 	int faceIndex = face * (m_datasize * m_faceQuads);
-	return m_positions[faceIndex + 10];
+	return (int)m_positions[faceIndex + 10];
 }
 
 void CubePoints::FaceNextDepth(int face)
 {
 	int startIndex = face * (m_datasize * m_faceQuads);
-	int currentDepth = m_positions[startIndex + m_datasize - 1];
+	int currentDepth = (int)m_positions[startIndex + m_datasize - 1];
 	for (int i = 0, j = m_datasize-1; i < m_faceQuads; i++, j += m_datasize) {
 		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
 	}
@@ -221,7 +221,7 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 		for (int j = 0, k = m_datasize-1; j < numQuadsToChange; j++, k += m_datasize) {
 			//fprintf(stderr, "Setting quad row/col %d/%d to depth level %d\n", quadX + j, quadY + i, nextDepth);
 			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
-			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = nextDepth;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
 			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 3] = b;
 			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 4] = g;
 			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 5] = r;
