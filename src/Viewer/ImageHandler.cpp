@@ -45,6 +45,29 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 	}
 }
 
+void ImageHandler::LoadImageData(ImageData image)
+{
+	int width, height, nrChannels;
+	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.file.data, image.file.dataSize,
+		&width, &height, &nrChannels, 0);
+
+	if (d) {
+		glActiveTexture(image.activeTexture);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image.w_offset * width, image.h_offset * height,
+			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+
+		GLenum errCode;
+		if ((errCode = glGetError()) != GL_NO_ERROR) {
+			const GLubyte *errString = gluErrorString(errCode);
+			printf("OPENGL ERROR: %s\n", errString);
+		}
+	}
+	else {
+		fprintf(stderr, "Error loading image file!\n");
+	}
+	stbi_image_free(d);
+}
+
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 {
 	// Invert rows because I structured this like a complete maniac and now I don't know how to undo the evil that is Aku
@@ -78,7 +101,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	if (d) {
 		glActiveTexture(GL_TEXTURE0 + face);
 		//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
-		glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * 512, depthQuadRow * 512,
+		glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * width, depthQuadRow * height,
 			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
 		switch (glGetError()) {
@@ -130,28 +153,34 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	// TODO: This needs to factored out into Viewer.cpp:idleFunc() to read from a thread-safe queue
 	//		 That way we can run the load process in the background and stick tiles in as we load them, instead of blocking and waiting
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
-		int width, height, nrChannels;
-		unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize,
-			&width, &height, &nrChannels, 0);
-
-		if (d) {
-			//int boundTexture;
-			//glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
-			glActiveTexture(activeTexture);
-			//glTexSubImage2D(GL_TEXTURE_2D, 0, width*(i/maxDepth), height*(i%maxDepth),
-			glTexSubImage2D(GL_TEXTURE_2D, 0, imageFiles[i].xOffset * width, imageFiles[i].yOffset * height,
-				width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-			
-			GLenum errCode;
-			if ((errCode = glGetError()) != GL_NO_ERROR) {
-				const GLubyte *errString = gluErrorString(errCode);
-				printf("OPENGL ERROR: %s\n", errString);
-			}
-		}
-		else {
-			fprintf(stderr, "Error loading image file!\n");
-		}
-		stbi_image_free(d);
+		ImageData data = { 0 };
+		data.file = imageFiles[i];
+		data.w_offset = imageFiles[i].xOffset;
+		data.h_offset = imageFiles[i].yOffset;
+		data.activeTexture = activeTexture;
+		ImageQueue::Enqueue(data);
+		//int width, height, nrChannels;
+		//unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize,
+		//	&width, &height, &nrChannels, 0);
+		//
+		//if (d) {
+		//	//int boundTexture;
+		//	//glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
+		//	glActiveTexture(activeTexture);
+		//	//glTexSubImage2D(GL_TEXTURE_2D, 0, width*(i/maxDepth), height*(i%maxDepth),
+		//	glTexSubImage2D(GL_TEXTURE_2D, 0, imageFiles[i].xOffset * width, imageFiles[i].yOffset * height,
+		//		width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+		//	
+		//	GLenum errCode;
+		//	if ((errCode = glGetError()) != GL_NO_ERROR) {
+		//		const GLubyte *errString = gluErrorString(errCode);
+		//		printf("OPENGL ERROR: %s\n", errString);
+		//	}
+		//}
+		//else {
+		//	fprintf(stderr, "Error loading image file!\n");
+		//}
+		//stbi_image_free(d);
 	}
 	m_faceWidth[face] = 512 * maxDepth;
 	m_faceHeight[face] = 512 * maxDepth;

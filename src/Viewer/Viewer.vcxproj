@@ -166,6 +166,7 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePoints.h" />
     <ClInclude Include="ImageHandler.h" />
+    <ClInclude Include="ImageQueue.h" />
     <ClInclude Include="InternetDownload.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="ShaderHelper.h" />
@@ -178,6 +179,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
+    <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
     <ClCompile Include="stdafx.cpp">

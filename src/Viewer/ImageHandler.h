@@ -5,10 +5,19 @@
 struct PanoInfo;
 
 class ImageHandler {
+
 public:
+
+	struct ImageData {
+		DownloadedFile file;
+		int w_offset;
+		int h_offset;
+		int activeTexture;
+	};
 
 	static void InitTextureAtlas(GLuint program);
 	static void InitPanoListFromOnlineFile(std::string url);
+	static void LoadImageData(ImageData image);
 	static void LoadFaceImage(int face, int depth);
 	static void LoadQuadImage(int face, int row, int col, int depth);
 	static float TxScalingX(int face);
@@ -16,11 +25,12 @@ public:
 	static void RebindTextures(GLuint program);
 
 private:
-	struct ImageData {
-		DownloadedFile file;
-		int w_offset;
-		int h_offset;
-	};
+	//struct ImageData {
+	//	DownloadedFile file;
+	//	int w_offset;
+	//	int h_offset;
+	//	int activeTexture;
+	//};
 
 	static void initFaceAtlas(int face, int depth, GLuint program);
 	static int maxResDepth(const char *path);
