@@ -1,0 +1,15 @@
+{
+	"title": "Test",
+	"panos":
+	[
+		{
+			"id": "ThreeCroses4",
+			"name": "Three Crosses",
+			"left": "left/%d/%c/%d/%d.jpg",
+			"right": "right/%d/%c/%d/%d.jpg",
+			"thumb": "thumb.png",
+			"icon": "thumb.png",
+			"yaw": 2.0
+		}
+	]
+}
