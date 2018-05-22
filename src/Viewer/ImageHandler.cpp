@@ -30,7 +30,6 @@ void ImageHandler::InitTextureAtlas(GLuint program, const char *path)
 	glGenTextures(6, m_textures);
 
 	// TODO: This needs to be not hardcoded
-	//const char *path = "C:\\Users\\W8\\Desktop\\ThreeCroses4Left\\left";
 	m_path = path;
 	fprintf(stderr, "%s\n", m_path);
 	int maxDepth = maxResDepth(m_path);
@@ -73,12 +72,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 
 	// Calculate the relative quad based on the depth 
 	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
-	
-	
-
 	int depthQuadRow = floor(row % (int)pow(2, depth));
-
-
 	int numQuadsToChange = 8 / (int)pow(2, depth);
 
 	//NOT CALCULATING CORRECTLY
