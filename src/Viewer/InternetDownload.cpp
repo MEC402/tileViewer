@@ -25,6 +25,22 @@ void downloadFile(ImageData *out_file, const std::string url)
 	curl_easy_perform(curl);
 	curl_easy_cleanup(curl);
 	out_file->complete = true;
+
+
+	std::stringstream ss(url.c_str());
+	std::string item;
+	std::vector<std::string> tokens;
+	while (std::getline(ss, item, '/')) {
+		tokens.push_back(item);
+	}
+	if (tokens.size() > 1) {
+		out_file->w_offset = tokens[tokens.size() - 1][0] - 48;
+		out_file->h_offset = tokens[tokens.size() - 2][0] - 48;
+		out_file->depth = tokens[tokens.size() - 4][0] - 49;
+		int magicnumber = 8 / (int)pow(2, out_file->depth);
+		out_file->row = 7 - (out_file->h_offset * magicnumber);
+		out_file->col = out_file->w_offset * magicnumber;
+	}
 }
 
 void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsigned int fileCount)
@@ -51,6 +67,10 @@ void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsig
 		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
 		out_files[i]->w_offset = tokens[tokens.size() - 1][0] - 48;
 		out_files[i]->h_offset = tokens[tokens.size() - 2][0] - 48;
+		out_files[i]->depth = tokens[tokens.size() - 4][0] - 49;
+		int magicnumber = 8 / (int)pow(2, out_files[i]->depth);
+		out_files[i]->row = out_files[i]->h_offset * magicnumber;
+		out_files[i]->col = out_files[i]->w_offset * magicnumber;
 
 
 		CURL *eh = curl_easy_init();

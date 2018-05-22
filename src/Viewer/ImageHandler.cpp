@@ -25,7 +25,10 @@ std::vector<PanoInfo> ImageHandler::m_panoList;
 void ImageHandler::InitTextureAtlas(GLuint program) 
 {
 	glGenTextures(6, m_textures);
+
+	// hardcoded magic
 	int maxDepth = 3;
+
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
 		LoadFaceImage(i, 0);
@@ -47,6 +50,11 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 
 void ImageHandler::LoadImageData(ImageData image)
 {
+	//if (image.depth < m_tileDepth[image.face][image.h_offset][image.w_offset]) {
+	//	return;
+	//}
+	//m_tileDepth[image.face][image.h_offset][image.w_offset] = image.depth;
+
 	int width, height, nrChannels;
 	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.data, image.dataSize,
 		&width, &height, &nrChannels, 0);
@@ -100,31 +108,6 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	imageFile->h_offset = depthQuadRow;
 	imageFile->activeTexture = GL_TEXTURE0 + face;
 	ImageQueue::Enqueue(imageFile);
-
-	//int width, height, nrChannels;
-	//unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFile.data, imageFile.dataSize, &width, &height, &nrChannels, 0);
-	//if (d) {
-	//	glActiveTexture(GL_TEXTURE0 + face);
-	//	//glTexSubImage2D(GL_TEXTURE_2D, 0, (depthColRow+j) * 512, (depthQuadRow-i) * 512,
-	//	glTexSubImage2D(GL_TEXTURE_2D, 0, depthQuadCol * width, depthQuadRow * height,
-	//		width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-	//
-	//	switch (glGetError()) {
-	//	case GL_INVALID_ENUM:
-	//		fprintf(stderr, "Got INVALID_ENUM return\n");
-	//		break;
-	//	case GL_INVALID_OPERATION:
-	//		fprintf(stderr, "Got INVALID_OPERATION return\n");
-	//		break;
-	//	case GL_INVALID_VALUE:
-	//		fprintf(stderr, "Got INVALID_VALUE return\n");
-	//		break;
-	//	}
-	//}
-	//else {
-	//	fprintf(stderr, "Error loading image file!\n");
-	//}
-	//stbi_image_free(d);
 }
 
 void ImageHandler::LoadFaceImage(int face, int depth)
@@ -136,15 +119,12 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	
 	// This seems to work pretty nicely
 	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
-	std::vector<std::thread> threads(maxDepth);
 	std::vector<std::string> urls;
-	//stbi_set_flip_vertically_on_load(1); // May or may not need this
 
 	for (int i = 0; i < maxDepth; i++) {
 
 		int bufferSize = 256;
 		char buf[256];
-		// Threaded calls to dump images from disk into an array of imageData structs
 		for (int j = 0; j < maxDepth; j++) {
 			sprintf_s(buf, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 			urls.push_back(buf);
@@ -161,43 +141,17 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	t.detach();
 	//t.join();
 
-	// Take all our imagedata and dump it into the GPU Texture Atlas
-	// TODO: This needs to factored out into Viewer.cpp:idleFunc() to read from a thread-safe queue
-	//		 That way we can run the load process in the background and stick tiles in as we load them, instead of blocking and waiting
-	//for (int i = 0; i < maxDepth * maxDepth; i++) {
 	int i = 0;
 	while(i < (maxDepth * maxDepth)) {
-		//ImageData data = { 0 };
-		//data.file = imageFiles[i];
-		//data.w_offset = imageFiles[i].xOffset;
-		//data.h_offset = imageFiles[i].yOffset;
 		if (imageFiles[i]->complete) {
 			imageFiles[i]->activeTexture = activeTexture;
+			imageFiles[i]->face = face;
 			ImageQueue::Enqueue(imageFiles[i]);
+
+			// Reset complete flag to false so we aren't double-counting
+			imageFiles[i]->complete = false;
 			i++;
 		}
-		//int width, height, nrChannels;
-		//unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize,
-		//	&width, &height, &nrChannels, 0);
-		//
-		//if (d) {
-		//	//int boundTexture;
-		//	//glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
-		//	glActiveTexture(activeTexture);
-		//	//glTexSubImage2D(GL_TEXTURE_2D, 0, width*(i/maxDepth), height*(i%maxDepth),
-		//	glTexSubImage2D(GL_TEXTURE_2D, 0, imageFiles[i].xOffset * width, imageFiles[i].yOffset * height,
-		//		width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-		//	
-		//	GLenum errCode;
-		//	if ((errCode = glGetError()) != GL_NO_ERROR) {
-		//		const GLubyte *errString = gluErrorString(errCode);
-		//		printf("OPENGL ERROR: %s\n", errString);
-		//	}
-		//}
-		//else {
-		//	fprintf(stderr, "Error loading image file!\n");
-		//}
-		//stbi_image_free(d);
 	}
 	m_faceWidth[face] = 512 * maxDepth;
 	m_faceHeight[face] = 512 * maxDepth;

@@ -15,6 +15,7 @@ public:
 	std::thread FaceNextDepthThread(int face);
 
 	int QuadCurrentDepth(int face, int row, int col);
+	void SetQuadDepth(int face, int row, int col, int depth);
 	void QuadNextDepth(int face, int row, int col);
 	std::thread QuadNextDepthThread(int face, int row, int col);
 

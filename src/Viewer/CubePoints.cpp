@@ -166,6 +166,32 @@ int CubePoints::QuadCurrentDepth(int face, int row, int col)
 	return m_tileMap[face][row][col][1];
 }
 
+void CubePoints::SetQuadDepth(int face, int row, int col, int depth)
+{
+	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
+	row = (m_faceDimensions - 1) - row;
+	fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, depth);
+
+	if (depth > 3) {
+		fprintf(stderr, "Tile group is already at max depth, skipping\n");
+		return;
+	}
+
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
+	int depthQuadRow = row / numQuadsToChange;
+	int depthQuadCol = col / numQuadsToChange;
+	int startRow = numQuadsToChange * depthQuadRow;
+	int startCol = numQuadsToChange * depthQuadCol;
+
+	for (int i = 0; i < numQuadsToChange; i++) {
+		for (int j = 0; j < numQuadsToChange; j++) {
+			m_tileMap[face][startRow + i][startCol + j][1] = depth;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
+		}
+	}
+	Ready = true;
+}
+
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
 	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
@@ -173,7 +199,7 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 
 	int quadToChange = m_tileMap[face][row][col][0];
 	int nextDepth = m_tileMap[face][row][col][1] + 1;
-	fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, nextDepth);
+	//fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, nextDepth);
 
 	// Maaaagic numbers
 	if (nextDepth > 3) {
@@ -213,7 +239,7 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 	//}
 
 	for (int i = 0; i < numQuadsToChange; i++) {
-		for (int j = 0, k = m_datasize-1; j < numQuadsToChange; j++, k += m_datasize) {
+		for (int j = 0; j < numQuadsToChange; j++) {
 			//fprintf(stderr, "Setting quad row/col %d/%d to depth level %d\n", quadX + j, quadY + i, nextDepth);
 			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
@@ -250,16 +276,18 @@ std::thread CubePoints::QuadNextDepthThread(int face, int row, int col)
 
 void CubePoints::RebindVAO()
 {
+	Ready = false;
+
 	//TODO: This might be an incredibly expensive way to update our VBO/VAO
 	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+	//glBufferSubData(m_PositionVBOID, (10 * sizeof(float)), m_datasize * sizeof(float), &m_positions.front());
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(4);
 	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
-
+	
 	glBindVertexArray(0);
-	Ready = false;
 }
 
 void CubePoints::m_setupOGL() 
