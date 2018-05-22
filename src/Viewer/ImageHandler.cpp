@@ -34,7 +34,7 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 
 void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 {
-	DownloadedFile jsonFile;
+	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
 	if (jsonFile.data) {
 		std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
@@ -48,7 +48,7 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 void ImageHandler::LoadImageData(ImageData image)
 {
 	int width, height, nrChannels;
-	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.file.data, image.file.dataSize,
+	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.data, image.dataSize,
 		&width, &height, &nrChannels, 0);
 
 	if (d) {
@@ -93,7 +93,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	char buf[bufferSize];
 	sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 
-	DownloadedFile imageFile = { 0 };
+	ImageData imageFile = { 0 };
 	downloadFile(&imageFile, buf);
 
 	int width, height, nrChannels;
@@ -146,19 +146,19 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 		}
 	}
 
-	std::vector<DownloadedFile> imageFiles(urls.size());
+	std::vector<ImageData> imageFiles(urls.size());
 	downloadMultipleFiles(imageFiles.data(), urls.data(), urls.size());
 
 	// Take all our imagedata and dump it into the GPU Texture Atlas
 	// TODO: This needs to factored out into Viewer.cpp:idleFunc() to read from a thread-safe queue
 	//		 That way we can run the load process in the background and stick tiles in as we load them, instead of blocking and waiting
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
-		ImageData data = { 0 };
-		data.file = imageFiles[i];
-		data.w_offset = imageFiles[i].xOffset;
-		data.h_offset = imageFiles[i].yOffset;
-		data.activeTexture = activeTexture;
-		ImageQueue::Enqueue(data);
+		//ImageData data = { 0 };
+		//data.file = imageFiles[i];
+		//data.w_offset = imageFiles[i].xOffset;
+		//data.h_offset = imageFiles[i].yOffset;
+		imageFiles[i].activeTexture = activeTexture;
+		ImageQueue::Enqueue(imageFiles[i]);
 		//int width, height, nrChannels;
 		//unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize,
 		//	&width, &height, &nrChannels, 0);

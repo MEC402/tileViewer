@@ -1,5 +1,6 @@
 #pragma once
 #include <GL/glew.h>
+#include "Image.h"
 #include "InternetDownload.h"
 
 struct PanoInfo;
@@ -8,12 +9,12 @@ class ImageHandler {
 
 public:
 
-	struct ImageData {
-		DownloadedFile file;
-		int w_offset;
-		int h_offset;
-		int activeTexture;
-	};
+	//struct ImageData {
+	//	DownloadedFile file;
+	//	int w_offset;
+	//	int h_offset;
+	//	int activeTexture;
+	//};
 
 	static void InitTextureAtlas(GLuint program);
 	static void InitPanoListFromOnlineFile(std::string url);

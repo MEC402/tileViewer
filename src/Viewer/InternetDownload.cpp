@@ -5,7 +5,7 @@
 #include <string>
 
 
-size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, DownloadedFile *file)
+size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file)
 {
 	// Files are progressivly written, so we append the new data to any previously downloaded data.
 	size_t newByteCount = size * nmemb;
@@ -15,7 +15,7 @@ size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, Dow
 	return newByteCount;
 }
 
-void downloadFile(DownloadedFile* out_file, const std::string url)
+void downloadFile(ImageData *out_file, const std::string url)
 {
 	*out_file = { 0 };
 	CURL* curl = curl_easy_init();
@@ -27,7 +27,7 @@ void downloadFile(DownloadedFile* out_file, const std::string url)
 	out_file->complete = true;
 }
 
-void downloadMultipleFiles(DownloadedFile* out_files, const std::string* urls, unsigned int fileCount)
+void downloadMultipleFiles(ImageData *out_files, const std::string* urls, unsigned int fileCount)
 {
 	CURLM* multi = curl_multi_init();
 	int transfersRunning = 0;
@@ -49,8 +49,8 @@ void downloadMultipleFiles(DownloadedFile* out_files, const std::string* urls, u
 			tokens.push_back(item);
 		}
 		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
-		out_files[i].xOffset = tokens[tokens.size() - 1][0] - 48;
-		out_files[i].yOffset = tokens[tokens.size() - 2][0] - 48;
+		out_files[i].w_offset = tokens[tokens.size() - 1][0] - 48;
+		out_files[i].h_offset = tokens[tokens.size() - 2][0] - 48;
 
 
 		CURL *eh = curl_easy_init();

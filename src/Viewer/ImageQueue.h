@@ -1,17 +1,17 @@
 #include <mutex>
 #include <queue>
-#include "ImageHandler.h"
+#include "Image.h"
 
 class ImageQueue {
 
 public:
 	static bool IsEmpty();
-	static void Enqueue(ImageHandler::ImageData file);
-	static ImageHandler::ImageData Dequeue();
+	static void Enqueue(ImageData file);
+	static ImageData Dequeue();
 	
 
 private:
 	static std::mutex mutex_;
-	static std::queue<ImageHandler::ImageData> queue_;
+	static std::queue<ImageData> queue_;
 
 };

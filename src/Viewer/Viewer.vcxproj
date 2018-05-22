@@ -165,6 +165,7 @@
   <ItemGroup>
     <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePoints.h" />
+    <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
     <ClInclude Include="ImageQueue.h" />
     <ClInclude Include="InternetDownload.h" />
