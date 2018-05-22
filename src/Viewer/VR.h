@@ -1,9 +1,9 @@
 #pragma once
 #include <assert.h>
 #include <GL/glew.h>
-#include "Kernel/OVR_Types.h"
-#include "OVR_CAPI_GL.h"
-#include "Extras/OVR_Math.h"
+#include "LibOVRKernel/Kernel/OVR_Types.h"
+#include "LibOVR/OVR_CAPI_GL.h"
+#include "LibOVR/Extras/OVR_Math.h"
 
 #if defined(_WIN32)
     #include <dxgi.h> // for GetDefaultAdapterLuid

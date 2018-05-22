@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "VR.h"
 
 // Helpers
@@ -347,7 +348,7 @@ void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer)
 OVR::Matrix4f buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)
 {
 	OVR::Vector3f cameraPosition = OVR::Vector3f(cameraX, cameraY, cameraZ);
-	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(3.141592f);
+	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(0);
 	OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(vr->EyeRenderPose[eyeIndex].Orientation);
 	OVR::Vector3f finalUp = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
 	OVR::Vector3f finalForward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));

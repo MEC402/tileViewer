@@ -23,7 +23,7 @@
     <ProjectGuid>{AA714E65-CFC8-4171-A514-7961713BAD41}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Viewer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -175,6 +175,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="VR.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cube.cpp" />
@@ -190,6 +191,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Viewer.cpp" />
+    <ClCompile Include="VR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
