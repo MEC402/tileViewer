@@ -4,6 +4,8 @@ struct DownloadedFile
 {
 	unsigned char* data;
 	unsigned int dataSize;
+	int xOffset;
+	int yOffset;
 	bool complete;
 };
 

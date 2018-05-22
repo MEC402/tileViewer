@@ -1,5 +1,9 @@
 #include "stdafx.h"
 #include <curl/curl.h>
+#include <sstream>
+#include <iostream>
+#include <string>
+
 
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, DownloadedFile *file)
 {
@@ -35,6 +39,20 @@ void downloadMultipleFiles(DownloadedFile* out_files, const std::string* urls, u
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
 		out_files[i] = { 0 };
+
+		// Why must C++ overcomplicate everything?
+		// Split our URL to pull out our row/column values to use as offsets when inputting to the texture atlas
+		std::stringstream ss(urls[i].c_str());
+		std::string item;
+		std::vector<std::string> tokens;
+		while (std::getline(ss, item, '/')) {
+			tokens.push_back(item);
+		}
+		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
+		out_files[i].xOffset = tokens[tokens.size() - 1][0] - 48;
+		out_files[i].yOffset = tokens[tokens.size() - 2][0] - 48;
+
+
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);

@@ -25,7 +25,7 @@ std::vector<PanoInfo> ImageHandler::m_panoList;
 void ImageHandler::InitTextureAtlas(GLuint program) 
 {
 	glGenTextures(6, m_textures);
-	int maxDepth = 2;
+	int maxDepth = 3;
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
 		LoadFaceImage(i, 0);
@@ -52,17 +52,15 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 
 	// Calculate the relative quad based on the depth 
 	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
-	
-	
-
 	int depthQuadRow = (int)floor(row % (int)pow(2, depth));
 
-
+	// Magic number so we can set our xOffset correctly in the texture atlas
 	int numQuadsToChange = 8 / (int)pow(2, depth);
 
-	//NOT CALCULATING CORRECTLY
+	// Actually calculate our xOffset for the texture atlas
 	int depthQuadCol = col / numQuadsToChange;
 
+	// *Theoretically* this should prevent us from overwriting a higher res texture with a lower res one
 	if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
 		return;
 	}
@@ -71,9 +69,11 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	const int bufferSize = 128;
 	char buf[bufferSize];
 	sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
-	int width, height, nrChannels;
+
 	DownloadedFile imageFile = { 0 };
 	downloadFile(&imageFile, buf);
+
+	int width, height, nrChannels;
 	unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFile.data, imageFile.dataSize, &width, &height, &nrChannels, 0);
 	if (d) {
 		glActiveTexture(GL_TEXTURE0 + face);
@@ -90,9 +90,6 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 			break;
 		case GL_INVALID_VALUE:
 			fprintf(stderr, "Got INVALID_VALUE return\n");
-			break;
-		default:
-			fprintf(stderr, "No error returned\n");
 			break;
 		}
 	}
@@ -132,20 +129,22 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	// Take all our imagedata and dump it into the GPU Texture Atlas
 	// TODO: This needs to factored out into Viewer.cpp:idleFunc() to read from a thread-safe queue
 	//		 That way we can run the load process in the background and stick tiles in as we load them, instead of blocking and waiting
-	for (int i = 0; i < maxDepth; i++) {
+	for (int i = 0; i < maxDepth * maxDepth; i++) {
 		int width, height, nrChannels;
-		unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize, &width, &height, &nrChannels, 0);
-		unsigned char white[] = { 255, 255, 255 };
+		unsigned char *d = stbi_load_from_memory((stbi_uc*)imageFiles[i].data, imageFiles[i].dataSize,
+			&width, &height, &nrChannels, 0);
+
 		if (d) {
-			int boundTexture;
-			glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
+			//int boundTexture;
+			//glGetIntegerv(GL_TEXTURE_BINDING_2D, &boundTexture);
 			glActiveTexture(activeTexture);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, width*(i/maxDepth), height*(i%maxDepth), width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+			//glTexSubImage2D(GL_TEXTURE_2D, 0, width*(i/maxDepth), height*(i%maxDepth),
+			glTexSubImage2D(GL_TEXTURE_2D, 0, imageFiles[i].xOffset * width, imageFiles[i].yOffset * height,
+				width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 			
 			GLenum errCode;
-			const GLubyte *errString;
 			if ((errCode = glGetError()) != GL_NO_ERROR) {
-				errString = gluErrorString(errCode);
+				const GLubyte *errString = gluErrorString(errCode);
 				printf("OPENGL ERROR: %s\n", errString);
 			}
 		}
