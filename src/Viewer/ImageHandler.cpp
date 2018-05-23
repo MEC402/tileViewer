@@ -7,6 +7,8 @@
 #include <windows.h>
 #include <thread>
 
+#include <chrono>
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -50,19 +52,20 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 
 void ImageHandler::LoadImageData(ImageData *image)
 {
+	
 	//if (image.depth < m_tileDepth[image.face][image.h_offset][image.w_offset]) {
 	//	return;
 	//}
 	//m_tileDepth[image.face][image.h_offset][image.w_offset] = image.depth;
 
-	int width, height, nrChannels;
-	unsigned char *d = stbi_load_from_memory((stbi_uc*)image->data, image->dataSize,
-		&width, &height, &nrChannels, 0);
+	//int width, height, nrChannels;
+	//unsigned char *d = stbi_load_from_memory((stbi_uc*)image->data, image->dataSize,
+	//	&width, &height, &nrChannels, 0);
 
-	if (d) {
+	if (image->data) {
 		glActiveTexture(image->activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset * width, image->h_offset * height,
-			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
+			512, 512, GL_RGB, GL_UNSIGNED_BYTE, image->data);
 
 		GLenum errCode;
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
@@ -73,8 +76,9 @@ void ImageHandler::LoadImageData(ImageData *image)
 	else {
 		fprintf(stderr, "Error loading image file!\n");
 	}
-	stbi_image_free(d);
+	stbi_image_free(image->data);
 	delete image;
+
 }
 
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
@@ -109,6 +113,13 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	imageFile->h_offset = depthQuadRow;
 	imageFile->activeTexture = GL_TEXTURE0 + face;
 	imageFile->face = face;
+
+	int width, height, nrChannels;
+	imageFile->data = stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize,
+		&width, &height, &nrChannels, 0);
+	imageFile->w_offset *= width;
+	imageFile->h_offset *= height;
+
 	ImageQueue::Enqueue(imageFile);
 }
 
@@ -146,10 +157,16 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 
 
 	int i = 0;
+	int width, height, nrChannels;
 	while(i < (maxDepth * maxDepth)) {
 		if (imageFiles[i]->complete) {
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
+			imageFiles[i]->data = stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize,
+				&width, &height, &nrChannels, 0);
+			imageFiles[i]->w_offset *= width;
+			imageFiles[i]->h_offset *= height;
+
 			ImageQueue::Enqueue(imageFiles[i]);
 
 			// Reset complete flag to false so we aren't double-counting

@@ -8,9 +8,9 @@ std::queue<ImageData*> ImageQueue::queue_;
 
 bool ImageQueue::IsEmpty() 
 {
-	mutex_.lock();
+	//mutex_.lock();
 	bool isEmpty = queue_.empty();
-	mutex_.unlock();
+	//mutex_.unlock();
 
 	return isEmpty;
 }
@@ -24,9 +24,9 @@ void ImageQueue::Enqueue(ImageData *file)
 
 ImageData* ImageQueue::Dequeue()
 {
-	mutex_.lock();
+	//mutex_.lock();
 	ImageData *file = queue_.front();
 	queue_.pop();
-	mutex_.unlock();
+	//mutex_.unlock();
 	return file;
 }
