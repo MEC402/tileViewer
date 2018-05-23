@@ -22,10 +22,10 @@ void ImageQueue::Enqueue(ImageData *file)
 	mutex_.unlock();
 }
 
-ImageData ImageQueue::Dequeue()
+ImageData* ImageQueue::Dequeue()
 {
 	mutex_.lock();
-	ImageData file = *queue_.front();
+	ImageData *file = queue_.front();
 	queue_.pop();
 	mutex_.unlock();
 	return file;

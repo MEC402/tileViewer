@@ -19,7 +19,7 @@ public:
 
 	static void InitTextureAtlas(GLuint program);
 	static void InitPanoListFromOnlineFile(std::string url);
-	static void LoadImageData(ImageData image);
+	static void LoadImageData(ImageData *image);
 	static void LoadFaceImage(int face, int depth);
 	static void LoadQuadImage(int face, int row, int col, int depth);
 	static float TxScalingX(int face);

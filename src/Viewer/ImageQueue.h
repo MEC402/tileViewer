@@ -7,7 +7,7 @@ class ImageQueue {
 public:
 	static bool IsEmpty();
 	static void Enqueue(ImageData *file);
-	static ImageData Dequeue();
+	static ImageData* Dequeue();
 	
 
 private:

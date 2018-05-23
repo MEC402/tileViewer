@@ -48,7 +48,7 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 	}
 }
 
-void ImageHandler::LoadImageData(ImageData image)
+void ImageHandler::LoadImageData(ImageData *image)
 {
 	//if (image.depth < m_tileDepth[image.face][image.h_offset][image.w_offset]) {
 	//	return;
@@ -56,12 +56,13 @@ void ImageHandler::LoadImageData(ImageData image)
 	//m_tileDepth[image.face][image.h_offset][image.w_offset] = image.depth;
 
 	int width, height, nrChannels;
-	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.data, image.dataSize,
+	unsigned char *d = stbi_load_from_memory((stbi_uc*)image->data, image->dataSize,
 		&width, &height, &nrChannels, 0);
 
 	if (d) {
-		glActiveTexture(image.activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image.w_offset * width, image.h_offset * height,
+		glActiveTexture(image->activeTexture);
+		//glBindTexture(GL_TEXTURE_2D, m_textures[image->face]);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset * width, image->h_offset * height,
 			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
 		GLenum errCode;
@@ -74,6 +75,7 @@ void ImageHandler::LoadImageData(ImageData image)
 		fprintf(stderr, "Error loading image file!\n");
 	}
 	stbi_image_free(d);
+	delete image;
 }
 
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
@@ -107,6 +109,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	imageFile->w_offset = depthQuadCol;
 	imageFile->h_offset = depthQuadRow;
 	imageFile->activeTexture = GL_TEXTURE0 + face;
+	imageFile->face = face;
 	ImageQueue::Enqueue(imageFile);
 }
 
