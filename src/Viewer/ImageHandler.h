@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 #include "Image.h"
 #include "InternetDownload.h"
+#include "ThreadPool.hpp"
 
 struct PanoInfo;
 

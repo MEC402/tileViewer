@@ -137,9 +137,11 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 		imageFiles[i] = new ImageData{ 0 };
 	}
 	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
-	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
-	t.detach();
+	//std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
+	//t.detach();
 	//t.join();
+	Threads::DefaultThreadPool::submitJob(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
+
 
 	int i = 0;
 	while(i < (maxDepth * maxDepth)) {
