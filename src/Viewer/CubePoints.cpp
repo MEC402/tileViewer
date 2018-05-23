@@ -195,7 +195,15 @@ void CubePoints::SetQuadDepth(int face, int row, int col, int depth)
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
 	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
-	row = (m_faceDimensions - 1) - row;
+	// Except if it's the bottom texture?
+	if (face != 5) {
+		row = (m_faceDimensions - 1) - row;
+	}
+
+	// Back and left faces need to load columns in reverse for...reasons
+	if (face == 1 || face == 3 ) {
+		col = (m_faceDimensions - 1) - col;
+	}
 
 	int quadToChange = m_tileMap[face][row][col][0];
 	int nextDepth = m_tileMap[face][row][col][1] + 1;
@@ -282,10 +290,10 @@ void CubePoints::RebindVAO()
 	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	//glBufferSubData(m_PositionVBOID, (10 * sizeof(float)), m_datasize * sizeof(float), &m_positions.front());
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	//glEnableVertexAttribArray(4);
+	//glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
 	
 	glBindVertexArray(0);
 }

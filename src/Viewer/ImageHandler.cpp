@@ -61,7 +61,6 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 	if (d) {
 		glActiveTexture(image->activeTexture);
-		//glBindTexture(GL_TEXTURE_2D, m_textures[image->face]);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset * width, image->h_offset * height,
 			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
 
