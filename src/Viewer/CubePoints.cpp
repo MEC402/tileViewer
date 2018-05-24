@@ -3,7 +3,7 @@
 #include <time.h>
 
 /* ----------- Layout of current data for each quad face ----------- */
-/* --------- [ x y z | g_x g_y g_z | r g b | face | depth ] -------- */
+/* -------------------- [ x y z | face | depth ] ------------------- */
 /* ----------------------------------------------------------------- */
 
 CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth) - 1)
@@ -216,6 +216,8 @@ void CubePoints::RebindVAO()
 	Ready = false;
 
 	//TODO: Need some way to only update changed quad positions instead of repushing whole array
+	// Pushing entire array is m_datasize * 6 * quads per face
+	// As of 05/24/18 12:02PM that is: 5 * 6 * 64 -> 1920 * sizeof(float) -> 7.5MiB
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
