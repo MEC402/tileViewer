@@ -77,6 +77,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 {
 	// ST coordinates are inverted along the Y axis, flip our row value
 	row = 7 - row;
+	//col = 7 - col;
 
 	// Same math used in CubePoints::QuadNextDepth to calculate which image to load
 	int numQuadsToChange = 8 / (int)pow(2, depth);

@@ -2,9 +2,13 @@
 #include <cmath>
 #include <time.h>
 
+#include <mutex>
+
 /* ----------- Layout of current data for each quad face ----------- */
 /* -------------------- [ x y z | face | depth ] ------------------- */
 /* ----------------------------------------------------------------- */
+
+std::mutex m;
 
 CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth) - 1)
 {
@@ -146,11 +150,40 @@ std::thread CubePoints::FaceNextDepthThread(int face)
 int CubePoints::QuadCurrentDepth(int face, int row, int col)
 {
 	row = (m_faceDimensions - 1) - row;
-	return m_tileMap[face][row][col][1];
+	m.lock();
+	int depth = m_tileMap[face][row][col][1];
+	m.unlock();
+	return depth;
+}
+
+void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
+{
+	m.lock();
+	if (face != 5)
+		row = (m_faceDimensions - 1) - row;
+	if (face == 1 || face == 3)
+		col = (m_faceDimensions - 1) - col;
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
+	int quadToChange = m_tileMap[face][row][col][0];
+	int depthQuadRow = row / numQuadsToChange;
+	int depthQuadCol = col / numQuadsToChange;
+	int startRow = numQuadsToChange * depthQuadRow;
+	int startCol = numQuadsToChange * depthQuadCol;
+	for (int i = 0; i < numQuadsToChange; i++) {
+		for (int j = 0; j < numQuadsToChange; j++) {
+			m_tileMap[face][startRow + i][startCol + j][1] = depth;
+			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
+		}
+	}
+
+	// We've updated something, set our Ready flag to true so we can update our VBO
+	Ready = true;
+	m.unlock();
 }
 
 void CubePoints::QuadNextDepth(int face, int row, int col)
 {
+	m.lock();
 	// Depending on the face, it's smoother to update rows or columns in reverse when loading in next
 	// texture levels.  They'll always get the right texture in the right spot eventually, but there's
 	// a strange ~3ish frame delay between the depth update and the correct texture being rendered if we
@@ -203,6 +236,7 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 
 	// We've updated something, set our Ready flag to true so we can update our VBO
 	Ready = true;
+	m.unlock();
 }
 
 // Easier way to thread CubePoints:: calls with std::thread library
