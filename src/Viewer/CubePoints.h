@@ -15,7 +15,6 @@ public:
 	std::thread FaceNextDepthThread(int face);
 
 	int QuadCurrentDepth(int face, int row, int col);
-	void SetQuadDepth(int face, int row, int col, int depth);
 	void QuadNextDepth(int face, int row, int col);
 	std::thread QuadNextDepthThread(int face, int row, int col);
 
@@ -26,6 +25,7 @@ public:
 	void RebindVAO();
 
 	// Magic hardcoded number please do not forget about me
+	// xyz geom(xyz) face depth (3 + 3 + 1 + 1)
 	int m_datasize{ 11 };
 	// No really don't forget about it look right here
 	bool Ready{ false };

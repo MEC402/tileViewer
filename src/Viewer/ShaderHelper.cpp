@@ -47,6 +47,7 @@ GLuint ShaderHelper::ReloadShader(GLenum type)
 GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char* path)
 {
 	glDetachShader(m_program, shader);
+	glDeleteShader(shader);
 	shader = loadShader(type, path);
 	glAttachShader(m_program, shader);
 	glLinkProgram(m_program);
@@ -54,7 +55,7 @@ GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char* path)
 	return m_program;
 }
 
-GLuint ShaderHelper::loadShader(GLenum type, const char* path)
+GLuint ShaderHelper::loadShader(GLenum type, const char *path)
 {
 	std::string shaderData = readFile(path);
 	if (shaderData == "") {
@@ -85,7 +86,7 @@ std::string ShaderHelper::readFile(const char *filePath)
 	return content;
 }
 
-GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
+GLuint ShaderHelper::createShader(GLenum type, const GLchar *src)
 {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &src, nullptr);
@@ -94,7 +95,7 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
 	if (isCompiled == GL_FALSE)
 	{
-		fprintf(stderr, "Error compiling shader: %d", type);
+		fprintf(stderr, "Error compiling shader: %s", src);
 		GLint maxLength = 0;
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
@@ -103,8 +104,8 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar* src)
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
 		for (unsigned int i = 0; i < errorLog.size(); i++)
 			fprintf(stderr, "%c", errorLog[i]);
-		fprintf(stderr, "\n");
-		// Provide the infolog in whatever manor you deem best.
+		fprintf(stderr, "----------------------------------------------\n");
+		
 		// Exit with failure.
 		glDeleteShader(shader); // Don't leak the shader.
 		return NULL;

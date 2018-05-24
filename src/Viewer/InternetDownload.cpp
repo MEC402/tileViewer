@@ -15,6 +15,28 @@ size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, Ima
 	return newByteCount;
 }
 
+void populateImageData(ImageData *out_file, const char *url)
+{
+	std::stringstream ss(url);
+	std::string item;
+	std::vector<std::string> tokens;
+	while (std::getline(ss, item, '/')) {
+		tokens.push_back(item);
+	}
+	if (tokens.size() > 1) {
+		// Grab last two values, subtract 48 to reduce ASCII value to actual int
+		out_file->w_offset = tokens[tokens.size() - 1][0] - 48;
+		out_file->h_offset = tokens[tokens.size() - 2][0] - 48;
+		// Depth on disk is stored 1 indexed, subtract 49 to get 0 indexed
+		out_file->depth = tokens[tokens.size() - 4][0] - 49;
+
+		// Same maths as in CubePoints::QuadNextDepth (should probably factor that out somewhere?)
+		int magicnumber = 8 / (int)pow(2, out_file->depth);
+		out_file->row = 7 - (out_file->h_offset * magicnumber);
+		out_file->col = out_file->w_offset * magicnumber;
+	}
+}
+
 void downloadFile(ImageData *out_file, const std::string url)
 {
 	*out_file = { 0 };
@@ -26,21 +48,7 @@ void downloadFile(ImageData *out_file, const std::string url)
 	curl_easy_cleanup(curl);
 	out_file->complete = true;
 
-
-	std::stringstream ss(url.c_str());
-	std::string item;
-	std::vector<std::string> tokens;
-	while (std::getline(ss, item, '/')) {
-		tokens.push_back(item);
-	}
-	if (tokens.size() > 1) {
-		out_file->w_offset = tokens[tokens.size() - 1][0] - 48;
-		out_file->h_offset = tokens[tokens.size() - 2][0] - 48;
-		out_file->depth = tokens[tokens.size() - 4][0] - 49;
-		int magicnumber = 8 / (int)pow(2, out_file->depth);
-		out_file->row = 7 - (out_file->h_offset * magicnumber);
-		out_file->col = out_file->w_offset * magicnumber;
-	}
+	populateImageData(out_file, url.c_str());
 }
 
 void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsigned int fileCount)
@@ -54,25 +62,8 @@ void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsig
 	// Intialize file requests
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
-		//out_files[i] = new ImageData{ 0 };
-
-		// Why must C++ overcomplicate everything?
-		// Split our URL to pull out our row/column values to use as offsets when inputting to the texture atlas
-		std::stringstream ss(urls[i].c_str());
-		std::string item;
-		std::vector<std::string> tokens;
-		while (std::getline(ss, item, '/')) {
-			tokens.push_back(item);
-		}
-		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
-		out_files[i]->w_offset = tokens[tokens.size() - 1][0] - 48;
-		out_files[i]->h_offset = tokens[tokens.size() - 2][0] - 48;
-		out_files[i]->depth = tokens[tokens.size() - 4][0] - 49;
-		int magicnumber = 8 / (int)pow(2, out_files[i]->depth);
-		out_files[i]->row = out_files[i]->h_offset * magicnumber;
-		out_files[i]->col = out_files[i]->w_offset * magicnumber;
-
-
+		populateImageData(out_files[i], urls[i].c_str());
+		
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
