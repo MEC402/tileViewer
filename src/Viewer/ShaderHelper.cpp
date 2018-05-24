@@ -44,7 +44,7 @@ GLuint ShaderHelper::ReloadShader(GLenum type)
 /* ---------------- Private Functions ---------------- */
 
 
-GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char* path)
+GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char *path)
 {
 	glDetachShader(m_program, shader);
 	glDeleteShader(shader);
@@ -104,8 +104,7 @@ GLuint ShaderHelper::createShader(GLenum type, const GLchar *src)
 		glGetShaderInfoLog(shader, maxLength, &maxLength, &errorLog[0]);
 		for (unsigned int i = 0; i < errorLog.size(); i++)
 			fprintf(stderr, "%c", errorLog[i]);
-		fprintf(stderr, "----------------------------------------------\n");
-		
+		fprintf(stderr, "------------------------\n");
 		// Exit with failure.
 		glDeleteShader(shader); // Don't leak the shader.
 		return NULL;

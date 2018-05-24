@@ -23,14 +23,15 @@ void populateImageData(ImageData *out_file, const char *url)
 	while (std::getline(ss, item, '/')) {
 		tokens.push_back(item);
 	}
+
+	// Prevent crashes on loading malformed JSON
 	if (tokens.size() > 1) {
-		// Grab last two values, subtract 48 to reduce ASCII value to actual int
+		// Grab our last two values, subtracting 48 to reduce from ASCII char value to actual int value
 		out_file->w_offset = tokens[tokens.size() - 1][0] - 48;
 		out_file->h_offset = tokens[tokens.size() - 2][0] - 48;
-		// Depth on disk is stored 1 indexed, subtract 49 to get 0 indexed
+		// Depth is currently stored on disk with 1 indexing, so subtract 49 to make it 0 indexed
 		out_file->depth = tokens[tokens.size() - 4][0] - 49;
-
-		// Same maths as in CubePoints::QuadNextDepth (should probably factor that out somewhere?)
+		// Same math as CubePoints::QuadNextDepth (again)
 		int magicnumber = 8 / (int)pow(2, out_file->depth);
 		out_file->row = 7 - (out_file->h_offset * magicnumber);
 		out_file->col = out_file->w_offset * magicnumber;
@@ -51,19 +52,19 @@ void downloadFile(ImageData *out_file, const std::string url)
 	populateImageData(out_file, url.c_str());
 }
 
-void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsigned int fileCount)
+void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsigned int fileCount)
 {
-	CURLM* multi = curl_multi_init();
+	CURLM *multi = curl_multi_init();
 	int transfersRunning = 0;
 	int messagesRemaining = 0;
 	// Keep track of the handles so we can check which files have finished downloading
-	CURL** curlHandles = new CURL*[fileCount];
+	CURL **curlHandles = new CURL*[fileCount];
 
 	// Intialize file requests
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
 		populateImageData(out_files[i], urls[i].c_str());
-		
+
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
@@ -81,7 +82,7 @@ void downloadMultipleFiles(ImageData **out_files, const std::string* urls, unsig
 		curl_multi_perform(multi, &transfersRunning);
 
 		// Check if a file has finished downloading
-		CURLMsg* m = 0;
+		CURLMsg *m = 0;
 		do {
 			int msgq = 0;
 			m = curl_multi_info_read(multi, &msgq);
