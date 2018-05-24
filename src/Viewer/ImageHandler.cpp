@@ -12,15 +12,13 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-int ImageHandler::m_maxWidth[6];
-int ImageHandler::m_maxHeight[6];
-int ImageHandler::m_faceWidth[6];
-int ImageHandler::m_faceHeight[6];
 GLuint ImageHandler::m_textures[6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
-int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 std::vector<PanoInfo> ImageHandler::m_panoList;
+
+// I'm not convinced this is necessary here
+int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 /* ---------------- Public Functions ---------------- */
 
@@ -31,6 +29,9 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	// hardcoded magic
 	int maxDepth = 3;
 
+	// Init the texture atlas for each face, then go ahead and load in the first image
+	// May behoove us to factor out LoadFaceImage from this loop and call it separately for
+	// better flow control
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, program);
 		LoadFaceImage(i, 0);
@@ -52,16 +53,7 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 
 void ImageHandler::LoadImageData(ImageData *image)
 {
-	
-	//if (image.depth < m_tileDepth[image.face][image.h_offset][image.w_offset]) {
-	//	return;
-	//}
-	//m_tileDepth[image.face][image.h_offset][image.w_offset] = image.depth;
-
-	//int width, height, nrChannels;
-	//unsigned char *d = stbi_load_from_memory((stbi_uc*)image->data, image->dataSize,
-	//	&width, &height, &nrChannels, 0);
-
+	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
 	if (image->data) {
 		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
@@ -83,18 +75,12 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 {
-	// Invert rows because I structured this like a complete maniac and now I don't know how to undo the evil that is Aku
+	// ST coordinates are inverted along the Y axis, flip our row value
 	row = 7 - row;
 
-	// Magic number so we can set our xOffset correctly in the texture atlas
+	// Same math used in CubePoints::QuadNextDepth to calculate which image to load
 	int numQuadsToChange = 8 / (int)pow(2, depth);
-
-	// Calculate the relative quad based on the depth 
-	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
-	//int depthQuadRow = (int)floor(row % (int)pow(2, depth));
 	int depthQuadRow = row / numQuadsToChange;
-
-	// Actually calculate our xOffset for the texture atlas
 	int depthQuadCol = col / numQuadsToChange;
 
 	// *Theoretically* this should prevent us from overwriting a higher res texture with a lower res one
@@ -103,10 +89,12 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	}
 	m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
 
+	// Set our URI string to load the image
 	const int bufferSize = 128;
 	char buf[bufferSize];
 	sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 
+	// Load the image, set ImageData values for later use
 	ImageData *imageFile = new ImageData{ 0 };
 	downloadFile(imageFile, buf);
 	imageFile->w_offset = depthQuadCol;
@@ -114,17 +102,22 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	imageFile->activeTexture = GL_TEXTURE0 + face;
 	imageFile->face = face;
 
+	// Go ahead and just load the pixel data now instead of later
+	// More memory hungry but reduces the amount of time our main OpenGL thread has to spend
+	// away from draw calls
 	int width, height, nrChannels;
 	imageFile->data = stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize,
 		&width, &height, &nrChannels, 0);
 	imageFile->w_offset *= width;
 	imageFile->h_offset *= height;
 
+	// Throw it into our queue
 	ImageQueue::Enqueue(imageFile);
 }
 
 void ImageHandler::LoadFaceImage(int face, int depth)
 {
+	// Basically the same as LoadQuadImage
 	const char facename = m_faceNames[face];
 	int activeTexture = GL_TEXTURE0 + face;
 
@@ -135,7 +128,6 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	std::vector<std::string> urls;
 
 	for (int i = 0; i < maxDepth; i++) {
-
 		int bufferSize = 256;
 		char buf[256];
 		for (int j = 0; j < maxDepth; j++) {
@@ -146,6 +138,8 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 
 	//std::vector<ImageData> imageFiles(urls.size());
 	ImageData **imageFiles = new ImageData*[urls.size()];
+	// Initialize all our pointers on the heap ahead of time
+	// Might be a way to do this on imageFiles declaration?
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
 		imageFiles[i] = new ImageData{ 0 };
 	}
@@ -159,6 +153,8 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	int i = 0;
 	int width, height, nrChannels;
 	while(i < (maxDepth * maxDepth)) {
+		// Thanks to the magic of pointers, we can check the completion status of all our imageFiles while
+		// they're being loaded in another thread.  Once they are, load them and set values.
 		if (imageFiles[i]->complete) {
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
@@ -174,21 +170,9 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 			i++;
 		}
 	}
-	m_faceWidth[face] = 512 * maxDepth;
-	m_faceHeight[face] = 512 * maxDepth;
+	// No longer need the pointer for our array of ImageData pointers, they're all in the ImageQueue now
 	delete[]imageFiles;
 }
-
-float ImageHandler::TxScalingX(int face)
-{
-	return (float)m_faceWidth[face] / (float)m_maxWidth[face];
-}
-
-float ImageHandler::TxScalingY(int face)
-{
-	return (float)m_faceHeight[face] / (float)m_maxHeight[face];
-}
-
 
 // For use after doing a hot-reload on shaders
 void ImageHandler::RebindTextures(GLuint program)
@@ -206,34 +190,12 @@ void ImageHandler::RebindTextures(GLuint program)
 
 /* ---------------- Private Functions ---------------- */
 
-//void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
-//{
-//	// Directory structure is: path\\depth level\\facename\\row\\column
-//	// Depth level is 1 indexed instead of 0 indexed (but row/col are 0 indexed?), so we're formatting with depth+1 
-//	char buf[60];
-//	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg",
-//		path, depth + 1, facename, i, j);
-//	int width, height, nrChannels;
-//	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
-//	if (d) {
-//		*data = { d, width, height, width * j, height * i };
-//	}
-//	else {
-//		fprintf(stderr, "Failed to load image\n");
-//	}
-//	// Don't call stbi_free() here, call it back in LoadImageFromPath after we try to dump images into the GPU
-//}
 
 void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 {
-	//int unused;
-	////TODO: Need to look at the deepest level *for the given face*, not just hardcoded
-	//stbi_info("f_0.jpg", &m_maxWidth[face], &m_maxHeight[face], &unused);
-	//
-	//m_maxWidth[face] *= pow(2, depth);
-	//m_maxHeight[face] *= pow(2, depth);
-	m_maxWidth[face] = 512 * (int)pow(2, depth);
-	m_maxHeight[face] = 512 * (int)pow(2, depth);
+	// TODO: Probably shouldn't hardcode image resolution like this
+	int maxWidth = 512 * (int)pow(2, depth);
+	int maxHeight = 512 * (int)pow(2, depth);
 
 	const char *uniform = m_txUniforms[face];
 	glActiveTexture(GL_TEXTURE0 + face);
@@ -241,10 +203,10 @@ void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
 	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Use nearest to prevent black borders from fragment shader interpolation
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_maxWidth[face], m_maxHeight[face], 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	GLuint TxUniform = glGetUniformLocation(program, uniform);
 	if (TxUniform == -1) {
 		fprintf(stderr, "Error getting %s uniform\n", uniform);
