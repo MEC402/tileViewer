@@ -53,11 +53,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 		float y = 0.0f;
 		float z = 0.0f;
 
-		// Geometry "build quad on these points" data
-		float g_x = 0.0f;
-		float g_y = 0.0f;
-		float g_z = 0.0f;
-
 		for (int quadPoint = faceBegin, xCoord = 0, yCoord = 0; quadPoint < faceEnd; xCoord++) {
 
 			// Populate our map with vertex buffer offset for this quad
@@ -71,49 +66,31 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = -m_faceDistance;
-				g_x = m_TILEWIDTH;
-				g_y = m_TILEWIDTH;
-				g_z = 0.00f;
 				break;
 			case 1: // Back face
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = m_faceDistance;
-				g_x = m_TILEWIDTH;
-				g_y = m_TILEWIDTH;
-				g_z = 0.00f;
 				break;
 			case 2: // Right face
 				x = m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
-				g_x = 0.00f;
-				g_y = m_TILEWIDTH;
-				g_z = m_TILEWIDTH;
 				break;
 			case 3: // Left face
 				x = -m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
-				g_x = 0.00f;
-				g_y = m_TILEWIDTH;
-				g_z = m_TILEWIDTH;
 				break;
 			case 4: // Top face
 				x = quadX + xOffset;
 				y = m_faceDistance;
 				z = quadY + yOffset;
-				g_x = m_TILEWIDTH;
-				g_y = 0.00f;
-				g_z = m_TILEWIDTH;
 				break;
 			case 5: // Bottom face
 				x = quadX + xOffset;
 				y = -m_faceDistance;
 				z = quadY + yOffset;
-				g_x = m_TILEWIDTH;
-				g_y = 0.00f;
-				g_z = m_TILEWIDTH;
 				break;
 			}
 
@@ -121,11 +98,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 			m_positions[quadPoint++] = x;
 			m_positions[quadPoint++] = y;
 			m_positions[quadPoint++] = z;
-
-			// What planes we want to create the quad on in our geometry shader
-			m_positions[quadPoint++] = g_x;
-			m_positions[quadPoint++] = g_y;
-			m_positions[quadPoint++] = g_z;
 
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
@@ -270,17 +242,13 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
 
-	// Bind our geometry plane
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
-
 	// Which face the quad belongs to
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
 
 	// Depth level
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(7 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
 
 	glBindVertexArray(0);
 }

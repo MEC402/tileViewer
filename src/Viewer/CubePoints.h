@@ -25,9 +25,12 @@ public:
 	void RebindVAO();
 
 	// Magic hardcoded number please do not forget about me
-	// xyz geom(xyz) face depth (3 + 3 + 1 + 1)
-	int m_datasize{ 8 };
-	// No really don't forget about it look right here
+	// xyz face depth (3 + 1 + 1)
+	int m_datasize{ 5 };
+
+	// To pass into geometry shader for positioning
+	float m_TILEWIDTH{ 0.0f };
+	
 	bool Ready{ false };
 
 private:
@@ -38,7 +41,7 @@ private:
 	int m_faceQuads{ 0 };
 	int m_perRow{ 0 };
 	float m_faceDistance{ 0.0f };
-	float m_TILEWIDTH{ 0.0f };
+	
 	float m_TILESTEP{ 0.0f };
 
 	// 6 faces
