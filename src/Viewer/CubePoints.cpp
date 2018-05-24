@@ -32,9 +32,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 	// Number of points to draw in OpenGL calls
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
 
-	// Used for color generation, can be removed from final product
-	srand((unsigned int)time(NULL));
-
 	// Generate points for each of the 6 faces
 	for (int face = 0; face < 6; face++) {
 
@@ -130,17 +127,6 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 			m_positions[quadPoint++] = g_y;
 			m_positions[quadPoint++] = g_z;
 
-			// Random colors so we can see if we're generating the right number of quads per face
-			// This is unnecessary and can be removed from the final product, but it's useful for debugging
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			m_positions[quadPoint++] = 1.0f;
-			m_positions[quadPoint++] = 1.0f;
-			m_positions[quadPoint++] = 1.0f;
-
-
-
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
 
@@ -230,20 +216,6 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 	int startRow = numQuadsToChange * depthQuadRow;
 	int startCol = numQuadsToChange * depthQuadCol;
 
-	// Debug values to change tile color based on its depth
-	//float r = 0.0f, g = 0.0f, b = 0.0f;
-	//switch (nextDepth) {
-	//case 1:
-	//	r = 1.0f;
-	//	break;
-	//case 2:
-	//	g = 1.0f;
-	//	break;
-	//case 3:
-	//	b = 1.0f;
-	//	break;
-	//}
-
 
 	// This looks horrifying but it's just because of nested arrays
 	// m_tilemap[][][]	-> Vertex buffer offset
@@ -254,9 +226,6 @@ void CubePoints::QuadNextDepth(int face, int row, int col)
 		for (int j = 0; j < numQuadsToChange; j++) {
 			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 3] = b;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 4] = g;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 5] = r;
 		}
 	}
 
@@ -305,17 +274,13 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
 
-	// Bind our rgb
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
-
 	// Which face the quad belongs to
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(9 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
 
 	// Depth level
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(7 * sizeof(float)));
 
 	glBindVertexArray(0);
 }

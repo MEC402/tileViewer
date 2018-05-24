@@ -26,7 +26,7 @@ public:
 
 	// Magic hardcoded number please do not forget about me
 	// xyz geom(xyz) face depth (3 + 3 + 1 + 1)
-	int m_datasize{ 11 };
+	int m_datasize{ 8 };
 	// No really don't forget about it look right here
 	bool Ready{ false };
 

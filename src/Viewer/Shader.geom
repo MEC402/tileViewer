@@ -4,14 +4,12 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
 in VOUT {
-	vec3 vColor;
 	vec3 vOffset;
 	flat highp int vFace;
 	flat highp int vDepth;
 } vin[];
 
 out vec2 txCoord;
-out vec3 fColor;	
 flat out highp int fFace;
 
 
@@ -56,10 +54,6 @@ vec2 getST(vec4 pos, int face)
 
 void main()
 {
-	// Color is unnecessary but useful for debugging, can be removed in the final product
-	fColor = vin[0].vColor;
-	//fColor = vec3(1.0, 0.5, 0.5)
-	
 	//TODO: We can optimize these values out since we know what face we're drawing a quad for, we don't need
 	// to precalculate these CPU side.  We can just switch on them here based on the face and set the values
 	// as appropriate.
