@@ -17,7 +17,8 @@ public:
 		float rotation;
 	};
 
-	static Viewport *Cameras[5];
+	static int NumCameras;
+	static Viewport **Cameras;
 	// Matricies
 	static glm::mat4 Projection;
 	static glm::mat4 View;

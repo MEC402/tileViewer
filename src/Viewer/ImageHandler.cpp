@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-GLuint ImageHandler::m_textures[12];
+GLuint ImageHandler::m_textures[2][6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 std::vector<PanoInfo> ImageHandler::m_panoList;
@@ -16,7 +16,9 @@ int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 void ImageHandler::InitTextureAtlas(GLuint program) 
 {
-	glGenTextures(12, m_textures);
+	// 6 for each eye
+	glGenTextures(6, m_textures[0]);
+	glGenTextures(6, m_textures[1]);
 
 	// hardcoded magic
 	int maxDepth = 3;
@@ -27,8 +29,6 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);
 		LoadFaceImage(i, 0, 0);
-	}
-	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 1, program);
 		LoadFaceImage(i, 0, 1);
 	}
@@ -206,7 +206,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	const char *uniform = m_txUniforms[face];
 	glActiveTexture(GL_TEXTURE0 + face + (eye * 6));
 
-	glBindTexture(GL_TEXTURE_2D, m_textures[face + (eye * 6)]);
+	glBindTexture(GL_TEXTURE_2D, m_textures[eye][face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Use nearest to prevent black borders from fragment shader interpolation

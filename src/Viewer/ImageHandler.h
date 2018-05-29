@@ -34,7 +34,7 @@ private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
 	static int maxResDepth(const char *path);
 
-	static GLuint m_textures[12];
+	static GLuint m_textures[2][6];
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 

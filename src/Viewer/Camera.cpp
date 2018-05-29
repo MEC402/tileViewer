@@ -4,7 +4,8 @@
 int Camera::Width = 1280;
 int Camera::Height = 800;
 
-Camera::Viewport *Camera::Cameras[5];
+int Camera::NumCameras = 5;
+Camera::Viewport **Camera::Cameras = new Viewport*[NumCameras];
 
 glm::mat4 Camera::Projection;
 glm::mat4 Camera::View;
@@ -43,7 +44,6 @@ void Camera::SetViewport(Viewport *viewport)
 	}
 
 	glViewport(viewport->leftcorner, 0, viewport->width, viewport->height);
-	glBindVertexArray(VAO);
 	glDrawArrays(GL_POINTS, 0, pointCount);
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR) {
@@ -58,7 +58,7 @@ void Camera::setCameras(Viewport **viewports, float fovy, float aRatio, bool mul
 	unsigned int numScreens = 1;
 	float rotate_x = 0.0;
 	if (multiscreen) {
-		numScreens = 5;
+		numScreens = NumCameras;
 		rotate_x = -float(numScreens - 1) * 0.5f * fovx;
 		for (unsigned int i = 0; i < numScreens; i++) {
 			viewports[i] = new Viewport{ 0 };
