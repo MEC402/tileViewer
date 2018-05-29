@@ -121,8 +121,6 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 	// Basically the same as LoadQuadImage
 	const char facename = m_faceNames[face];
 	int activeTexture = GL_TEXTURE0 + face;
-
-	fprintf(stderr, "Loading tile data for face: %c At depth level: %d\n", facename, depth+1);
 	
 	// This seems to work pretty nicely
 	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for

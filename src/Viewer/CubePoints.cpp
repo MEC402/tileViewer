@@ -98,14 +98,14 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 				break;
 			}
 
-			// xyz coordinates for the center point of the quad
+			//xyz coordinates for the center point of the quad
 			m_positions[quadPoint++] = x;
 			m_positions[quadPoint++] = y;
 			m_positions[quadPoint++] = z;
-
+			
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
-
+			
 			// Set the depth value of the quad in the vertex buffer
 			m_positions[quadPoint++] = 0.0f;
 

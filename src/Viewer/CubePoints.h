@@ -29,7 +29,7 @@ public:
 	// xyz face depth (3 + 1 + 1)
 	int m_datasize{ 5 };
 
-	// To pass into geometry shader for positioning
+	// How far away vertices for a quad center to place (used in geometry shader)
 	float m_TILEWIDTH{ 0.0f };
 	
 	bool Ready{ false };
@@ -38,11 +38,16 @@ private:
 
 	int m_maxResDepth{ 0 };
 	int m_currentResDepth{ 0 };
+
+	// Quads per axis
 	int m_faceDimensions{ 0 };
+	// Quads per face
 	int m_faceQuads{ 0 };
+	// Data points per row
 	int m_perRow{ 0 };
+	// How far from the origin to place points
 	float m_faceDistance{ 0.0f };
-	
+	// How far over the next quad is
 	float m_TILESTEP{ 0.0f };
 
 	// 6 faces
@@ -51,12 +56,8 @@ private:
 	// Index of tile
 	// Depth of tile
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
-	//std::vector< std::vector <std::vector <std::vector<int>>>> m_tileMap;
-
+	//int ***m_tileMap[6];
 	std::vector<float> m_positions;
-	std::vector<UVCords> m_uvs;
-	GLuint m_VAOID{ 0 };
-	GLuint m_UVCordsVBOID{ 0 };
 
 	void m_setupOGL();
 	
