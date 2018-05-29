@@ -1,4 +1,5 @@
-#include "stdafx.h"
+//#include "stdafx.h"
+#include "ShaderHelper.h"
 
 GLuint ShaderHelper::m_program;
 GLuint ShaderHelper::m_vertShader;

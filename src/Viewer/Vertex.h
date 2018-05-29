@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VERTEX_H
+#define VERTEX_H
+
 #include <GL\glew.h>
 
 struct Position {
@@ -16,3 +18,5 @@ struct UVCords {
 	UVCords() = default;
 	UVCords(GLfloat u, GLfloat v) : u(u), v(v) {};
 };
+
+#endif

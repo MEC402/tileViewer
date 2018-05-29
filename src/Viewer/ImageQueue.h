@@ -1,3 +1,6 @@
+#ifndef IMAGEQUEUE_H
+#define IMAGEQUEUE_H
+
 #include <mutex>
 #include <queue>
 #include "Image.h"
@@ -15,3 +18,5 @@ private:
 	static std::queue<ImageData*> queue_;
 
 };
+
+#endif

@@ -1,7 +1,20 @@
-#pragma once
-#include <GL/glew.h>
+#ifndef IMAGEHANDLER_H
+#define IMAGEHANDLER_H
+
+#include <GL\glew.h>
+#include <GL\freeglut.h>
+#include <algorithm>
+#include <chrono>
+#include <string>
+#include <thread>
+#include <vector>
+#include <windows.h>
+
 #include "Image.h"
+#include "ImageHandler.h"
+#include "ImageQueue.h"
 #include "InternetDownload.h"
+#include "PanoInfo.h"
 #include "ThreadPool.hpp"
 
 struct PanoInfo;
@@ -29,3 +42,5 @@ private:
 	static std::vector<PanoInfo> m_panoList;
 	static std::vector<ImageData> m_imageData;
 };
+
+#endif

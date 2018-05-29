@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IMAGE_H
+#define IMAGE_H
 struct ImageData
 {
 	// Raw image data
@@ -18,3 +19,4 @@ struct ImageData
 	// Done downloading?
 	bool complete;
 };
+#endif

@@ -1,6 +1,12 @@
-#include "stdafx.h"
-#include "Controls.h"
+//#include "stdafx.h"
+#include <GL\glew.h>
+#include <GL\freeglut.h>
+#include <stdio.h>
+
 #include "Camera.h"
+#include "Controls.h"
+#include "ShaderHelper.h"
+#include "ImageHandler.h"
 
 // A great deal of this is just wrappers around Camera:: class calls
 

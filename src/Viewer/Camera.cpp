@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include "Camera.h"
+
 
 int Camera::Width = 1280;
 int Camera::Height = 800;
@@ -17,11 +17,11 @@ float Camera::Pitch = 0.0f;
 float Camera::LastX = Width / 2.0f;
 float Camera::LastY = Height / 2.0f;
 float Camera::Zoom = 0.0f;
-float Camera::FOV = 34.8093072;
+float Camera::FOV = 34.8093072f;
 
 void Camera::SetCameras()
 {
-	setCameras(Cameras, FOV, double(Height) / double(Width), true);
+	setCameras(Cameras, FOV, float(Height) / float(Width), true);
 }
 
 void Camera::UpdateMVP()
@@ -51,16 +51,16 @@ void Camera::SetViewport(Viewport *viewport)
 	}
 }
 
-void Camera::setCameras(Viewport **viewports, double fovy, double aRatio, bool multiscreen)
+void Camera::setCameras(Viewport **viewports, float fovy, float aRatio, bool multiscreen)
 {
 	// Ported from spviewer
-	double fovx = glm::atan(glm::tan(glm::radians(fovy*0.5)) * aRatio) * 2.0;
+	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	unsigned int numScreens = 1;
 	float rotate_x = 0.0;
 	if (multiscreen) {
 		numScreens = 5;
-		rotate_x = -double(numScreens - 1) * 0.5 * fovx;
-		for (int i = 0; i < numScreens; i++) {
+		rotate_x = -float(numScreens - 1) * 0.5f * fovx;
+		for (unsigned int i = 0; i < numScreens; i++) {
 			viewports[i] = new Viewport{ 0 };
 		}
 	}
@@ -70,9 +70,9 @@ void Camera::setCameras(Viewport **viewports, double fovy, double aRatio, bool m
 	}
 
 	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
-		fprintf(stderr, "Camera %d %f\n", i, (Width / numScreens));
-		viewports[i]->leftcorner = ((float)Width / numScreens) * i;
-		viewports[i]->width = ((float)Width / numScreens);
+		fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
+		viewports[i]->leftcorner = (Width / numScreens) * i;
+		viewports[i]->width = (Width / numScreens);
 		viewports[i]->height = Height;
 		viewports[i]->rotation = rotate_x;
 	}

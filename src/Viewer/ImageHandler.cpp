@@ -1,13 +1,5 @@
-#include "stdafx.h"
-#include "PanoInfo.h"
-
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <windows.h>
-#include <thread>
-
-#include <chrono>
+//#include "stdafx.h"
+#include "ImageHandler.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

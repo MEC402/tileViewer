@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CONTROLS_H
+#define CONTROLS_H
+
 #include "Camera.h"
 
 class Controls {
@@ -18,4 +20,4 @@ private:
 	static float DEBUG_camera_degree_shift[5];
 };
 
-
+#endif

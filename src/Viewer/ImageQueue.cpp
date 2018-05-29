@@ -1,4 +1,5 @@
-#include "stdafx.h"
+//#include "stdafx.h"
+#include "ImageQueue.h"
 
 std::mutex ImageQueue::mutex_;
 std::queue<ImageData*> ImageQueue::queue_;

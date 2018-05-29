@@ -1,8 +1,5 @@
-#include "stdafx.h"
-#include <curl/curl.h>
-#include <sstream>
-#include <iostream>
-#include <string>
+//#include "stdafx.h"
+#include "InternetDownload.h"
 
 
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file)

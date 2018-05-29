@@ -1,7 +1,11 @@
-#pragma once
-#include "stdafx.h"
+#ifndef CAMERA_H
+#define CAMERA_H
+
 #include "GLhandles.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <GL\glew.h>
+#include <GL\freeglut.h>
+#include <stdio.h>
 
 class Camera {
 public:
@@ -37,6 +41,8 @@ public:
 
 
 private:
-	static void setCameras(Viewport **cams, double fovy, double aRatio, bool multiscreen);
+	static void setCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	static void updateMVP(float pitch, float yaw, float fov, int height, int width);
 };
+
+#endif

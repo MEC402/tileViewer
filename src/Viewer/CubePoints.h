@@ -1,4 +1,6 @@
-#pragma once
+#ifndef CUBEPOINTS_H
+#define CUBEPOINTS_H
+
 #include <thread>
 #include <vector>
 #include "Vertex.h"
@@ -62,3 +64,5 @@ private:
 	void m_setupOGL();
 	
 };
+
+#endif

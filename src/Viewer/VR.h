@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VR_H
+#define VR_H
+
 #include <assert.h>
 #include <GL/glew.h>
 #include "LibOVRKernel/Kernel/OVR_Types.h"
@@ -59,3 +61,5 @@ void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer);
 
 // TODO: probably leaking memory. Need to destroy the textures and stuff.
 void destroyVRDevice(VRDevice* vr);
+
+#endif

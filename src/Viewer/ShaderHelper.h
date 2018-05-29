@@ -1,8 +1,11 @@
-#pragma once
+#ifndef SHADERHELPER_H
+#define SHADERHELPER_H
+
 #include <GL\glew.h>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <vector>
 
 class ShaderHelper {
 public:
@@ -20,3 +23,5 @@ private:
 	static GLuint m_geomShader;
 	static GLuint m_fragShader;
 };
+
+#endif

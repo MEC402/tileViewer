@@ -91,7 +91,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
@@ -164,7 +164,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Controls.h" />
-    <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePoints.h" />
     <ClInclude Include="GLhandles.h" />
     <ClInclude Include="Image.h" />
@@ -185,7 +184,6 @@
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controls.cpp" />
-    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="ImageQueue.cpp" />
