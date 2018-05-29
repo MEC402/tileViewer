@@ -1,11 +1,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "GLhandles.h"
-#include <glm/gtc/matrix_transform.hpp>
 #include <GL\glew.h>
 #include <GL\freeglut.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
+
+#include "GLhandles.h"
 
 class Camera {
 public:

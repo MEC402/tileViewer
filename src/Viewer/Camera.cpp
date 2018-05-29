@@ -70,7 +70,7 @@ void Camera::setCameras(Viewport **viewports, float fovy, float aRatio, bool mul
 	}
 
 	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
-		fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
+		//fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
 		viewports[i]->leftcorner = (Width / numScreens) * i;
 		viewports[i]->width = (Width / numScreens);
 		viewports[i]->height = Height;
