@@ -163,8 +163,15 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 		row = (m_faceDimensions - 1) - row;
 	if (face == 1 || face == 3)
 		col = (m_faceDimensions - 1) - col;
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
+
+	if (m_tileMap[face][row][col][1] >= depth) {
+		m.unlock();
+		return;
+	}
+		
+
 	int quadToChange = m_tileMap[face][row][col][0];
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
 	int depthQuadRow = row / numQuadsToChange;
 	int depthQuadCol = col / numQuadsToChange;
 	int startRow = numQuadsToChange * depthQuadRow;

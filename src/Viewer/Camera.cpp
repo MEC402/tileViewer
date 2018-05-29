@@ -4,8 +4,8 @@
 int Camera::Width = 1280;
 int Camera::Height = 800;
 
-int Camera::NumCameras = 5;
-Camera::Viewport **Camera::Cameras = new Viewport*[NumCameras];
+int Camera::NumCameras;// = 5;
+Camera::Viewport **Camera::Cameras;// = new Viewport*[NumCameras];
 
 glm::mat4 Camera::Projection;
 glm::mat4 Camera::View;
@@ -17,8 +17,21 @@ float Camera::Yaw = -270.0f;
 float Camera::Pitch = 0.0f;
 float Camera::LastX = Width / 2.0f;
 float Camera::LastY = Height / 2.0f;
-float Camera::Zoom = 0.0f;
 float Camera::FOV = 34.8093072f;
+
+void Camera::Init(int cameracount)
+{
+	if (cameracount < 2) {
+		NumCameras = 1;
+		FOV = 45.0f;
+	}
+	else {
+		NumCameras = cameracount;
+	}
+	Cameras = new Viewport*[NumCameras];
+	UpdateMVP();
+	SetCameras();
+}
 
 void Camera::SetCameras()
 {

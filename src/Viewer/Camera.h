@@ -37,6 +37,7 @@ public:
 	static float Zoom;
 	static float FOV;
 
+	static void Init(int cameracount);
 	static void SetViewport(Viewport *viewport);
 	static void SetCameras();
 	static void UpdateMVP();
