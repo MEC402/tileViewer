@@ -4,7 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-GLuint ImageHandler::m_textures[6];
+GLuint ImageHandler::m_textures[12];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 std::vector<PanoInfo> ImageHandler::m_panoList;
@@ -16,7 +16,7 @@ int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 void ImageHandler::InitTextureAtlas(GLuint program) 
 {
-	glGenTextures(6, m_textures);
+	glGenTextures(12, m_textures);
 
 	// hardcoded magic
 	int maxDepth = 3;
@@ -25,8 +25,12 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	// May behoove us to factor out LoadFaceImage from this loop and call it separately for
 	// better flow control
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, program);
-		LoadFaceImage(i, 0);
+		initFaceAtlas(i, maxDepth, 0, program);
+		LoadFaceImage(i, 0, 0);
+	}
+	for (int i = 0; i < 6; i++) {
+		initFaceAtlas(i, maxDepth, 1, program);
+		LoadFaceImage(i, 0, 1);
 	}
 }
 
@@ -64,7 +68,7 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 }
 
-void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
+void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 {
 	// ST coordinates are inverted along the Y axis, flip our row value
 	row = 7 - row;
@@ -76,23 +80,29 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	int depthQuadCol = col / numQuadsToChange;
 
 	// *Theoretically* this should prevent us from overwriting a higher res texture with a lower res one
-	if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
-		return;
-	}
-	m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
+	//if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
+	//	return;
+	//}
+	//m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
 
 	// Set our URI string to load the image
 	const int bufferSize = 128;
 	char buf[bufferSize];
-	sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+	if (eye == 0) {
+		sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+	}
+	else {
+		sprintf_s(buf, bufferSize, m_panoList[0].rightAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+	}
 
 	// Load the image, set ImageData values for later use
 	ImageData *imageFile = new ImageData{ 0 };
 	downloadFile(imageFile, buf);
 	imageFile->w_offset = depthQuadCol;
 	imageFile->h_offset = depthQuadRow;
-	imageFile->activeTexture = GL_TEXTURE0 + face;
+	imageFile->activeTexture = GL_TEXTURE0 + face + (6 * eye);
 	imageFile->face = face;
+	imageFile->eye = eye;
 
 	// Go ahead and just load the pixel data now instead of later
 	// More memory hungry but reduces the amount of time our main OpenGL thread has to spend
@@ -107,11 +117,11 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
 	ImageQueue::Enqueue(imageFile);
 }
 
-void ImageHandler::LoadFaceImage(int face, int depth)
+void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 {
 	// Basically the same as LoadQuadImage
 	const char facename = m_faceNames[face];
-	int activeTexture = GL_TEXTURE0 + face;
+	int activeTexture = GL_TEXTURE0 + face + (6 * eye);
 	
 	// This seems to work pretty nicely
 	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
@@ -121,7 +131,12 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 		int bufferSize = 256;
 		char buf[256];
 		for (int j = 0; j < maxDepth; j++) {
-			sprintf_s(buf, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+			if (eye == 0) {
+				sprintf_s(buf, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+			}
+			else {
+				sprintf_s(buf, m_panoList[0].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+			}
 			urls.push_back(buf);
 		}
 	}
@@ -148,6 +163,7 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 		if (imageFiles[i]->complete) {
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
+			imageFiles[i]->eye = eye;
 			imageFiles[i]->data = stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize,
 				&width, &height, &nrChannels, 0);
 			imageFiles[i]->w_offset *= width;
@@ -165,7 +181,7 @@ void ImageHandler::LoadFaceImage(int face, int depth)
 }
 
 // For use after doing a hot-reload on shaders
-void ImageHandler::RebindTextures(GLuint program)
+void ImageHandler::RebindTextures(GLuint program, int eye)
 {
 	for (int i = 0; i < 6; i++) {
 		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
@@ -173,7 +189,7 @@ void ImageHandler::RebindTextures(GLuint program)
 			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
 		}
 		else {
-			glUniform1i(TxUniform, i);
+			glUniform1i(TxUniform, i + (6 * eye));
 		}
 	}
 }
@@ -181,16 +197,16 @@ void ImageHandler::RebindTextures(GLuint program)
 /* ---------------- Private Functions ---------------- */
 
 
-void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
+void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 {
 	// TODO: Probably shouldn't hardcode image resolution like this
 	int maxWidth = 512 * (int)pow(2, depth);
 	int maxHeight = 512 * (int)pow(2, depth);
 
 	const char *uniform = m_txUniforms[face];
-	glActiveTexture(GL_TEXTURE0 + face);
+	glActiveTexture(GL_TEXTURE0 + face + (eye * 6));
 
-	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
+	glBindTexture(GL_TEXTURE_2D, m_textures[face + (eye * 6)]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Use nearest to prevent black borders from fragment shader interpolation

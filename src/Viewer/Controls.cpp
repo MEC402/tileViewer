@@ -110,15 +110,15 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F1:
 		program = ShaderHelper::ReloadShader(GL_VERTEX_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case GLUT_KEY_F2:
 		program = ShaderHelper::ReloadShader(GL_GEOMETRY_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case GLUT_KEY_F3:
 		program = ShaderHelper::ReloadShader(GL_FRAGMENT_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 
 	case GLUT_KEY_F4:
@@ -159,40 +159,18 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		//Threads::DefaultThreadPool::submitJob(LoadFaceByQuads, 0);
 		break;
 	}
+	Camera::UpdateMVP();
+	Camera::SetCameras();
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
 {
 	switch (key) {
 	case '1':
-		DEBUG_camera_degree_shift[0] += DEBUG_camerastep;
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case '2':
-		DEBUG_camera_degree_shift[0] -= DEBUG_camerastep;
-		break;
-	case '3':
-		DEBUG_camera_degree_shift[1] += DEBUG_camerastep;
-		break;
-	case '4':
-		DEBUG_camera_degree_shift[1] -= DEBUG_camerastep;
-		break;
-	case '5':
-		DEBUG_camera_degree_shift[2] += DEBUG_camerastep;
-		break;
-	case '6':
-		DEBUG_camera_degree_shift[2] -= DEBUG_camerastep;
-		break;
-	case '7':
-		DEBUG_camera_degree_shift[3] += DEBUG_camerastep;
-		break;
-	case '8':
-		DEBUG_camera_degree_shift[3] -= DEBUG_camerastep;
-		break;
-	case '9':
-		DEBUG_camera_degree_shift[4] += DEBUG_camerastep;
-		break;
-	case '0':
-		DEBUG_camera_degree_shift[4] -= DEBUG_camerastep;
+		ImageHandler::RebindTextures(program, 1);
 		break;
 
 	case 'r':

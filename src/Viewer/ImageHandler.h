@@ -26,15 +26,15 @@ public:
 	static void InitTextureAtlas(GLuint program);
 	static void InitPanoListFromOnlineFile(std::string url);
 	static void LoadImageData(ImageData *image);
-	static void LoadFaceImage(int face, int depth);
-	static void LoadQuadImage(int face, int row, int col, int depth);
-	static void RebindTextures(GLuint program);
+	static void LoadFaceImage(int face, int depth, int eye);
+	static void LoadQuadImage(int face, int row, int col, int depth, int eye);
+	static void RebindTextures(GLuint program, int eye);
 
 private:
-	static void initFaceAtlas(int face, int depth, GLuint program);
+	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
 	static int maxResDepth(const char *path);
 
-	static GLuint m_textures[6];
+	static GLuint m_textures[12];
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 

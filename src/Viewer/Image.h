@@ -15,6 +15,7 @@ struct ImageData
 	int row;
 	int col;
 	int face;
+	int eye;
 
 	// Done downloading?
 	bool complete;
