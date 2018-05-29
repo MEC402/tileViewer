@@ -163,12 +163,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Controls.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="CubePoints.h" />
+    <ClInclude Include="GLhandles.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
     <ClInclude Include="ImageQueue.h" />
     <ClInclude Include="InternetDownload.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="ShaderHelper.h" />
     <ClInclude Include="stb_image.h" />
@@ -180,6 +183,8 @@
     <ClInclude Include="VR.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Controls.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="ImageHandler.cpp" />

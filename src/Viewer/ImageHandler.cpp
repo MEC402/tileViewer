@@ -61,12 +61,11 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		GLenum errCode;
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			const GLubyte *errString = gluErrorString(errCode);
-			printf("OPENGL ERROR: %s\n", errString);
+			printf("OPENGL ERROR Loading Image: %s\n", gluErrorString(errCode));
 		}
 	}
 	else {
-		fprintf(stderr, "Error loading image file!\n");
+		fprintf(stderr, "Error loading image file! No pixel data found\n");
 	}
 	stbi_image_free(image->data);
 	delete image;
