@@ -15,11 +15,13 @@ int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 /* ---------------- Public Functions ---------------- */
 
-void ImageHandler::InitTextureAtlas(GLuint program) 
+void ImageHandler::InitTextureAtlas(GLuint program, bool stereo) 
 {
 	// 6 for each eye
 	glGenTextures(6, m_textures[0]);
-	glGenTextures(6, m_textures[1]);
+
+	if (stereo)
+		glGenTextures(6, m_textures[1]);
 
 	// hardcoded magic
 	int maxDepth = 3;
@@ -30,8 +32,10 @@ void ImageHandler::InitTextureAtlas(GLuint program)
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);
 		LoadFaceImage(i, 0, 0);
-		initFaceAtlas(i, maxDepth, 1, program);
-		LoadFaceImage(i, 0, 1);
+		if (stereo) {
+			initFaceAtlas(i, maxDepth, 1, program);
+			LoadFaceImage(i, 0, 1);
+		}
 	}
 }
 

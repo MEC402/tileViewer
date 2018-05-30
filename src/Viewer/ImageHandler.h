@@ -27,7 +27,7 @@ class ImageHandler {
 
 public:
 
-	static void InitTextureAtlas(GLuint program);
+	static void InitTextureAtlas(GLuint program, bool stereo);
 	static void InitPanoListFromOnlineFile(std::string url);
 	static void LoadImageData(ImageData *image);
 	static void LoadFaceImage(int face, int depth, int eye);
