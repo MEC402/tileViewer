@@ -222,6 +222,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	}
 }
 
+#ifdef _USE_WIN_H
 // Gnarly WIN32 API calls to traverse a given directory and find out max resolution depth
 int ImageHandler::maxResDepth(const char *path)
 {
@@ -254,3 +255,4 @@ int ImageHandler::maxResDepth(const char *path)
 	// Reduce depth by 1, since folders are listed 1/2/3/4 instead of 0/1/2/3
 	return depth-1;
 }
+#endif

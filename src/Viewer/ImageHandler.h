@@ -8,7 +8,11 @@
 #include <string>
 #include <thread>
 #include <vector>
+
+#ifdef WIN32
+#define _USE_WIN_H
 #include <windows.h>
+#endif
 
 #include "Image.h"
 #include "ImageHandler.h"
@@ -32,7 +36,11 @@ public:
 
 private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
+
+	// WIN32 API calls for traversing a directory (no longer necessary?)
+#ifdef _USE_WIN_H
 	static int maxResDepth(const char *path);
+#endif
 
 	static GLuint m_textures[2][6];
 	static const char *m_txUniforms[6];
