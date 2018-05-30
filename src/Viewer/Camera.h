@@ -11,14 +11,16 @@
 class Camera {
 public:
 	struct Viewport {
-		int leftcorner;
+		int widthstart;
+		int heightstart;
 		int width;
 		int height;
 		float rotation;
 	};
 
 	static int NumCameras;
-	static Viewport **Cameras;
+	static Viewport **LeftCameras;
+	static Viewport **RightCameras;
 	// Matricies
 	static glm::mat4 Projection;
 	static glm::mat4 View;
@@ -38,13 +40,18 @@ public:
 	static float FOV;
 
 	static void Init(int cameracount);
+	static void CreateCameras();
 	static void SetViewport(Viewport *viewport);
-	static void SetCameras();
+	static void SplitHorizontal();
+	static void UpdateCameras();
 	static void UpdateMVP();
 
 
 private:
-	static void setCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
+	static bool hsplit;
+
+	static void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
+	static void updateCameras(float fovy, float aRatio, bool hsplit);
 	static void updateMVP(float pitch, float yaw, float fov, int height, int width);
 };
 

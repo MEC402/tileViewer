@@ -1,4 +1,5 @@
 //#include "stdafx.h"
+
 #include "ImageHandler.h"
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -115,6 +116,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 
 	// Throw it into our queue
 	ImageQueue::Enqueue(imageFile);
+	// Do NOT delete the pointer here, we free that memory after loading it into the texture atlas
 }
 
 void ImageHandler::LoadFaceImage(int face, int depth, int eye)

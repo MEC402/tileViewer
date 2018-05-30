@@ -4,8 +4,11 @@
 int Camera::Width = 1280;
 int Camera::Height = 800;
 
-int Camera::NumCameras;// = 5;
-Camera::Viewport **Camera::Cameras;// = new Viewport*[NumCameras];
+int Camera::NumCameras;
+Camera::Viewport **Camera::LeftCameras;
+Camera::Viewport **Camera::RightCameras;
+
+bool Camera::hsplit = false;
 
 glm::mat4 Camera::Projection;
 glm::mat4 Camera::View;
@@ -17,7 +20,7 @@ float Camera::Yaw = -270.0f;
 float Camera::Pitch = 0.0f;
 float Camera::LastX = Width / 2.0f;
 float Camera::LastY = Height / 2.0f;
-float Camera::FOV = 34.8093072f;
+float Camera::FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
 
 void Camera::Init(int cameracount)
 {
@@ -28,14 +31,15 @@ void Camera::Init(int cameracount)
 	else {
 		NumCameras = cameracount;
 	}
-	Cameras = new Viewport*[NumCameras];
+	LeftCameras = new Viewport*[NumCameras]();
+	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();
-	SetCameras();
+	CreateCameras();
 }
 
-void Camera::SetCameras()
+void Camera::CreateCameras()
 {
-	setCameras(Cameras, FOV, float(Height) / float(Width), true);
+	createCameras(LeftCameras, FOV, float(Height) / float(Width), true);
 }
 
 void Camera::UpdateMVP()
@@ -43,8 +47,16 @@ void Camera::UpdateMVP()
 	updateMVP(Pitch, Yaw, FOV, Height, Width);
 }
 
+void Camera::UpdateCameras()
+{
+	updateCameras(FOV, float(Height) / float(Width), hsplit);
+}
+
 void Camera::SetViewport(Viewport *viewport)
 {
+	if (viewport == NULL)
+		return;
+
 	glm::mat4 newModel = glm::rotate(Model, viewport->rotation, glm::vec3(0, 1, 0));
 	glm::mat4 mvp = Projection * View * newModel;
 	GLuint MatrixID = glGetUniformLocation(program, "MVP");
@@ -56,15 +68,35 @@ void Camera::SetViewport(Viewport *viewport)
 		fprintf(stderr, "Error occured trying to update MVP uniform!\n%s\n", gluErrorString(error));
 	}
 
-	glViewport(viewport->leftcorner, 0, viewport->width, viewport->height);
+	glViewport(viewport->widthstart, viewport->heightstart, viewport->width, viewport->height);
 	glDrawArrays(GL_POINTS, 0, pointCount);
+
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR) {
 		fprintf(stderr, "Error occured trying to render viewport!\n%s\n", gluErrorString(error));
 	}
 }
 
-void Camera::setCameras(Viewport **viewports, float fovy, float aRatio, bool multiscreen)
+void Camera::SplitHorizontal()
+{
+	if (hsplit)
+		return;
+
+	hsplit = true;
+	RightCameras = new Viewport*[NumCameras];
+	createCameras(RightCameras, FOV, float(Height) / float(Width), true);
+
+	for (int i = 0; i < NumCameras; i++) {
+		LeftCameras[i]->height = Height / 2;
+		LeftCameras[i]->heightstart = Height / 2;
+
+		RightCameras[i]->height = Height / 2;
+	}
+}
+
+/* --------------- Private Functions --------------- */
+
+void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool multiscreen)
 {
 	// Ported from spviewer
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
@@ -84,11 +116,31 @@ void Camera::setCameras(Viewport **viewports, float fovy, float aRatio, bool mul
 
 	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
 		//fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
-		viewports[i]->leftcorner = (Width / numScreens) * i;
+		viewports[i]->widthstart = (Width / numScreens) * i;
+		viewports[i]->heightstart = 0;
 		viewports[i]->width = (Width / numScreens);
 		viewports[i]->height = Height;
 		viewports[i]->rotation = rotate_x;
 	}
+}
+
+void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
+{
+	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
+	float rotate_x = 0.0;
+
+
+	if (hsplit) {
+		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+			LeftCameras[i]->rotation = rotate_x;
+			RightCameras[i]->rotation = rotate_x;
+		}
+	}
+	else {
+		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx)
+			LeftCameras[i]->rotation = rotate_x;
+	}
+	
 }
 
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)

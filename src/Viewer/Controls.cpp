@@ -63,7 +63,7 @@ void Controls::MouseWheel(int button, int direction, int x, int y)
 		Camera::FOV += 2.0f;
 	}
 	Camera::UpdateMVP();
-	Camera::SetCameras();
+	Camera::UpdateCameras();
 }
 
 // Aside from up/down/right/left these functions are all for debugging
@@ -122,7 +122,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F4:
-		Camera::SetCameras();
+		Camera::UpdateCameras();
 		break;
 
 	case GLUT_KEY_F5:
@@ -160,7 +160,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 	}
 	Camera::UpdateMVP();
-	Camera::SetCameras();
+	//Camera::SetCameras();
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
@@ -173,12 +173,16 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		ImageHandler::RebindTextures(program, 1);
 		break;
 
+	case 'h':
+		Camera::SplitHorizontal();
+		break;
+
 	case 'r':
 	case 'R':
 		Camera::FOV = DEBUG_fov;
 		Camera::Pitch = 0.0f;
 		Camera::UpdateMVP();
-		Camera::SetCameras();
+		//Camera::SetCameras();
 		break;
 
 	case 27:

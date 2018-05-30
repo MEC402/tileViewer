@@ -10,7 +10,9 @@
 
 std::mutex m;
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth) - 1)
+CubePoints::CubePoints(int maxResDepth, int eye) : 
+	m_maxResDepth((int)pow(2, maxResDepth) - 1),
+	eye(eye)
 {
 	// Number of quads per axis
 	m_faceDimensions = (int)pow(2, maxResDepth);
@@ -169,7 +171,7 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 		return;
 	}
 		
-
+	// Bunch of offset math so we can update groups of quads if we're not at the lowest depth
 	int quadToChange = m_tileMap[face][row][col][0];
 	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
 	int depthQuadRow = row / numQuadsToChange;
@@ -262,7 +264,7 @@ void CubePoints::RebindVAO()
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
-	glBindVertexArray(0);
+	glBindVertexArray(eye);
 }
 
 void CubePoints::m_setupOGL()
@@ -293,5 +295,5 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
 
-	glBindVertexArray(0);
+	glBindVertexArray(eye);
 }

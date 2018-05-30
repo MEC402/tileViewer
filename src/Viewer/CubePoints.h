@@ -10,7 +10,7 @@ class CubePoints {
 
 public:
 
-	CubePoints(int maxResDepth);
+	CubePoints(int maxResDepth, int eye);
 	~CubePoints() = default;
 	int FaceCurrentDepth(int face);
 	void FaceNextDepth(int face);
@@ -60,6 +60,8 @@ private:
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
 	//int ***m_tileMap[6];
 	std::vector<float> m_positions;
+
+	int eye;
 
 	void m_setupOGL();
 	
