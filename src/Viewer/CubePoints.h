@@ -12,20 +12,14 @@ public:
 
 	CubePoints(int maxResDepth, int eye);
 	~CubePoints() = default;
-	int FaceCurrentDepth(int face);
-	void FaceNextDepth(int face);
-	std::thread FaceNextDepthThread(int face);
 
-	int QuadCurrentDepth(int face, int row, int col);
+	void RebindVAO();
 	void QuadSetDepth(int face, int row, int col, int depth);
-	void QuadNextDepth(int face, int row, int col);
-	std::thread QuadNextDepthThread(int face, int row, int col);
+	void ResetDepth();
 
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
 	GLsizei m_NumVertices{ 0 };
-
-	void RebindVAO();
 
 	// Magic hardcoded number please do not forget about me
 	// xyz face depth (3 + 1 + 1)
@@ -58,7 +52,6 @@ private:
 	// Index of tile
 	// Depth of tile
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
-	//int ***m_tileMap[6];
 	std::vector<float> m_positions;
 
 	int eye;

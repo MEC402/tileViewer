@@ -1,9 +1,16 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
-#include "Camera.h"
+#include <GL\glew.h>
+#include <GL\freeglut.h>
+#include <stdio.h>
+#include <numeric>
 
-#include <vector>
+#include "Camera.h"
+#include "ShaderHelper.h"
+#include "ImageHandler.h"
+#include "Viewer.h"
+
 class Controls {
 public:
 	static void FlipDebug();

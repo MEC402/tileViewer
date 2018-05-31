@@ -156,6 +156,14 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 	m.unlock();
 }
 
+void CubePoints::ResetDepth()
+{
+	for (int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
+		m_positions[i] = 0.0f;
+	}
+	Ready = true;
+}
+
 void CubePoints::RebindVAO()
 {
 	Ready = false;

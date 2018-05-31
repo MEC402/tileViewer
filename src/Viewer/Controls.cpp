@@ -1,14 +1,4 @@
-//#include "stdafx.h"
-#include <GL\glew.h>
-#include <GL\freeglut.h>
-#include <stdio.h>
-#include <numeric>
-
-
-#include "Camera.h"
 #include "Controls.h"
-#include "ShaderHelper.h"
-#include "ImageHandler.h"
 
 // A great deal of this is just wrappers around Camera:: class calls
 
@@ -164,6 +154,24 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 
 	case 'h':
 		Camera::SplitHorizontal();
+		break;
+
+	case 'n':
+		LeftEye->ResetDepth();
+		if (stereo)
+			RightEye->ResetDepth();
+		ImageHandler::InitPanoListFromOnlineFile(panolist.front());
+		panolist.pop();
+		for (int i = 0; i < 6; i++) {
+			ImageHandler::LoadQuadImage(i, 0, 0, 0, 0);
+			facedepths[0][i] = 1;
+			facecount[0][i] = 0;
+			if (stereo) {
+				ImageHandler::LoadQuadImage(i, 0, 0, 0, 1);
+				facedepths[1][i] = 1;
+				facecount[1][i] = 0;
+			}
+		}
 		break;
 
 	case 'r':
