@@ -35,7 +35,11 @@ void display();
 void timerFunc(int value);
 void idleFunc(void);
 
+void nextPano();
+void prevPano();
+
 void resetImages();
+void resetCubes();
 
 //------------------------------------------------------//
 //				Begin Variable List						//
@@ -47,7 +51,7 @@ extern bool stereo;
 extern bool fivepanel;
 
 // Pano List /////////////////////////////////
-extern std::queue<char*> panolist;
+extern std::vector<char*> panolist;
 
 // Geometry data /////////////////////////////
 extern CubePoints *LeftEye;

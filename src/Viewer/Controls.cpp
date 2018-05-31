@@ -157,7 +157,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'n':
-		resetImages();
+		nextPano();
+		break;
+
+	case 'p':
+		prevPano();
 		break;
 
 	case 'r':
