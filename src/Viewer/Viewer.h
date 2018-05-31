@@ -8,16 +8,9 @@
 #include <time.h>
 #include <vector>
 
-#include "Camera.h"
-#include "Controls.h"
+
 #include "CubePoints.h"
-#include "GLhandles.h"
-#include "ShaderHelper.h"
-#include "ImageHandler.h"
-#include "ImageQueue.h"
-#include "VR.h"
-#include "ThreadPool.hpp"
-#include "ThreadSafeQueue.hpp"
+
 
 //------------------------------------------------------//
 //				Begin Function List						//
