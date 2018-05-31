@@ -3,6 +3,7 @@
 
 #include "Camera.h"
 
+#include <vector>
 class Controls {
 public:
 	static void FlipDebug();

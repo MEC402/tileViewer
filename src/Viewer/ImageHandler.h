@@ -42,7 +42,9 @@ private:
 	static int maxResDepth(const char *path);
 #endif
 
+	static std::mutex m;
 	static GLuint m_textures[2][6];
+	static GLuint m_pbos[2][6];
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 

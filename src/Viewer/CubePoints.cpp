@@ -124,40 +124,6 @@ CubePoints::CubePoints(int maxResDepth, int eye) :
 	m_setupOGL();
 }
 
-// Get the current depth of a given face
-int CubePoints::FaceCurrentDepth(int face)
-{
-	int faceIndex = face * (m_datasize * m_faceQuads);
-	return (int)m_positions[faceIndex + 10];
-}
-
-// Set an entire faces quads to the next depth
-void CubePoints::FaceNextDepth(int face)
-{
-	int startIndex = face * (m_datasize * m_faceQuads);
-	int currentDepth = (int)m_positions[startIndex + m_datasize - 1];
-	for (int i = 0, j = m_datasize - 1; i < m_faceQuads; i++, j += m_datasize) {
-		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
-	}
-	Ready = true;
-}
-
-// Easier way to call CubePoints functions with std::thread library
-std::thread CubePoints::FaceNextDepthThread(int face)
-{
-	return std::thread([=] { FaceNextDepth(face); });
-}
-
-// Get the current depth of a given quad
-int CubePoints::QuadCurrentDepth(int face, int row, int col)
-{
-	row = (m_faceDimensions - 1) - row;
-	m.lock();
-	int depth = m_tileMap[face][row][col][1];
-	m.unlock();
-	return depth;
-}
-
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
 	m.lock();
@@ -188,70 +154,6 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 	// We've updated something, set our Ready flag to true so we can update our VBO
 	Ready = true;
 	m.unlock();
-}
-
-void CubePoints::QuadNextDepth(int face, int row, int col)
-{
-	m.lock();
-	// Depending on the face, it's smoother to update rows or columns in reverse when loading in next
-	// texture levels.  They'll always get the right texture in the right spot eventually, but there's
-	// a strange ~3ish frame delay between the depth update and the correct texture being rendered if we
-	// don't do this
-	if (face != 5) {
-		row = (m_faceDimensions - 1) - row;
-	}
-	if (face == 1 || face == 3) {
-		col = (m_faceDimensions - 1) - col;
-	}
-
-	// Get our vertex buffer index offset for the given quad
-	int quadToChange = m_tileMap[face][row][col][0];
-	// Get our next depth level of said quad
-	int nextDepth = m_tileMap[face][row][col][1] + 1;
-
-	// Maaaagic numbers
-	if (nextDepth > 3) {
-		fprintf(stderr, "Tile group is already at max depth, skipping\n");
-		return;
-	}
-
-	// Quads per axis / Depth level  -> How many quads in each axis need updating
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, nextDepth);
-
-	// Calculate what the new level position of a quad will be
-	// e.g. Level 1 might be (0,0) or (1,0) etc
-	// This is so we can update groups of quads 
-	int depthQuadRow = row / numQuadsToChange;
-	int depthQuadCol = col / numQuadsToChange;
-
-	// What row/col we want to start making changes on
-	// e.g. If we passed in row 3, col 2 but are going to Depth 1, this would offset us to (0,0)
-	// This makes it easier to iteratively update a group of quads
-	int startRow = numQuadsToChange * depthQuadRow;
-	int startCol = numQuadsToChange * depthQuadCol;
-
-
-	// This looks horrifying but it's just because of nested arrays
-	// m_tilemap[][][]	-> Vertex buffer offset
-	// startRow + i		-> Which row the next quad lives on (global coords)
-	// startCol + j		-> Which col the next quad lives on (global coords)
-	// m_datasize - 1	-> Depth value for a quad is the last index per quad, so however_much_data - 1 to get offset
-	for (int i = 0; i < numQuadsToChange; i++) {
-		for (int j = 0; j < numQuadsToChange; j++) {
-			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
-			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
-		}
-	}
-
-	// We've updated something, set our Ready flag to true so we can update our VBO
-	Ready = true;
-	m.unlock();
-}
-
-// Easier way to thread CubePoints:: calls with std::thread library
-std::thread CubePoints::QuadNextDepthThread(int face, int row, int col)
-{
-	return std::thread([=] { QuadNextDepth(face, row, col); });
 }
 
 void CubePoints::RebindVAO()

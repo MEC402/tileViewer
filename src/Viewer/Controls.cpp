@@ -2,6 +2,8 @@
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <stdio.h>
+#include <numeric>
+
 
 #include "Camera.h"
 #include "Controls.h"
@@ -88,24 +90,10 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_PAGE_UP:
 		Camera::FOV += 0.1f;
-		//if (DEBUG_row >= 7) {
-		//	DEBUG_row = 0;
-		//}
-		//else {
-		//	DEBUG_row++;
-		//}
-		//fprintf(stderr, "Select row/col to increase depth: %d / %d\n", DEBUG_row, DEBUG_col);
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
 		Camera::FOV -= 0.1f;
-		//if (DEBUG_col >= 7) {
-		//	DEBUG_col = 0;
-		//}
-		//else {
-		//	DEBUG_col++;
-		//}
-		//fprintf(stderr, "Select row/col to increase depth: %d / %d\n", DEBUG_row, DEBUG_col);
 		break;
 
 	case GLUT_KEY_F1:
@@ -165,6 +153,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
 {
+	float average = 0.0f;
 	switch (key) {
 	case '1':
 		ImageHandler::RebindTextures(program, 0);

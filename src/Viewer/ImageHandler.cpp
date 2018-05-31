@@ -1,11 +1,15 @@
 //#include "stdafx.h"
 
 #include "ImageHandler.h"
+#include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <mutex>
 
+std::mutex ImageHandler::m;
 GLuint ImageHandler::m_textures[2][6];
+GLuint ImageHandler::m_pbos[2][6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 std::vector<PanoInfo> ImageHandler::m_panoList;
@@ -31,10 +35,10 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	// better flow control
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);
-		LoadFaceImage(i, 0, 0);
+		LoadQuadImage(i, 0, 0, 0, 0);
 		if (stereo) {
 			initFaceAtlas(i, maxDepth, 1, program);
-			LoadFaceImage(i, 0, 1);
+			LoadQuadImage(i, 0, 0, 0, 1);
 		}
 	}
 }
@@ -54,23 +58,51 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 
 void ImageHandler::LoadImageData(ImageData *image)
 {
+	GLenum errCode;
 	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
 	if (image->data) {
-		glActiveTexture(image->activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
-			512, 512, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+		//std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-		GLenum errCode;
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[image->eye][image->face]);
+		if ((errCode = glGetError()) != GL_NO_ERROR) {
+			printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
+		}
+		
+		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+		if (dst) {
+			std::memcpy(dst, image->data, 512 * 512 * 3);
+			//int *ptr = dst;
+			//unsigned char *data = image->data;
+			//for (int i = 0; i < (512 * 512); i++) {
+			//	*ptr = (int)image->data;
+			//	ptr++;
+			//	image->data++;
+			//}
+			//image->data = data;
+		}
+		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+		
+		
+		glActiveTexture(image->activeTexture);
+
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
+			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		//glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
+		//	512, 512, GL_RGB, GL_UNSIGNED_BYTE, image->data);
+
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			printf("OPENGL ERROR Loading Image: %s\n", gluErrorString(errCode));
 		}
+		
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+		//std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
+		//fprintf(stderr, "Time to load texture: %lld us\n", std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
 	}
 	else {
 		fprintf(stderr, "Error loading image file! No pixel data found\n");
 	}
 	stbi_image_free(image->data);
 	delete image;
-
 }
 
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
@@ -118,6 +150,22 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 	imageFile->w_offset *= width;
 	imageFile->h_offset *= height;
 
+//	m.lock();
+//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[imageFile->eye][imageFile->face]);
+//	GLenum errCode;
+//	if ((errCode = glGetError()) != GL_NO_ERROR) {
+//		printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
+//	}
+//	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, NULL, GL_STREAM_DRAW);
+//	if ((errCode = glGetError()) != GL_NO_ERROR) {
+//		printf("OPENGL ERROR BUFFERDATA: %s\n", gluErrorString(errCode));
+//	}
+//	int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+//	if (dst)
+//		std::memcpy(dst, imageFile->data, 512 * 512 * 3);
+//	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+//	m.unlock();
 	// Throw it into our queue
 	ImageQueue::Enqueue(imageFile);
 	// Do NOT delete the pointer here, we free that memory after loading it into the texture atlas
@@ -226,6 +274,11 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	else {
 		glUniform1i(TxUniform, face);
 	}
+
+	glGenBuffers(1, &m_pbos[eye][face]);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
 #ifdef _USE_WIN_H
