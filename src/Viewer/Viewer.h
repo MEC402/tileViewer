@@ -35,6 +35,7 @@ void display();
 void timerFunc(int value);
 void idleFunc(void);
 
+void resetImages();
 
 //------------------------------------------------------//
 //				Begin Variable List						//

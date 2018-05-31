@@ -35,10 +35,10 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	// better flow control
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);
-		LoadQuadImage(i, 0, 0, 0, 0);
+		//LoadQuadImage(i, 0, 0, 0, 0);
 		if (stereo) {
 			initFaceAtlas(i, maxDepth, 1, program);
-			LoadQuadImage(i, 0, 0, 0, 1);
+			//LoadQuadImage(i, 0, 0, 0, 1);
 		}
 	}
 }

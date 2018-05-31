@@ -161,6 +161,13 @@ void CubePoints::ResetDepth()
 	for (int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
 		m_positions[i] = 0.0f;
 	}
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < m_faceDimensions; j++) {
+			for (int k = 0; k < m_faceDimensions; k++) {
+				m_tileMap[i][j][k][1] = 0.0f;
+			}
+		}
+	}
 	Ready = true;
 }
 
