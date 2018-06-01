@@ -113,7 +113,7 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 		viewports = new Viewport*[1];
 		viewports[0] = new Viewport{ 0 };
 	}
-
+	rotate_x -= (fovx * (int)(numScreens / 2));
 	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
 		//fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
 		viewports[i]->widthstart = (Width / numScreens) * i;
@@ -127,7 +127,7 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 {
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	float rotate_x = 0.0;
+	float rotate_x = -(fovx * (int)(NumCameras / 2));
 
 
 	if (hsplit) {

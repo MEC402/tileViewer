@@ -44,7 +44,7 @@ extern bool stereo;
 extern bool fivepanel;
 
 // Pano List /////////////////////////////////
-extern std::vector<char*> panolist;
+//extern std::vector<char*> panolist;
 
 // Geometry data /////////////////////////////
 extern CubePoints *LeftEye;

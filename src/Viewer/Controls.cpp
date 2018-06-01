@@ -169,7 +169,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		Camera::FOV = DEBUG_fov;
 		Camera::Pitch = 0.0f;
 		Camera::UpdateMVP();
-		//Camera::SetCameras();
+		Camera::UpdateCameras();
 		break;
 
 	case 27:

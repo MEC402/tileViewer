@@ -7,14 +7,16 @@
 #include "stb_image.h"
 #include <mutex>
 
-std::mutex ImageHandler::m;
+int ImageHandler::m_currentPano = 0;
+
+std::mutex ImageHandler::m_;
 GLuint ImageHandler::m_textures[2][6];
 GLuint ImageHandler::m_pbos[2][6];
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 std::vector<PanoInfo> ImageHandler::m_panoList;
 
-// I'm not convinced this is necessary here
+// I'm_ not convinced this is necessary here
 int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
 
 /* ---------------- Public Functions ---------------- */
@@ -47,12 +49,19 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 {
 	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
-	if (jsonFile.data) {
-		std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
-		// Base URL is the substring before the last backslash or forward slash
-		size_t lastSlashPosition = url.find_last_of("/\\");
-		std::string baseURL = url.substr(0, lastSlashPosition);
-		m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+	try {
+		if (jsonFile.data) {
+			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
+			//unsigned char** datacopy = jsonFile.data.get();
+			//std::string fileAsString(*datacopy, *datacopy + jsonFile.dataSize);
+			// Base URL is the substring before the last backslash or forward slash
+			size_t lastSlashPosition = url.find_last_of("/\\");
+			std::string baseURL = url.substr(0, lastSlashPosition);
+			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+		}
+	}
+	catch (const std::exception &exc) {
+		fprintf(stderr, "%s\n", exc.what());
 	}
 }
 
@@ -67,10 +76,11 @@ void ImageHandler::LoadImageData(ImageData *image)
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
 		}
-		
+
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
 			std::memcpy(dst, image->data, 512 * 512 * 3);
+			//std::memcpy(dst, image->data.get(), 512 * 512 * 3);
 			//int *ptr = dst;
 			//unsigned char *data = image->data;
 			//for (int i = 0; i < (512 * 512); i++) {
@@ -81,10 +91,8 @@ void ImageHandler::LoadImageData(ImageData *image)
 			//image->data = data;
 		}
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-		
-		
-		glActiveTexture(image->activeTexture);
 
+		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		//glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
@@ -101,6 +109,8 @@ void ImageHandler::LoadImageData(ImageData *image)
 	else {
 		fprintf(stderr, "Error loading image file! No pixel data found\n");
 	}
+	//stbi_image_free(image->data.get());
+	//image->data.reset();
 	stbi_image_free(image->data);
 	delete image;
 }
@@ -126,10 +136,10 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 	const int bufferSize = 128;
 	char buf[bufferSize];
 	if (eye == 0) {
-		sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+		sprintf_s(buf, bufferSize, m_panoList[m_currentPano].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 	}
 	else {
-		sprintf_s(buf, bufferSize, m_panoList[0].rightAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+		sprintf_s(buf, bufferSize, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
 	}
 
 	// Load the image, set ImageData values for later use
@@ -145,12 +155,25 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 	// More memory hungry but reduces the amount of time our main OpenGL thread has to spend
 	// away from draw calls
 	int width, height, nrChannels;
-	imageFile->data = stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize,
-		&width, &height, &nrChannels, 0);
+	//imageFile->data = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize,
+	//	&width, &height, &nrChannels, 0));
+
+	// stbi_load_from_memory mallocs data using the first pararm
+	unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
+	free(imageFile->data);
+	imageFile->data = d;
+
+	//free(d);
+	//std::unique_ptr<unsigned char*> d = std::make_unique<unsigned char*>(stbi_load_from_memory((stbi_uc*)imageFile->data.get(), imageFile->dataSize,
+	//	&width, &height, &nrChannels, 0));
+	//imageFile->data.swap(d);
+	//d.reset();
+
+
 	imageFile->w_offset *= width;
 	imageFile->h_offset *= height;
 
-//	m.lock();
+//	m_.lock();
 //	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[imageFile->eye][imageFile->face]);
 //	GLenum errCode;
 //	if ((errCode = glGetError()) != GL_NO_ERROR) {
@@ -165,7 +188,7 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 //		std::memcpy(dst, imageFile->data, 512 * 512 * 3);
 //	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 //	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-//	m.unlock();
+//	m_.unlock();
 	// Throw it into our queue
 	ImageQueue::Enqueue(imageFile);
 	// Do NOT delete the pointer here, we free that memory after loading it into the texture atlas
@@ -186,10 +209,10 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 		char buf[256];
 		for (int j = 0; j < maxDepth; j++) {
 			if (eye == 0) {
-				sprintf_s(buf, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+				sprintf_s(buf, m_panoList[m_currentPano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 			}
 			else {
-				sprintf_s(buf, m_panoList[0].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+				sprintf_s(buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 			}
 			urls.push_back(buf);
 		}
@@ -218,8 +241,11 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
 			imageFiles[i]->eye = eye;
-			imageFiles[i]->data = stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize,
-				&width, &height, &nrChannels, 0);
+			imageFiles[i]->data = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+			//std::unique_ptr<unsigned char*> d = std::make_unique<unsigned char*>(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data.get(), 
+			//	imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+			//imageFiles[i]->data.swap(d);
+			//d.reset();
 			imageFiles[i]->w_offset *= width;
 			imageFiles[i]->h_offset *= height;
 

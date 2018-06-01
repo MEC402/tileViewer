@@ -8,7 +8,7 @@
 /* -------------------- [ x y z | face | depth ] ------------------- */
 /* ----------------------------------------------------------------- */
 
-std::mutex m;
+std::mutex m_;
 
 CubePoints::CubePoints(int maxResDepth, int eye) : 
 	m_maxResDepth((int)pow(2, maxResDepth) - 1),
@@ -126,14 +126,14 @@ CubePoints::CubePoints(int maxResDepth, int eye) :
 
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
-	m.lock();
+	m_.lock();
 	if (face != 5)
 		row = (m_faceDimensions - 1) - row;
 	if (face == 1 || face == 3)
 		col = (m_faceDimensions - 1) - col;
 
 	if (m_tileMap[face][row][col][1] >= depth) {
-		m.unlock();
+		m_.unlock();
 		return;
 	}
 		
@@ -153,7 +153,7 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 
 	// We've updated something, set our Ready flag to true so we can update our VBO
 	Ready = true;
-	m.unlock();
+	m_.unlock();
 }
 
 void CubePoints::ResetDepth()

@@ -3,6 +3,7 @@
 struct ImageData
 {
 	// Raw image data
+	//std::unique_ptr<unsigned char*> data;
 	unsigned char* data;
 	unsigned int dataSize;
 
