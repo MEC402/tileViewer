@@ -241,7 +241,9 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
 			imageFiles[i]->eye = eye;
-			imageFiles[i]->data = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+			free(imageFiles[i]->data);
+			imageFiles[i]->data = d;
 			//std::unique_ptr<unsigned char*> d = std::make_unique<unsigned char*>(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data.get(), 
 			//	imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
 			//imageFiles[i]->data.swap(d);
