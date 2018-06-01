@@ -52,7 +52,8 @@ void downloadFile(ImageData *out_file, const std::string url)
 	curl_easy_cleanup(curl);
 	out_file->complete = true;
 
-	populateImageData(out_file, url.c_str());
+	if (url.substr(url.find_last_of(".") + 1) != "json")
+		populateImageData(out_file, url.c_str());
 }
 
 void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsigned int fileCount)
