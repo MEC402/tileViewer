@@ -20,7 +20,8 @@ float Camera::Yaw = -270.0f;
 float Camera::Pitch = 0.0f;
 float Camera::LastX = Width / 2.0f;
 float Camera::LastY = Height / 2.0f;
-float Camera::FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
+//float Camera::FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
+float Camera::FOV = 73.74f;
 
 void Camera::Init(int cameracount)
 {
@@ -150,7 +151,7 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 {
-	Projection = glm::perspective(glm::radians(fov), (float)(float(height) / float(width)), 0.1f, 10000.0f);
+	Projection = glm::perspective(glm::radians(fov), (float)(float(width) / float(height)), 0.1f, 10000.0f);
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)

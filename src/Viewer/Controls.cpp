@@ -6,7 +6,8 @@ bool Controls::DEBUG = false;
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-float Controls::DEBUG_fov = 34.8093072;
+//float Controls::DEBUG_fov = 34.8093072f;
+float Controls::DEBUG_fov = 73.74f;
 float Controls::DEBUG_camera_degree_shift[5];
 
 void Controls::FlipDebug()
