@@ -20,5 +20,12 @@ struct ImageData
 
 	// Done downloading?
 	bool complete;
+
+	void Free()
+	{
+		if (data != NULL)
+			free(data);
+		free(this);
+	}
 };
 #endif

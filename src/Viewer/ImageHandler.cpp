@@ -70,8 +70,6 @@ void ImageHandler::LoadImageData(ImageData *image)
 	GLenum errCode;
 	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
 	if (image->data) {
-		//std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[image->eye][image->face]);
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
@@ -80,39 +78,24 @@ void ImageHandler::LoadImageData(ImageData *image)
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
 			std::memcpy(dst, image->data, 512 * 512 * 3);
-			//std::memcpy(dst, image->data.get(), 512 * 512 * 3);
-			//int *ptr = dst;
-			//unsigned char *data = image->data;
-			//for (int i = 0; i < (512 * 512); i++) {
-			//	*ptr = (int)image->data;
-			//	ptr++;
-			//	image->data++;
-			//}
-			//image->data = data;
 		}
+
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		//glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset,
-		//	512, 512, GL_RGB, GL_UNSIGNED_BYTE, image->data);
 
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			printf("OPENGL ERROR Loading Image: %s\n", gluErrorString(errCode));
 		}
 		
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-		//std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
-		//fprintf(stderr, "Time to load texture: %lld us\n", std::chrono::duration_cast<std::chrono::microseconds>(end - start).count());
 	}
 	else {
 		fprintf(stderr, "Error loading image file! No pixel data found\n");
 	}
-	//stbi_image_free(image->data.get());
-	//image->data.reset();
-	stbi_image_free(image->data);
-	delete image;
+	image->Free();
 }
 
 void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
@@ -125,12 +108,6 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 	int numQuadsToChange = 8 / (int)pow(2, depth);
 	int depthQuadRow = row / numQuadsToChange;
 	int depthQuadCol = col / numQuadsToChange;
-
-	// *Theoretically* this should prevent us from overwriting a higher res texture with a lower res one
-	//if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
-	//	return;
-	//}
-	//m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
 
 	// Set our URI string to load the image
 	const int bufferSize = 128;
@@ -145,50 +122,25 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 	// Load the image, set ImageData values for later use
 	ImageData *imageFile = new ImageData{ 0 };
 	downloadFile(imageFile, buf);
+
+	// stbi_load_from_memory mallocs data using the first param
+	// Store that malloc to a new pointer, free our old one, then reassign
+	// Otherwise we get a big memory leak
+	int width, height, nrChannels;
+	unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
+
+	free(imageFile->data);
+
+	// Populate all our fields
+	imageFile->data = d;
 	imageFile->w_offset = depthQuadCol;
 	imageFile->h_offset = depthQuadRow;
 	imageFile->activeTexture = GL_TEXTURE0 + face + (6 * eye);
 	imageFile->face = face;
 	imageFile->eye = eye;
-
-	// Go ahead and just load the pixel data now instead of later
-	// More memory hungry but reduces the amount of time our main OpenGL thread has to spend
-	// away from draw calls
-	int width, height, nrChannels;
-	//imageFile->data = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize,
-	//	&width, &height, &nrChannels, 0));
-
-	// stbi_load_from_memory mallocs data using the first pararm
-	unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
-	free(imageFile->data);
-	imageFile->data = d;
-
-	//free(d);
-	//std::unique_ptr<unsigned char*> d = std::make_unique<unsigned char*>(stbi_load_from_memory((stbi_uc*)imageFile->data.get(), imageFile->dataSize,
-	//	&width, &height, &nrChannels, 0));
-	//imageFile->data.swap(d);
-	//d.reset();
-
-
 	imageFile->w_offset *= width;
 	imageFile->h_offset *= height;
 
-//	m_.lock();
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[imageFile->eye][imageFile->face]);
-//	GLenum errCode;
-//	if ((errCode = glGetError()) != GL_NO_ERROR) {
-//		printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
-//	}
-//	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, NULL, GL_STREAM_DRAW);
-//	if ((errCode = glGetError()) != GL_NO_ERROR) {
-//		printf("OPENGL ERROR BUFFERDATA: %s\n", gluErrorString(errCode));
-//	}
-//	int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
-//	if (dst)
-//		std::memcpy(dst, imageFile->data, 512 * 512 * 3);
-//	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-//	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-//	m_.unlock();
 	// Throw it into our queue
 	ImageQueue::Enqueue(imageFile);
 	// Do NOT delete the pointer here, we free that memory after loading it into the texture atlas
@@ -218,42 +170,37 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 		}
 	}
 
-	//std::vector<ImageData> imageFiles(urls.size());
-	ImageData **imageFiles = new ImageData*[urls.size()];
 	// Initialize all our pointers on the heap ahead of time
 	// Might be a way to do this on imageFiles declaration?
+	ImageData **imageFiles = new ImageData*[urls.size()];
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
 		imageFiles[i] = new ImageData{ 0 };
 	}
 	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
 	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
 	t.detach();
-	//t.join();
-	//Threads::DefaultThreadPool::submitJob(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
 
 
 	int i = 0;
 	int width, height, nrChannels;
 	while(i < (maxDepth * maxDepth)) {
-		// Thanks to the magic of pointers, we can check the completion status of all our imageFiles while
-		// they're being loaded in another thread.  Once they are, load them and set values.
+		// Check the completion status of each image before trying to load it
 		if (imageFiles[i]->complete) {
+			// Same as LoadQuadImage, new pointers then free then reassign to avoid memory leaks
+			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+
+			free(imageFiles[i]->data);
+
+			imageFiles[i]->data = d;
 			imageFiles[i]->activeTexture = activeTexture;
 			imageFiles[i]->face = face;
 			imageFiles[i]->eye = eye;
-			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
-			free(imageFiles[i]->data);
-			imageFiles[i]->data = d;
-			//std::unique_ptr<unsigned char*> d = std::make_unique<unsigned char*>(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data.get(), 
-			//	imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
-			//imageFiles[i]->data.swap(d);
-			//d.reset();
 			imageFiles[i]->w_offset *= width;
 			imageFiles[i]->h_offset *= height;
 
 			ImageQueue::Enqueue(imageFiles[i]);
 
-			// Reset complete flag to false so we aren't double-counting
+			// Reset complete flag to false so we aren't double-counting (This is only set to true in InternetDownloader)
 			imageFiles[i]->complete = false;
 			i++;
 		}
@@ -262,7 +209,7 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 	delete[]imageFiles;
 }
 
-// For use after doing a hot-reload on shaders
+// For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
 void ImageHandler::RebindTextures(GLuint program, int eye)
 {
 	for (int i = 0; i < 6; i++) {

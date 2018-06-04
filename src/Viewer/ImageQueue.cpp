@@ -3,6 +3,7 @@
 
 std::mutex ImageQueue::mutex_;
 std::queue<ImageData*> ImageQueue::queue_;
+bool ImageQueue::discard = false;
 
 bool ImageQueue::IsEmpty() 
 {
@@ -13,7 +14,12 @@ bool ImageQueue::IsEmpty()
 void ImageQueue::Enqueue(ImageData *file)
 {
 	std::lock_guard<std::mutex> lock(mutex_);
-	queue_.push(file);
+	if (discard) {
+		file->Free();
+	}
+	else {
+		queue_.push(file);
+	}
 }
 
 ImageData* ImageQueue::Dequeue()
@@ -24,13 +30,19 @@ ImageData* ImageQueue::Dequeue()
 	return file;
 }
 
+void ImageQueue::ToggleDiscard()
+{
+	std::lock_guard<std::mutex> lock(mutex_);
+	discard = !discard;
+}
+
 void ImageQueue::Clear()
 {
+	ToggleDiscard();
 	std::lock_guard<std::mutex> lock(mutex_);
 	while (!queue_.empty()) {
 		ImageData *i = queue_.front();
 		queue_.pop();
-		free(i->data);
-		free(i);
+		i->Free();
 	}
 }

@@ -176,6 +176,12 @@ namespace Threads
 			return result;
 		}
 
+		bool allstopped()
+		{
+			std::lock_guard<std::mutex> l(m_mutex);
+			return (m_waiting == m_threads.size());
+		}
+
 		void stopall()
 		{
 			m_workQueue.clear();
@@ -190,11 +196,27 @@ namespace Threads
 			while (!m_done)
 			{
 				std::unique_ptr<IThreadTask> pTask{ nullptr };
+				incwaiting();
 				if (m_workQueue.waitPop(pTask))
-				{
+				{	
+					decwaiting();
 					pTask->execute();
 				}
 			}
+		}
+
+		void incwaiting()
+		{
+			m_mutex.lock();
+			m_waiting++;
+			m_mutex.unlock();
+		}
+
+		void decwaiting()
+		{
+			m_mutex.lock();
+			m_waiting--;
+			m_mutex.unlock();
 		}
 
 		/**
@@ -217,6 +239,8 @@ namespace Threads
 		std::atomic_bool m_done;
 		ThreadSafeQueue<std::unique_ptr<IThreadTask>> m_workQueue;
 		std::vector<std::thread> m_threads;
+		std::mutex m_mutex;
+		int m_waiting;
 	};
 
 	namespace DefaultThreadPool
