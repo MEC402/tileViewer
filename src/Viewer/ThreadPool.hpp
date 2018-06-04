@@ -97,7 +97,10 @@ namespace Threads
 
 			auto get(void)
 			{
-				return m_future.get();
+				// This doesn't seem right since we've overridden the TaskFuture operator
+				// But it does cause less crashes, soooo?
+				if (m_future.valid())
+					return m_future.get();
 			}
 
 
