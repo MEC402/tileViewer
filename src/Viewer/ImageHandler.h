@@ -26,6 +26,8 @@ struct PanoInfo;
 class ImageHandler {
 
 public:
+	static std::vector<PanoInfo> m_panoList;
+	static int m_currentPano;
 
 	static void InitTextureAtlas(GLuint program, bool stereo);
 	static void InitPanoListFromOnlineFile(std::string url);
@@ -33,8 +35,8 @@ public:
 	static void LoadFaceImage(int face, int depth, int eye);
 	static void LoadQuadImage(int face, int row, int col, int depth, int eye);
 	static void RebindTextures(GLuint program, int eye);
-	static std::vector<PanoInfo> m_panoList;
-	static int m_currentPano;
+
+	static unsigned char* DEBUG_LoadNonTileImage(const char *path);
 
 private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);

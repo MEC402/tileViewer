@@ -177,6 +177,7 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
 		imageFiles[i] = new ImageData{ 0 };
 	}
+
 	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
 	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
 	t.detach();
@@ -224,6 +225,14 @@ void ImageHandler::RebindTextures(GLuint program, int eye)
 	}
 }
 
+
+unsigned char* ImageHandler::DEBUG_LoadNonTileImage(const char *path)
+{
+	int width, height, channels;
+	unsigned char* d = stbi_load(path, &width, &height, &channels, STBI_rgb);
+	return d;
+}
+
 /* ---------------- Private Functions ---------------- */
 
 
@@ -254,6 +263,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	glGenBuffers(1, &m_pbos[eye][face]);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
+	//glBufferData(GL_PIXEL_UNPACK_BUFFER, 4096 * 4096 * 3, 0, GL_STREAM_DRAW);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
