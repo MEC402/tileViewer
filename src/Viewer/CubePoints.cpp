@@ -133,7 +133,8 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 	if (face == 1 || face == 3)
 		col = (m_faceDimensions - 1) - col;
 
-	if (m_tileMap[face][row][col][1] >= depth) {
+	// Hopefully prevents loading lower-res tiles over high-res tiles?
+	if (m_tileMap[face][row][col][1] > depth) {
 		return;
 	}
 		

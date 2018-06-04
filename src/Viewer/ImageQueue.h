@@ -8,10 +8,11 @@
 class ImageQueue {
 
 public:
-	static bool IsEmpty();
-	static void Enqueue(ImageData *file);
-	static ImageData* Dequeue();
 	static void Clear();
+	static ImageData* Dequeue();
+	static void Enqueue(ImageData *file);
+	static bool IsEmpty();
+	static int Size();
 	static void ToggleDiscard();
 
 private:
