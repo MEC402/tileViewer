@@ -10,9 +10,9 @@
 
 std::mutex m_;
 
-CubePoints::CubePoints(int maxResDepth, int eye) : 
+CubePoints::CubePoints(int maxResDepth, int m_eye) : 
 	m_maxResDepth((int)pow(2, maxResDepth) - 1),
-	eye(eye)
+	m_eye(m_eye)
 {
 	// Number of quads per axis
 	m_faceDimensions = (int)pow(2, maxResDepth);
@@ -149,6 +149,12 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 			m_tileMap[face][startRow + i][startCol + j][1] = depth;
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
 		}
+
+		// Hacky attempt to only push VBO updates on points we change
+		//m_VBOupdates.emplace_back(std::make_tuple(
+		//	m_tileMap[face][startRow + i][startCol][0],
+		//	m_datasize * numQuadsToChange
+		//));
 	}
 
 	// We've updated something, set our Ready flag to true so we can update our VBO
@@ -174,14 +180,26 @@ void CubePoints::ResetDepth()
 void CubePoints::RebindVAO()
 {
 	Ready = false;
-
 	//TODO: Need some way to only update changed quad positions instead of repushing whole array
 	// Pushing entire array is m_datasize * 6 * quads per face
 	// As of 05/24/18 12:02PM that is: 5 * 6 * 64 -> 1920 * sizeof(float) -> 7.5MiB
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
-	glBindVertexArray(eye);
+
+	// Hacky attempt to only update changed quads
+	// Doesn't seem to work properly, and isn't *super* important, out bottleneck is by far loading over network
+	//if (m_VBOupdates.empty()) {
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
+	//}
+	//else {
+	//	while (!m_VBOupdates.empty()) {
+	//		std::tuple<int, int> offsets = m_VBOupdates.front();
+	//		m_VBOupdates.pop_front();
+	//		glBufferSubData(GL_ARRAY_BUFFER, std::get<0>(offsets), std::get<1>(offsets) * sizeof(float),
+	//			&m_positions[std::get<0>(offsets)]);
+	//	}
+	//}
+	glBindVertexArray(m_eye);
 }
 
 void CubePoints::m_setupOGL()
@@ -212,5 +230,5 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
 
-	glBindVertexArray(eye);
+	glBindVertexArray(m_eye);
 }

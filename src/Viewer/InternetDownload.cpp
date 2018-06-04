@@ -1,19 +1,12 @@
 //#include "stdafx.h"
 #include "InternetDownload.h"
 
-// P R O B L E M A T I C (with smart pointers)
-// This is where you left off
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file)
 {
 	// Files are progressivly written, so we append the new data to any previously downloaded data.
 	size_t newByteCount = size * nmemb;
 	file->data = (unsigned char*)realloc(file->data, file->dataSize + newByteCount);
 	memcpy(file->data + file->dataSize, newBytes, newByteCount);
-	//unsigned char* d = *file->data.get();
-	//d = (unsigned char*)realloc(file->data.get(), file->dataSize + newByteCount);
-	//memcpy(d + file->dataSize, newBytes, newByteCount);
-	//file->data.reset();
-	//file->data = std::move(std::make_unique<unsigned char*>(d));
 	file->dataSize += newByteCount;
 	return newByteCount;
 }

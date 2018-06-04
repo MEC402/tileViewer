@@ -40,6 +40,8 @@ void Camera::Init(int cameracount)
 void Camera::CreateCameras()
 {
 	createCameras(LeftCameras, FOV, float(Height) / float(Width), true);
+	//createCameras(LeftCameras, FOV, float(Width / NumCameras) / float(Height), true);
+	//createCameras(LeftCameras, FOV, float(1080) / float(1920), true);
 }
 
 void Camera::UpdateMVP()
@@ -50,15 +52,17 @@ void Camera::UpdateMVP()
 void Camera::UpdateCameras()
 {
 	updateCameras(FOV, float(Height) / float(Width), hsplit);
+	//updateCameras(FOV, float(Width / NumCameras) / float(Height), hsplit);
+	//updateCameras(FOV, float(1080) / float(1920), hsplit);
 }
 
 void Camera::SetViewport(Viewport *viewport)
 {
 	if (viewport == NULL)
 		return;
-
-	glm::mat4 newModel = glm::rotate(Model, viewport->rotation, glm::vec3(0, 1, 0));
-	glm::mat4 mvp = Projection * View * newModel;
+	// rotation in degrees or radians?
+	glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
+	glm::mat4 mvp = Projection * newView * Model;
 	GLuint MatrixID = glGetUniformLocation(program, "MVP");
 	if (MatrixID != -1) {
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
@@ -121,6 +125,7 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 		viewports[i]->width = (Width / numScreens);
 		viewports[i]->height = Height;
 		viewports[i]->rotation = rotate_x;
+		//fprintf(stderr, "%d rotation at %f\n", i, rotate_x);
 	}
 }
 

@@ -1,6 +1,7 @@
 #ifndef CUBEPOINTS_H
 #define CUBEPOINTS_H
 
+#include <deque>
 #include <thread>
 #include <vector>
 #include "Vertex.h"
@@ -10,7 +11,7 @@ class CubePoints {
 
 public:
 
-	CubePoints(int maxResDepth, int eye);
+	CubePoints(int maxResDepth, int m_eye);
 	~CubePoints() = default;
 
 	void RebindVAO();
@@ -31,6 +32,8 @@ public:
 	bool Ready{ false };
 
 private:
+	
+	int m_eye;
 
 	int m_maxResDepth{ 0 };
 	int m_currentResDepth{ 0 };
@@ -53,8 +56,7 @@ private:
 	// Depth of tile
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
 	std::vector<float> m_positions;
-
-	int eye;
+	std::deque<std::tuple<int,int>> m_VBOupdates;
 
 	void m_setupOGL();
 	
