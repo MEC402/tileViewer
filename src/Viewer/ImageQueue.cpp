@@ -6,25 +6,31 @@ std::queue<ImageData*> ImageQueue::queue_;
 
 bool ImageQueue::IsEmpty() 
 {
-	mutex_.lock();
-	bool isEmpty = queue_.empty();
-	mutex_.unlock();
-
-	return isEmpty;
+	std::lock_guard<std::mutex> lock(mutex_);
+	return queue_.empty();
 }
 
 void ImageQueue::Enqueue(ImageData *file)
 {
-	mutex_.lock();
+	std::lock_guard<std::mutex> lock(mutex_);
 	queue_.push(file);
-	mutex_.unlock();
 }
 
 ImageData* ImageQueue::Dequeue()
 {
-	mutex_.lock();
+	std::lock_guard<std::mutex> lock(mutex_);
 	ImageData *file = queue_.front();
 	queue_.pop();
-	mutex_.unlock();
 	return file;
+}
+
+void ImageQueue::Clear()
+{
+	std::lock_guard<std::mutex> lock(mutex_);
+	while (!queue_.empty()) {
+		ImageData *i = queue_.front();
+		queue_.pop();
+		free(i->data);
+		free(i);
+	}
 }

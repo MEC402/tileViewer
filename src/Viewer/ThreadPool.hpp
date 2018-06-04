@@ -176,6 +176,11 @@ namespace Threads
 			return result;
 		}
 
+		void stopall()
+		{
+			m_workQueue.clear();
+		}
+
 	private:
 		/**
 		* Constantly running function each thread uses to acquire work items from the queue.

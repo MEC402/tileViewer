@@ -11,7 +11,7 @@ public:
 	static bool IsEmpty();
 	static void Enqueue(ImageData *file);
 	static ImageData* Dequeue();
-	
+	static void Clear();
 
 private:
 	static std::mutex mutex_;

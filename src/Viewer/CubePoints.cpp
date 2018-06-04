@@ -126,14 +126,14 @@ CubePoints::CubePoints(int maxResDepth, int m_eye) :
 
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
-	m_.lock();
+	std::lock_guard<std::mutex> lock(m_);
+
 	if (face != 5)
 		row = (m_faceDimensions - 1) - row;
 	if (face == 1 || face == 3)
 		col = (m_faceDimensions - 1) - col;
 
 	if (m_tileMap[face][row][col][1] >= depth) {
-		m_.unlock();
 		return;
 	}
 		
@@ -144,26 +144,21 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 	int depthQuadCol = col / numQuadsToChange;
 	int startRow = numQuadsToChange * depthQuadRow;
 	int startCol = numQuadsToChange * depthQuadCol;
+
 	for (int i = 0; i < numQuadsToChange; i++) {
 		for (int j = 0; j < numQuadsToChange; j++) {
 			m_tileMap[face][startRow + i][startCol + j][1] = depth;
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
 		}
-
-		// Hacky attempt to only push VBO updates on points we change
-		//m_VBOupdates.emplace_back(std::make_tuple(
-		//	m_tileMap[face][startRow + i][startCol][0],
-		//	m_datasize * numQuadsToChange
-		//));
 	}
 
 	// We've updated something, set our Ready flag to true so we can update our VBO
 	Ready = true;
-	m_.unlock();
 }
 
 void CubePoints::ResetDepth()
 {
+	std::lock_guard<std::mutex> lock(m_);
 	for (int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
 		m_positions[i] = 0.0f;
 	}
@@ -179,26 +174,15 @@ void CubePoints::ResetDepth()
 
 void CubePoints::RebindVAO()
 {
+	std::lock_guard<std::mutex> lock(m_);
+
 	Ready = false;
 	//TODO: Need some way to only update changed quad positions instead of repushing whole array
 	// Pushing entire array is m_datasize * 6 * quads per face
 	// As of 05/24/18 12:02PM that is: 5 * 6 * 64 -> 1920 * sizeof(float) -> 7.5MiB
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-
-	// Hacky attempt to only update changed quads
-	// Doesn't seem to work properly, and isn't *super* important, out bottleneck is by far loading over network
-	//if (m_VBOupdates.empty()) {
-		glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
-	//}
-	//else {
-	//	while (!m_VBOupdates.empty()) {
-	//		std::tuple<int, int> offsets = m_VBOupdates.front();
-	//		m_VBOupdates.pop_front();
-	//		glBufferSubData(GL_ARRAY_BUFFER, std::get<0>(offsets), std::get<1>(offsets) * sizeof(float),
-	//			&m_positions[std::get<0>(offsets)]);
-	//	}
-	//}
+	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
 	glBindVertexArray(m_eye);
 }
 
