@@ -151,7 +151,12 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 {
-	Projection = glm::perspective(glm::radians(fov), (float)(float(width) / float(height)), 0.1f, 10000.0f);
+	if (NumCameras < 2) {
+		Projection = glm::perspective(glm::radians(fov), (float)(float(width) / float(height)), 0.1f, 10000.0f);
+	}
+	else {
+		Projection = glm::perspective(glm::radians(fov), (float)(float(height) / float(width)), 0.1f, 10000.0f);
+	}
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)

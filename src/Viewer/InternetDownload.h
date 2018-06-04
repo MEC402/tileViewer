@@ -5,6 +5,7 @@
 #include <curl/curl.h>
 #include <sstream>
 #include <iostream>
+#include <mutex>
 #include <vector>
 
 #include "Image.h"

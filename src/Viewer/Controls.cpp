@@ -158,20 +158,24 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'n':
-		nextPano();
+		NextPano();
 		break;
 
 	case 'p':
-		prevPano();
+		PrevPano();
 		break;
 
 	case 'r':
-	case 'R':
 		Camera::FOV = DEBUG_fov;
 		Camera::Pitch = 0.0f;
 		Camera::UpdateMVP();
 		Camera::UpdateCameras();
 		break;
+
+	case 'R':
+		ReloadPano();
+		break;
+
 
 	case 27:
 		//glutLeaveFullScreen();

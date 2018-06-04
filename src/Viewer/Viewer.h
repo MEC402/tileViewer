@@ -28,8 +28,9 @@ void display();
 void timerFunc(int value);
 void idleFunc(void);
 
-void nextPano();
-void prevPano();
+void NextPano();
+void PrevPano();
+void ReloadPano();
 
 void resetImages();
 void resetCubes();

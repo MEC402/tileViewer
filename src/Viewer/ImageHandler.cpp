@@ -156,10 +156,11 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
 	std::vector<std::string> urls;
 
-	for (int i = 0; i < maxDepth; i++) {
+	// Populate our URL vectors in reverse, this helps make loading in images appear smoother (we don't overwrite lower-depth tiles until last)
+	for (int i = maxDepth-1; i >= 0; i--) {
 		int bufferSize = 256;
 		char buf[256];
-		for (int j = 0; j < maxDepth; j++) {
+		for (int j = maxDepth-1; j >= 0; j--) {
 			if (eye == 0) {
 				sprintf_s(buf, m_panoList[m_currentPano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 			}

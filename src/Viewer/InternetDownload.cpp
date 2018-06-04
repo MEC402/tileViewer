@@ -58,20 +58,20 @@ void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsig
 	CURL **curlHandles = new CURL*[fileCount];
 
 	// Intialize file requests
-	for (unsigned int i = 0; i < fileCount; ++i)
+	//for (int i = fileCount-1; i >= 0; --i)
+	for (int i = 0; i < fileCount; ++i)
 	{
 		populateImageData(out_files[i], urls[i].c_str());
-
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
 		curl_easy_setopt(eh, CURLOPT_WRITEDATA, &(*out_files[i]));
 		curl_multi_add_handle(multi, eh);
 		curlHandles[i] = eh;
+		curl_multi_perform(multi, &transfersRunning);
 	}
 
 	// Progressively download the files
-	curl_multi_perform(multi, &transfersRunning);
 	do {
 		const int maxWaitTimeMiliseconds = 10 * 10000;
 		int numfds = 0;
