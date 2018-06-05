@@ -152,7 +152,7 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -(fovx * (int)(NumCameras / 2));
 
-
+	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap so w/e
 	if (hsplit) {
 		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
 			LeftCameras[i]->width = (Width / NumCameras);
