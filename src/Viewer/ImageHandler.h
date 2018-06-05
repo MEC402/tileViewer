@@ -5,6 +5,7 @@
 #include <GL\freeglut.h>
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <vector>
@@ -12,6 +13,8 @@
 #ifdef WIN32
 #define _USE_WIN_H
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "Image.h"
@@ -35,6 +38,7 @@ public:
 	static void LoadFaceImage(int face, int depth, int eye);
 	static void LoadQuadImage(int face, int row, int col, int depth, int eye);
 	static void RebindTextures(GLuint program, int eye);
+	static void WindowDump(int width, int height);
 
 	static unsigned char* DEBUG_LoadNonTileImage(const char *path);
 
@@ -54,6 +58,7 @@ private:
 
 	static int m_tileDepth[6][8][8];
 	//static std::vector<ImageData> m_imageData;
+	static int m_dumpcount;
 };
 
 #endif

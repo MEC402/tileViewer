@@ -127,15 +127,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F9:
-		Camera::UpdateMVP();
-		break;
-
-	case GLUT_KEY_F10:
-		//zoffset -= step;
-		break;
-
-	case GLUT_KEY_F12:
-		//Threads::DefaultThreadPool::submitJob(LoadFaceByQuads, 0);
+		ImageHandler::WindowDump(Camera::Width, Camera::Height);
 		break;
 	}
 	Camera::UpdateMVP();

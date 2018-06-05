@@ -57,7 +57,7 @@ void Camera::UpdateMVP()
 
 void Camera::UpdateCameras()
 {
-	updateCameras(FOV, float(Height) / float(Width), hsplit);
+	//updateCameras(FOV, float(Height) / float(Width), hsplit);
 	//updateCameras(FOV, float(Width) / float(Height), hsplit);
 	//updateCameras(FOV, float(Width / NumCameras) / float(Height), hsplit);
 	//updateCameras(FOV, float(Height) / float(Width / NumCameras), hsplit);
@@ -125,15 +125,16 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 		viewports = new Viewport*[1];
 		viewports[0] = new Viewport{ 0 };
 	}
+
+	// Rotate backwards so our center screen is our "0" rotation camera
 	rotate_x -= (fovx * (int)(numScreens / 2));
+
 	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
-		//fprintf(stderr, "Camera %d %d\n", i, (Width / numScreens));
 		viewports[i]->widthstart = (Width / numScreens) * i;
 		viewports[i]->heightstart = 0;
 		viewports[i]->width = (Width / numScreens);
 		viewports[i]->height = Height;
 		viewports[i]->rotation = rotate_x;
-		//fprintf(stderr, "%d rotation at %f\n", i, rotate_x);
 	}
 }
 

@@ -5,16 +5,31 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+#include "stb_image_write.h"
+
 #include <mutex>
 
-int ImageHandler::m_currentPano = 0;
 
+// Mutex
 std::mutex ImageHandler::m_;
+
+// Texture handles
 GLuint ImageHandler::m_textures[2][6];
 GLuint ImageHandler::m_pbos[2][6];
+
+// Texture names
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
+
+// Panos
 std::vector<PanoInfo> ImageHandler::m_panoList;
+int ImageHandler::m_currentPano = 0;
+
+// Number of screen dumps we've made (Mostly for debug/comparison)
+int ImageHandler::m_dumpcount = 0;
 
 // I'm_ not convinced this is necessary here
 int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
@@ -226,6 +241,40 @@ void ImageHandler::RebindTextures(GLuint program, int eye)
 }
 
 
+// Worked exactly once
+void ImageHandler::WindowDump(int width, int height)
+{
+	unsigned char* image = (unsigned char*)malloc(width * height * 3 * sizeof(char));
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+	std::thread t([](unsigned char* image, int width, int height)
+	{
+#ifdef _USE_WIN_H
+		// Windows pls
+		char buff[FILENAME_MAX];
+		char buf[FILENAME_MAX];
+		GetCurrentDirectoryA(FILENAME_MAX, buff);
+#else
+		char buff[1024];
+		char buf[1024];
+		getcwd(buff, sizeof(buff));
+#endif
+		std::string cwd(buff);
+
+		sprintf_s(buf, "%s\\Output_%d.png", cwd.c_str(), m_dumpcount);
+		m_dumpcount++;
+
+		stbi_flip_vertically_on_write(true);
+		stbi_write_png(buf, width, height, 3, image, width * 3);
+
+		fprintf(stderr, "Saved image to %s\n", buf);
+		free(image);
+	}, image, width, height);
+	t.detach();
+}
+
 unsigned char* ImageHandler::DEBUG_LoadNonTileImage(const char *path)
 {
 	int width, height, channels;
@@ -263,7 +312,6 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	glGenBuffers(1, &m_pbos[eye][face]);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
-	//glBufferData(GL_PIXEL_UNPACK_BUFFER, 4096 * 4096 * 3, 0, GL_STREAM_DRAW);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
