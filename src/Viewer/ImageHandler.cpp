@@ -41,9 +41,6 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	// 6 for each eye
 	glGenTextures(6, m_textures[0]);
 
-	if (stereo)
-		glGenTextures(6, m_textures[1]);
-
 	// hardcoded magic
 	int maxDepth = 3;
 
@@ -51,13 +48,21 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	// May behoove us to factor out LoadFaceImage from this loop and call it separately for
 	// better flow control
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, 0, program);
-		//LoadQuadImage(i, 0, 0, 0, 0);
-		if (stereo) {
-			initFaceAtlas(i, maxDepth, 1, program);
-			//LoadQuadImage(i, 0, 0, 0, 1);
-		}
+		initFaceAtlas(i, maxDepth, 0, program);	
 	}
+	if (stereo)
+		InitStereo(program);
+}
+
+void ImageHandler::InitStereo(GLuint program)
+{
+	// If our texture bindings != 0, we've already initialized the second eye textures
+	if (m_textures[1][0] != 0)
+		return;
+
+	glGenTextures(6, m_textures[1]);
+	for (int i = 0; i < 6; i++)
+		initFaceAtlas(i, 3, 1, program);
 }
 
 void ImageHandler::InitPanoListFromOnlineFile(std::string url)

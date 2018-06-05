@@ -146,7 +146,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'h':
-		Camera::SplitHorizontal();
+		ToggleStereo();
 		break;
 
 	case 'n':

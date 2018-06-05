@@ -33,6 +33,7 @@ public:
 	static int m_currentPano;
 
 	static void InitTextureAtlas(GLuint program, bool stereo);
+	static void InitStereo(GLuint program);
 	static void InitPanoListFromOnlineFile(std::string url);
 	static void LoadImageData(ImageData *image);
 	static void LoadFaceImage(int face, int depth, int eye);

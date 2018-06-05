@@ -91,8 +91,17 @@ void Camera::SetViewport(Viewport *viewport)
 
 void Camera::SplitHorizontal()
 {
-	if (hsplit)
+	if (hsplit) {
+		hsplit = false;
+		for (int i = 0; i < NumCameras; i++)
+			delete RightCameras[i];
+		delete [] RightCameras;
+		for (int i = 0; i < NumCameras; i++) {
+			LeftCameras[i]->height = Height;
+			LeftCameras[i]->heightstart = 0;
+		}
 		return;
+	}
 
 	hsplit = true;
 	RightCameras = new Viewport*[NumCameras];

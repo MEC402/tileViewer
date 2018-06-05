@@ -12,28 +12,36 @@
 #include "CubePoints.h"
 
 
+// This header file mostly exists so external classes like Controls.cpp can call functions that rely on state flags or other things in Viewer
+// It is not meant to be a comprehensive header file for Viewer.cpp in full, as we only want to expose certain variables as necessary
+
 //------------------------------------------------------//
 //				Begin Function List						//
 //------------------------------------------------------//
 
-// Misc for displaying debug messages /////////////////////////////////////////////////////////
+// Misc for displaying debug messages /////////////////////
 void drawString3D(const char *str, float pos[3], float color[4], void *font);
 void showInfo();
-void LoadFace(int face, int eye);
 
-// GLUT Callback Functions //////////////////////////////////////////////////////////////////
+// GLUT Callback Functions ////////////////////////////////
 void poolhandler1();
 void poolhandler2();
 void display();
 void timerFunc(int value);
 void idleFunc(void);
 
+// Toggle Stereo state ////////////////////////////////////
+void ToggleStereo();
+
+// Pano handler functions /////////////////////////////////
 void NextPano();
 void PrevPano();
 void ReloadPano();
 
+// Cube mapping functions /////////////////////////////////
 void resetImages();
 void resetCubes();
+
 
 //------------------------------------------------------//
 //				Begin Variable List						//
