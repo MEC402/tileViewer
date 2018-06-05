@@ -5,9 +5,7 @@
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-//float Controls::DEBUG_fov = 34.8093072f;
-float Controls::DEBUG_fov = 73.74f;
-float Controls::DEBUG_camera_degree_shift[5];
+float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
 
 void Controls::FlipDebug()
 {
@@ -105,9 +103,6 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F5:
 		fprintf(stderr, "FOV is at %f\n", Camera::FOV);
-		for (int i = 0; i < 5; i++) {
-			fprintf(stderr, "Camera %d is shifted %f degrees\n", i, DEBUG_camera_degree_shift[i]);
-		}
 		break;
 
 	case GLUT_KEY_F6:
@@ -173,8 +168,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 
 
 	case 27:
-		//glutLeaveFullScreen();
-		//glutLeaveGameMode();
+		glutLeaveFullScreen();
 		exit(0);
 		break;
 	}

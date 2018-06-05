@@ -26,7 +26,6 @@ private:
 	static int DEBUG_col;
 	static float DEBUG_camerastep;
 	static float DEBUG_fov;
-	static float DEBUG_camera_degree_shift[5];
 };
 
 #endif

@@ -71,22 +71,17 @@ void Camera::SetViewport(Viewport *viewport)
 	// rotation in degrees or radians?
 	glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
 	glm::mat4 mvp = Projection * newView * Model;
+
 	GLuint MatrixID = glGetUniformLocation(program, "MVP");
 	if (MatrixID != -1) {
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 	}
 	else {
-		GLenum error = glGetError();
-		fprintf(stderr, "Error occured trying to update MVP uniform!\n%s\n", gluErrorString(error));
+		fprintf(stderr, "Error occured trying to update MVP uniform!\n%s\n", gluErrorString(glGetError()));
 	}
 
 	glViewport(viewport->widthstart, viewport->heightstart, viewport->width, viewport->height);
 	glDrawArrays(GL_POINTS, 0, pointCount);
-
-	GLenum error = glGetError();
-	if (error != GL_NO_ERROR) {
-		fprintf(stderr, "Error occured trying to render viewport!\n%s\n", gluErrorString(error));
-	}
 }
 
 void Camera::SplitHorizontal()
