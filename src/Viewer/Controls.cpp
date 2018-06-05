@@ -2,7 +2,6 @@
 
 // A great deal of this is just wrappers around Camera:: class calls
 
-bool Controls::DEBUG = false;
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
@@ -13,7 +12,7 @@ float Controls::DEBUG_camera_degree_shift[5];
 void Controls::FlipDebug()
 {
 	GLuint uDebug = glGetUniformLocation(program, "Debug");
-	glUniform1f(uDebug, DEBUG);
+	glUniform1f(uDebug, DEBUG_FLAG);
 }
 
 void Controls::MouseMove(int posx, int posy)
@@ -122,7 +121,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F8:
-		DEBUG = !DEBUG;
+		DEBUG_FLAG = !DEBUG_FLAG;
 		FlipDebug();
 		break;
 
@@ -143,6 +142,10 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 	case '2':
 		ImageHandler::RebindTextures(program, 1);
+		break;
+
+	case 'f':
+		glutFullScreenToggle();
 		break;
 
 	case 'h':
@@ -171,7 +174,39 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 
 	case 27:
 		//glutLeaveFullScreen();
-		glutLeaveGameMode();
+		//glutLeaveGameMode();
+		exit(0);
 		break;
 	}
+}
+
+void Controls::MainMenu(int choice)
+{
+	switch (choice) {
+	case 1:
+		DEBUG_FLAG = !DEBUG_FLAG;
+		Controls::FlipDebug();
+		break;
+
+	case 2:
+		NextPano();
+		break;
+
+	case 3:
+		PrevPano();
+		break;
+
+	case 4:
+		ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		break;
+
+	case 5:
+		glutFullScreenToggle();
+		break;
+	}
+}
+
+void Controls::PanoMenu(int choice)
+{
+	SelectPano(--choice);
 }

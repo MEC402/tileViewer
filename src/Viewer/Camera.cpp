@@ -155,13 +155,27 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 
 	if (hsplit) {
 		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+			LeftCameras[i]->width = (Width / NumCameras);
+			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
+			LeftCameras[i]->height = Height / 2;
+			LeftCameras[i]->heightstart = Height / 2;
 			LeftCameras[i]->rotation = rotate_x;
+
+			RightCameras[i]->width = (Width / NumCameras);
+			RightCameras[i]->widthstart = (Width / NumCameras) * i;
+			RightCameras[i]->height = Height / 2;
+			RightCameras[i]->heightstart = 0;
 			RightCameras[i]->rotation = rotate_x;
 		}
 	}
 	else {
-		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx)
+		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+			LeftCameras[i]->width = (Width / NumCameras);
+			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
+			LeftCameras[i]->height = Height;
+			LeftCameras[i]->heightstart = 0;
 			LeftCameras[i]->rotation = rotate_x;
+		}
 	}
 	
 }

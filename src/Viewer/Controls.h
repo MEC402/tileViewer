@@ -18,9 +18,10 @@ public:
 	static void MouseWheel(int button, int direction, int x, int y);
 	static void ProcessGLUTKeys(int key, int x, int y);
 	static void ProcessKeys(unsigned char key, int x, int y);
+	static void MainMenu(int choice);
+	static void PanoMenu(int choice);
 
 private:
-	static bool DEBUG;
 	static int DEBUG_row;
 	static int DEBUG_col;
 	static float DEBUG_camerastep;

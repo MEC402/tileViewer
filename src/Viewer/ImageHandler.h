@@ -41,8 +41,6 @@ public:
 	static void RebindTextures(GLuint program, int eye);
 	static void WindowDump(int width, int height);
 
-	static unsigned char* DEBUG_LoadNonTileImage(const char *path);
-
 private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
 

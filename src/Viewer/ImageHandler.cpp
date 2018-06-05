@@ -234,6 +234,11 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
 void ImageHandler::RebindTextures(GLuint program, int eye)
 {
+	if (m_textures[eye][0] == 0) {
+		fprintf(stderr, "No texture loaded for that eye\n");
+		return;
+	}
+
 	for (int i = 0; i < 6; i++) {
 		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
 		if (TxUniform == -1) {
@@ -278,13 +283,6 @@ void ImageHandler::WindowDump(int width, int height)
 		free(image);
 	}, image, width, height);
 	t.detach();
-}
-
-unsigned char* ImageHandler::DEBUG_LoadNonTileImage(const char *path)
-{
-	int width, height, channels;
-	unsigned char* d = stbi_load(path, &width, &height, &channels, STBI_rgb);
-	return d;
 }
 
 /* ---------------- Private Functions ---------------- */

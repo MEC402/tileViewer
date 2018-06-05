@@ -24,8 +24,6 @@ void drawString3D(const char *str, float pos[3], float color[4], void *font);
 void showInfo();
 
 // GLUT Callback Functions ////////////////////////////////
-void poolhandler1();
-void poolhandler2();
 void display();
 void timerFunc(int value);
 void idleFunc(void);
@@ -37,6 +35,7 @@ void ToggleStereo();
 void NextPano();
 void PrevPano();
 void ReloadPano();
+void SelectPano(int pano);
 
 // Cube mapping functions /////////////////////////////////
 void resetImages();
@@ -65,5 +64,8 @@ extern bool usingVR;
 // Local record of quad depth data /////////
 extern int facedepths[2][6];
 extern int facecount[2][6];
+
+// Debug flag /////////////////////////////
+extern bool DEBUG_FLAG;
 
 #endif
