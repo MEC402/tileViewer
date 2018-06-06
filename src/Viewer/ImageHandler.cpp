@@ -77,6 +77,37 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 	catch (const std::exception &exc) {
 		fprintf(stderr, "%s\n", exc.what());
 	}
+	
+	//int maxDepth = (int)pow(2, 2);
+	//std::vector<std::string> urls;
+	//for (int face = 0; face < 6; face++) {
+	//	for (int i = maxDepth - 1; i >= 0; i--) {
+	//		int bufferSize = 256;
+	//		char buf[256];
+	//		for (int j = maxDepth - 1; j >= 0; j--) {
+	//			sprintf_s(buf, m_panoList[m_currentPano].leftAddress.c_str(), 3, m_faceNames[face], i, j);
+	//			urls.push_back(buf);
+	//		}
+	//	}
+	//}
+	//ImageData **imageFiles = new ImageData*[urls.size()];
+	//ImageData **imageFiles2 = new ImageData*[urls.size()];
+	//for (int i = 0; i < urls.size(); i++) {
+	//	imageFiles[i] = new ImageData{ 0 };
+	//	imageFiles2[i] = new ImageData{ 0 };
+	//}
+	//std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	//for (int i = 0; i < urls.size(); i++) {
+	//	//ImageData *imageFile = new ImageData{ 0 };
+	//	//downloadFile(imageFile, urls[i]);
+	//	downloadFile(imageFiles2[i], urls[i]);
+	//}
+	//long long NOW = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count();
+	//fprintf(stderr, "Sequential calls: %lld ms\n", NOW);
+	//t1 = std::chrono::high_resolution_clock::now();
+	//testReuseHandle(imageFiles, urls.data(), urls.size());
+	//NOW = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count();
+	//fprintf(stderr, "Reusing single handle: %lld ms\n", NOW);
 }
 
 void ImageHandler::LoadImageData(ImageData *image)
@@ -193,9 +224,10 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 	}
 
 	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
-	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
+	//std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
+	//t.detach();
+	std::thread t(testReuseHandle, imageFiles, urls.data(), urls.size());
 	t.detach();
-
 
 	int i = 0;
 	int width, height, nrChannels;
