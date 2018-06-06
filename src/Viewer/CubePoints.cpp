@@ -124,6 +124,11 @@ CubePoints::CubePoints(int maxResDepth, int m_eye) :
 	m_setupOGL();
 }
 
+bool CubePoints::Ready()
+{
+	return !m_VBOupdates.empty();
+}
+
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
 	std::lock_guard<std::mutex> lock(m_);
@@ -152,9 +157,10 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
 		}
 	}
-
-	// We've updated something, set our Ready flag to true so we can update our VBO
-	Ready = true;
+	m_VBOupdates.emplace_back(std::tuple<int, int>(
+		m_tileMap[face][startRow][startCol][0],
+		m_tileMap[face][startRow + numQuadsToChange - 1][startCol + numQuadsToChange - 1][0] + m_datasize
+		));
 }
 
 void CubePoints::ResetDepth()
@@ -166,25 +172,39 @@ void CubePoints::ResetDepth()
 	for (int i = 0; i < 6; i++) {
 		for (int j = 0; j < m_faceDimensions; j++) {
 			for (int k = 0; k < m_faceDimensions; k++) {
-				m_tileMap[i][j][k][1] = 0.0f;
+				m_tileMap[i][j][k][1] = 0;
 			}
 		}
 	}
-	Ready = true;
+
+	m_VBOupdates.emplace_back(std::tuple<int, int>(0, m_positions.size()));
 }
 
 void CubePoints::RebindVAO()
 {
 	std::lock_guard<std::mutex> lock(m_);
 
-	Ready = false;
-	//TODO: Need some way to only update changed quad positions instead of repushing whole array
-	// Pushing entire array is m_datasize * 6 * quads per face
-	// As of 05/24/18 12:02PM that is: 5 * 6 * 64 -> 1920 * sizeof(float) -> 7.5MiB
+	if (m_VBOupdates.empty())
+		return;
+
+	std::tuple<int, int> Range = m_VBOupdates.front();
+	int front = std::get<0>(Range);
+	int back = std::get<1>(Range);
+	m_VBOupdates.pop_front();
+
+	// Using 
+	GLenum error;
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
-	glBindVertexArray(m_eye);
+	if (m_buffer)
+		std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
+	else
+		fprintf(stderr, "MapBuffer pointer is NULL\n");
+	glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
+	if ((error = glGetError()) != GL_NO_ERROR) {
+		fprintf(stderr, "Error flushing to MapBuffer: %s\n", gluErrorString(error));
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void CubePoints::m_setupOGL()
@@ -201,7 +221,9 @@ void CubePoints::m_setupOGL()
 
 	// Give data
 	// https://www.opengl.org/sdk/docs/man/html/glBufferData.xhtml
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	glBufferStorage(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(),
+		GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
 	// Bind our xyz
 	glEnableVertexAttribArray(0);
@@ -214,6 +236,9 @@ void CubePoints::m_setupOGL()
 	// Depth level
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
+
+	m_buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float),
+		GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_PERSISTENT_BIT);
 
 	glBindVertexArray(m_eye);
 }

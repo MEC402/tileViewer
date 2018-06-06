@@ -35,7 +35,9 @@ public:
 	static void PrevPano();
 	static void ReloadPano();
 	static void SelectPano(int pano);
-
+#ifdef DEBUG
+	static void RebindVAO(void);
+#endif
 
 private:
 	//----------------------------------------------//
@@ -66,6 +68,7 @@ private:
 	/*				Cleanup function			*/
 	static void cleanup(void);
 
+
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//
@@ -80,11 +83,7 @@ private:
 	// Thread pool data
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
 	static Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
-
-	// Queue's are just deque's internally and vectors resize themslves too damn much, so use a deque
-	static std::deque<Threads::ThreadPool::TaskFuture<void>> texturePromises;	// Async promises from texture pool threads
-	static std::deque<Threads::ThreadPool::TaskFuture<void>> workerPromises;	// Async promises from worker pool thread(s)
-
+	
 	// State flags so we don't spawn multiple threads to collect ThreadPool promises
 	static bool textureHandling;
 	static bool workerHandling;

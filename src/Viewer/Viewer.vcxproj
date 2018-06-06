@@ -180,7 +180,6 @@
     <ClInclude Include="ThreadPool.hpp" />
     <ClInclude Include="ThreadSafeQueue.hpp" />
     <ClInclude Include="TileViewer.h" />
-    <ClInclude Include="Vertex.h" />
     <ClInclude Include="STViewer.h" />
     <ClInclude Include="VR.h" />
   </ItemGroup>

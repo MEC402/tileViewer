@@ -4,7 +4,7 @@
 #include <deque>
 #include <thread>
 #include <vector>
-#include "Vertex.h"
+#include "GLhandles.h"
 
 
 class CubePoints {
@@ -17,6 +17,8 @@ public:
 	void RebindVAO();
 	void QuadSetDepth(int face, int row, int col, int depth);
 	void ResetDepth();
+	bool Ready();
+
 
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
@@ -26,13 +28,14 @@ public:
 	// xyz face depth (3 + 1 + 1)
 	int m_datasize{ 5 };
 
-	// How far away vertices for a quad center to place (used in geometry shader)
+	// How far away vertices from a quad center to place (used in geometry shader)
 	float m_TILEWIDTH{ 0.0f };
 	
-	bool Ready{ false };
-
 private:
+	void m_setupOGL();
 	
+	float* m_buffer;
+
 	int m_eye;
 
 	int m_maxResDepth{ 0 };
@@ -49,16 +52,19 @@ private:
 	// How far over the next quad is
 	float m_TILESTEP{ 0.0f };
 
+	// Actual data points
+	std::vector<float> m_positions;
+
 	// 6 faces
 	// 8 quads X direction
 	// 8 quads Y direction
 	// Index of tile
 	// Depth of tile
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
-	std::vector<float> m_positions;
+
+	// *hopefully* this can be used to pass update info so we can make really small BufferSubData calls
 	std::deque<std::tuple<int,int>> m_VBOupdates;
 
-	void m_setupOGL();
 	
 };
 

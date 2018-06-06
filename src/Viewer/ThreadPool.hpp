@@ -174,9 +174,9 @@ namespace Threads
 			using TaskType = ThreadTask<PackagedTask>;
 
 			PackagedTask task{ std::move(boundTask) };
-			TaskFuture<ResultType> result{ task.get_future() };
+			//TaskFuture<ResultType> result{ task.get_future() }; // We don't care about promised return values, and this causes crashes
 			m_workQueue.push(std::make_unique<TaskType>(std::move(task)));
-			return result;
+			return;// result;
 		}
 
 		bool allstopped()
