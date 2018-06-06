@@ -44,9 +44,6 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	// hardcoded magic
 	int maxDepth = 3;
 
-	// Init the texture atlas for each face, then go ahead and load in the first image
-	// May behoove us to factor out LoadFaceImage from this loop and call it separately for
-	// better flow control
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);	
 	}
@@ -72,8 +69,6 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 	try {
 		if (jsonFile.data) {
 			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
-			//unsigned char** datacopy = jsonFile.data.get();
-			//std::string fileAsString(*datacopy, *datacopy + jsonFile.dataSize);
 			// Base URL is the substring before the last backslash or forward slash
 			size_t lastSlashPosition = url.find_last_of("/\\");
 			std::string baseURL = url.substr(0, lastSlashPosition);
@@ -122,7 +117,6 @@ void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
 {
 	// ST coordinates are inverted along the Y axis, flip our row value
 	row = 7 - row;
-	//col = 7 - col;
 
 	// Same math used in CubePoints::QuadNextDepth to calculate which image to load
 	int numQuadsToChange = 8 / (int)pow(2, depth);

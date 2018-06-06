@@ -144,15 +144,15 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'h':
-		ToggleStereo();
+		STViewer::ToggleStereo();
 		break;
 
 	case 'n':
-		NextPano();
+		STViewer::NextPano();
 		break;
 
 	case 'p':
-		PrevPano();
+		STViewer::PrevPano();
 		break;
 
 	case 'r':
@@ -163,7 +163,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'R':
-		ReloadPano();
+		STViewer::ReloadPano();
 		break;
 
 
@@ -183,11 +183,11 @@ void Controls::MainMenu(int choice)
 		break;
 
 	case 2:
-		NextPano();
+		STViewer::NextPano();
 		break;
 
 	case 3:
-		PrevPano();
+		STViewer::PrevPano();
 		break;
 
 	case 4:
@@ -202,5 +202,5 @@ void Controls::MainMenu(int choice)
 
 void Controls::PanoMenu(int choice)
 {
-	SelectPano(--choice);
+	STViewer::SelectPano(--choice);
 }

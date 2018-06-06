@@ -10,8 +10,4 @@ extern GLuint VAO;
 extern GLuint VBO;
 extern GLsizei pointCount;
 
-// TODO: Reorganize controls so we don't have to use shared headers like this
-extern CubePoints *LeftEye;
-extern CubePoints *RightEye;
-
 #endif

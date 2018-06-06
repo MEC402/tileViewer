@@ -173,13 +173,15 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="ShaderHelper.h" />
+    <ClInclude Include="Shared.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ThreadPool.hpp" />
     <ClInclude Include="ThreadSafeQueue.hpp" />
+    <ClInclude Include="TileViewer.h" />
     <ClInclude Include="Vertex.h" />
-    <ClInclude Include="Viewer.h" />
+    <ClInclude Include="STViewer.h" />
     <ClInclude Include="VR.h" />
   </ItemGroup>
   <ItemGroup>
@@ -190,7 +192,8 @@
     <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
-    <ClCompile Include="Viewer.cpp" />
+    <ClCompile Include="TileViewer.cpp" />
+    <ClCompile Include="STViewer.cpp" />
     <ClCompile Include="VR.cpp" />
   </ItemGroup>
   <ItemGroup>

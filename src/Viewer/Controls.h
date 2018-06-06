@@ -9,7 +9,7 @@
 #include "Camera.h"
 #include "ShaderHelper.h"
 #include "ImageHandler.h"
-#include "Viewer.h"
+#include "STViewer.h"
 
 class Controls {
 public:

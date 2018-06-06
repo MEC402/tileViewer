@@ -243,7 +243,7 @@ namespace Threads
 		ThreadSafeQueue<std::unique_ptr<IThreadTask>> m_workQueue;
 		std::vector<std::thread> m_threads;
 		std::mutex m_mutex;
-		int m_waiting;
+		int m_waiting{ 0 };
 	};
 
 	namespace DefaultThreadPool

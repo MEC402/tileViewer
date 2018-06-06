@@ -25,11 +25,11 @@ ImageData* ImageQueue::Dequeue()
 
 void ImageQueue::Enqueue(ImageData *file)
 {
-	std::lock_guard<std::mutex> lock(mutex_);
 	if (discard) {
 		file->Free();
 	}
 	else {
+		std::lock_guard<std::mutex> lock(mutex_);
 		queue_.push(file);
 	}
 }
