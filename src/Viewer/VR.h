@@ -1,5 +1,4 @@
-#ifndef VR_H
-#define VR_H
+#pragma once
 
 #include <assert.h>
 #include <GL/glew.h>
@@ -8,8 +7,8 @@
 #include "LibOVR/Extras/OVR_Math.h"
 
 #if defined(_WIN32)
-    #include <dxgi.h> // for GetDefaultAdapterLuid
-    #pragma comment(lib, "dxgi.lib")
+#include <dxgi.h> // for GetDefaultAdapterLuid
+#pragma comment(lib, "dxgi.lib")
 #endif
 
 
@@ -18,8 +17,10 @@ struct OculusTextureBuffer;
 struct VRDevice
 {
 	OculusTextureBuffer * eyeRenderTexture[2];
-	ovrPosef EyeRenderPose[2];
+	ovrPosef eyeRenderPose[2];
+	ovrEyeRenderDesc eyeRenderDesc[2];
 	ovrSession session;
+	ovrTrackingState trackingState;
 	ovrHmdDesc hmdDesc;
 	GLuint mirrorFBO;
 	ovrMirrorTexture mirrorTexture;
@@ -28,6 +29,18 @@ struct VRDevice
 	ovrTimewarpProjectionDesc posTimewarpProjectionDesc;
 	int mirrorWindowWidth;
 	int mirrorWindowHeight;
+};
+
+struct VRControllerStates
+{
+	struct Controller {
+		OVR::Vector3f position;
+		OVR::Quatf rotation;
+
+	};
+
+	Controller left;
+	Controller right;
 };
 
 // Call once to initialize
@@ -45,6 +58,10 @@ void updateVRDevice(VRDevice* vr);
 // EyeIndex can be 0 and 1.
 OVR::Matrix4f buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ);
 OVR::Matrix4f buildVRProjectionMatrix(VRDevice* vr, int eyeIndex);
+OVR::Vector3f getVRHeadsetPosition(VRDevice* vr);
+
+// Gets the state of Oculus Touch controllers. You can access the returned data directly.
+VRControllerStates getVRControllerState(VRDevice* vr);
 
 // Call before rendering the scene.
 void bindEyeRenderSurface(VRDevice* vr, int eyeIndex);
@@ -59,7 +76,5 @@ void finishVRFrame(VRDevice* vr);
 // mirrorDisplayFramebuffer: The headset view will be copied to this framebuffer (just enter 0 for the main window).
 void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer);
 
-// TODO: probably leaking memory. Need to destroy the textures and stuff.
+// TODO: leaking memory. Need to destroy the textures and stuff.
 void destroyVRDevice(VRDevice* vr);
-
-#endif
