@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 #include "GLhandles.h"
+#include "Shared.h"
 
 
 class CubePoints {

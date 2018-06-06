@@ -12,7 +12,6 @@
 
 #include <mutex>
 
-
 // Mutex
 std::mutex ImageHandler::m_;
 
@@ -94,13 +93,14 @@ void ImageHandler::LoadImageData(ImageData *image)
 		if (dst) {
 			std::memcpy(dst, image->data, 512 * 512 * 3);
 		}
-
+		if ((errCode = glGetError()) != GL_NO_ERROR) {
+			printf("OPENGL ERROR Texture Map Buffer: %s\n", gluErrorString(errCode));
+		}
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
 			printf("OPENGL ERROR Loading Image: %s\n", gluErrorString(errCode));
 		}
@@ -244,8 +244,6 @@ void ImageHandler::RebindTextures(GLuint program, int eye)
 	}
 }
 
-
-// Worked exactly once
 void ImageHandler::WindowDump(int width, int height)
 {
 	unsigned char* image = (unsigned char*)malloc(width * height * 3 * sizeof(char));
@@ -300,7 +298,8 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
 	GLuint TxUniform = glGetUniformLocation(program, uniform);
 	if (TxUniform == -1) {
 		fprintf(stderr, "Error getting %s uniform\n", uniform);
@@ -308,7 +307,6 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	else {
 		glUniform1i(TxUniform, face);
 	}
-
 	glGenBuffers(1, &m_pbos[eye][face]);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);

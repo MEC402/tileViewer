@@ -192,18 +192,24 @@ void CubePoints::RebindVAO()
 	int back = std::get<1>(Range);
 	m_VBOupdates.pop_front();
 
-	// Using 
+#ifdef DEBUG
 	GLenum error;
+#endif
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
 	if (m_buffer)
 		std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
+#ifdef DEBUG
 	else
 		fprintf(stderr, "MapBuffer pointer is NULL\n");
+#endif
+
 	glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
+#ifdef DEBUG
 	if ((error = glGetError()) != GL_NO_ERROR) {
 		fprintf(stderr, "Error flushing to MapBuffer: %s\n", gluErrorString(error));
 	}
+#endif
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

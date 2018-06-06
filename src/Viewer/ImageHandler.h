@@ -48,7 +48,6 @@ private:
 #ifdef _USE_WIN_H
 	static int maxResDepth(const char *path);
 #endif
-
 	static std::mutex m_;
 	static GLuint m_textures[2][6];
 	static GLuint m_pbos[2][6];
