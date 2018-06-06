@@ -26,11 +26,6 @@ int main(int argc, char **argv)
 	ImageHandler::InitPanoListFromOnlineFile(argv[argc - 1]);
 
 	VRDevice vrDevice;
-	// Attempt to create a VR device and enable it as appropriate
-	usingVR = createVRDevice(&vrDevice, Camera::Width, Camera::Height);
-	if (usingVR) {
-		updateVRDevice(&vrDevice);
-	}
 
 	DEBUG_FLAG = false;
 

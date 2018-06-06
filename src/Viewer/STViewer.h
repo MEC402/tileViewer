@@ -88,6 +88,7 @@ private:
 	static bool textureHandling;
 	static bool workerHandling;
 
+	static bool m_usingVR;
 
 	// Magic number for maximum depth (0 indexed)
 	static int m_maxDepth;
