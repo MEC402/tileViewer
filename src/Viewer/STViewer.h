@@ -88,6 +88,7 @@ private:
 	// State flags so we don't spawn multiple threads to collect ThreadPool promises
 	static bool textureHandling;
 	static bool workerHandling;
+	static bool imagesNeedResetting;
 
 	static bool m_usingVR;
 
