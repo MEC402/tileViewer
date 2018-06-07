@@ -14,6 +14,28 @@
 
 struct OculusTextureBuffer;
 
+struct VRControllerStates
+{
+	struct Button {
+		bool pressed; // true for one update when the button is first pressed
+		bool down; // true as long as the button is held down
+	};
+
+	struct Controller {
+		OVR::Vector3f position;
+		OVR::Quatf rotation;
+		Button button1;
+		Button button2;
+		float thumbstickX;
+		float thumbstickY;
+		float indexFingerTrigger;
+		float middleFingerTrigger;
+	};
+
+	Controller left;
+	Controller right;
+};
+
 struct VRDevice
 {
 	OculusTextureBuffer * eyeRenderTexture[2];
@@ -29,18 +51,7 @@ struct VRDevice
 	ovrTimewarpProjectionDesc posTimewarpProjectionDesc;
 	int mirrorWindowWidth;
 	int mirrorWindowHeight;
-};
-
-struct VRControllerStates
-{
-	struct Controller {
-		OVR::Vector3f position;
-		OVR::Quatf rotation;
-
-	};
-
-	Controller left;
-	Controller right;
+	VRControllerStates controllers;
 };
 
 // Call once to initialize
