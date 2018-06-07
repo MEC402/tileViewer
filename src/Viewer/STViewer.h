@@ -58,7 +58,8 @@ private:
 	static void timerFunc(int value);
 
 	/*					Builders				*/
-	static void initGL(void);
+	static void initWindowAndGL(void);
+	static void initTextures(void);
 	static void initCallbacks(void);
 	static void initMenus(void);
 
@@ -96,6 +97,7 @@ private:
 	// State flags so we don't spawn multiple threads to collect ThreadPool promises
 	static bool textureHandling;
 	static bool workerHandling;
+	static bool imagesNeedResetting;
 
 #ifdef USE_VR
 	static bool m_usingVR;

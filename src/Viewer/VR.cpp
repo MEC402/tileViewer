@@ -280,6 +280,20 @@ void resizeMirrorTexture(VRDevice* vr, int mirrorWindowWidth, int mirrorWindowHe
 	}
 }
 
+
+static void updateButton(VRControllerStates::Button* button, bool newState)
+{
+	if (newState) {
+		button->pressed = !button->down;
+		button->down = true;
+	}
+	else {
+		button->pressed = false;
+		button->down = false;
+	}
+}
+
+
 void updateVRDevice(VRDevice* vr)
 {
 	ovrSessionStatus sessionStatus;
@@ -301,6 +315,26 @@ void updateVRDevice(VRDevice* vr)
 	double ftiming = ovr_GetPredictedDisplayTime(vr->session, 0);
 	vr->trackingState = ovr_GetTrackingState(vr->session, ftiming, ovrTrue);
 	ovr_CalcEyePoses(vr->trackingState.HeadPose.ThePose, useHmdToEyePose, vr->eyeRenderPose);
+
+	// Update controller states
+	ovrPosef* pose = &vr->trackingState.HandPoses[ovrHand_Right].ThePose;
+	vr->controllers.right.position = OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z);
+	vr->controllers.right.rotation = OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w);
+
+	pose = &vr->trackingState.HandPoses[ovrHand_Left].ThePose;
+	vr->controllers.left.position = OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z);
+	vr->controllers.left.rotation = OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w);
+
+	ovrInputState inputState;
+	ovr_GetInputState(vr->session, ovrControllerType_Touch, &inputState);
+
+	updateButton(&vr->controllers.right.button1, inputState.Buttons & ovrButton_A);
+	updateButton(&vr->controllers.right.button2, inputState.Buttons & ovrButton_B);
+
+	updateButton(&vr->controllers.left.button1, inputState.Buttons & ovrButton_X);
+	updateButton(&vr->controllers.left.button2, inputState.Buttons & ovrButton_Y);
+
+
 }
 
 OVR::Matrix4f buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)
@@ -333,17 +367,7 @@ OVR::Vector3f getVRHeadsetPosition(VRDevice* vr)
 
 VRControllerStates getVRControllerState(VRDevice* vr)
 {
-	VRControllerStates controllers;
-
-	ovrPosef* pose = &vr->trackingState.HandPoses[ovrHand_Right].ThePose;
-	controllers.right.position = OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z);
-	controllers.right.rotation = OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w);
-
-	pose = &vr->trackingState.HandPoses[ovrHand_Left].ThePose;
-	controllers.left.position = OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z);
-	controllers.left.rotation = OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w);
-
-	return controllers;
+	return vr->controllers;
 }
 
 void bindEyeRenderSurface(VRDevice* vr, int eyeIndex)
