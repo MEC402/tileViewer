@@ -139,10 +139,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		ImageHandler::RebindTextures(program, 1);
 		break;
 
+#ifdef DEBUG
 	case '3':
 		STViewer::RebindVAO();
 		break;
-
+#endif
 	case 'f':
 		glutFullScreenToggle();
 		break;

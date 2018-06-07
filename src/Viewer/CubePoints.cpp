@@ -166,7 +166,7 @@ void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 void CubePoints::ResetDepth()
 {
 	std::lock_guard<std::mutex> lock(m_);
-	for (int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
+	for (unsigned int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
 		m_positions[i] = 0.0f;
 	}
 	for (int i = 0; i < 6; i++) {

@@ -1,6 +1,7 @@
 //#include "stdafx.h"
 
 #include "ImageHandler.h"
+#include "InternetDownload.h"
 #include <chrono>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -11,6 +12,11 @@
 #include "stb_image_write.h"
 
 #include <mutex>
+
+#define TIMERSTART t1 = std::chrono::high_resolution_clock::now();
+#define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count()
+
+std::chrono::high_resolution_clock::time_point ImageHandler::t1;
 
 // Mutex
 std::mutex ImageHandler::m_;
@@ -27,11 +33,14 @@ const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 std::vector<PanoInfo> ImageHandler::m_panoList;
 int ImageHandler::m_currentPano = 0;
 
+// URL list
+std::deque<ImageHandler::URL> ImageHandler::m_urls;
+std::deque<ImageData*> ImageHandler::m_data;
+
 // Number of screen dumps we've made (Mostly for debug/comparison)
 int ImageHandler::m_dumpcount = 0;
-
-// I'm_ not convinced this is necessary here
-int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
+// Don't overwrite nicer textures
+int ImageHandler::m_tileDepth[6][8][8];
 
 /* ---------------- Public Functions ---------------- */
 
@@ -46,6 +55,10 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 	for (int i = 0; i < 6; i++) {
 		initFaceAtlas(i, maxDepth, 0, program);	
 	}
+
+	if (m_panoList.size() > 0)
+		InitURLs(0, stereo);
+
 	if (stereo)
 		InitStereo(program);
 }
@@ -61,7 +74,7 @@ void ImageHandler::InitStereo(GLuint program)
 		initFaceAtlas(i, 3, 1, program);
 }
 
-void ImageHandler::InitPanoListFromOnlineFile(std::string url)
+void ImageHandler::InitPanoList(std::string url)
 {
 	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
@@ -77,37 +90,41 @@ void ImageHandler::InitPanoListFromOnlineFile(std::string url)
 	catch (const std::exception &exc) {
 		fprintf(stderr, "%s\n", exc.what());
 	}
-	
-	//int maxDepth = (int)pow(2, 2);
-	//std::vector<std::string> urls;
-	//for (int face = 0; face < 6; face++) {
-	//	for (int i = maxDepth - 1; i >= 0; i--) {
-	//		int bufferSize = 256;
-	//		char buf[256];
-	//		for (int j = maxDepth - 1; j >= 0; j--) {
-	//			sprintf_s(buf, m_panoList[m_currentPano].leftAddress.c_str(), 3, m_faceNames[face], i, j);
-	//			urls.push_back(buf);
-	//		}
-	//	}
-	//}
-	//ImageData **imageFiles = new ImageData*[urls.size()];
-	//ImageData **imageFiles2 = new ImageData*[urls.size()];
-	//for (int i = 0; i < urls.size(); i++) {
-	//	imageFiles[i] = new ImageData{ 0 };
-	//	imageFiles2[i] = new ImageData{ 0 };
-	//}
-	//std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-	//for (int i = 0; i < urls.size(); i++) {
-	//	//ImageData *imageFile = new ImageData{ 0 };
-	//	//downloadFile(imageFile, urls[i]);
-	//	downloadFile(imageFiles2[i], urls[i]);
-	//}
-	//long long NOW = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count();
-	//fprintf(stderr, "Sequential calls: %lld ms\n", NOW);
-	//t1 = std::chrono::high_resolution_clock::now();
-	//testReuseHandle(imageFiles, urls.data(), urls.size());
-	//NOW = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count();
-	//fprintf(stderr, "Reusing single handle: %lld ms\n", NOW);
+}
+
+void ImageHandler::InitURLs(int pano, bool stereo)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	if (!m_urls.empty())
+		m_urls.clear();
+
+	for (int depth = 0; depth < 4; depth++) {
+		int maxDepth = (int)pow(2, depth);
+		for (int i = maxDepth - 1; i >= 0; i--) {
+			for (int j = maxDepth - 1; j >= 0; j--) {
+				for (int face = 0; face < 6; face++) {
+					URL url(face, 0);
+					sprintf_s(url.buf, m_panoList[pano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+					m_urls.emplace_back(url);
+					if (stereo) {
+						URL url(face, 1);
+						sprintf_s(url.buf, m_panoList[pano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+						m_urls.emplace_back(url);
+					}
+				}
+			}
+		}
+	}
+
+	for (int face = 0; face < 6; face++) {
+		for (int row = 0; row < 8; row++) {
+			for (int col = 0; col < 8; col++) {
+				m_tileDepth[face][row][col] = 0;
+			}
+		}
+	}
+
+	TIMERSTART
 }
 
 void ImageHandler::LoadImageData(ImageData *image)
@@ -144,51 +161,65 @@ void ImageHandler::LoadImageData(ImageData *image)
 	image->Free();
 }
 
-void ImageHandler::LoadQuadImage(int face, int row, int col, int depth, int eye)
+void ImageHandler::LoadQuadImage()
 {
-	// ST coordinates are inverted along the Y axis, flip our row value
-	row = 7 - row;
+	while (true) {
+		m_.lock();
+		if (m_urls.empty()) {
+			m_.unlock();
+			return Decompress();
+		}
 
-	// Same math used in CubePoints::QuadNextDepth to calculate which image to load
-	int numQuadsToChange = 8 / (int)pow(2, depth);
-	int depthQuadRow = row / numQuadsToChange;
-	int depthQuadCol = col / numQuadsToChange;
+		URL u = m_urls.front();
+		m_urls.pop_front();
 
-	// Set our URI string to load the image
-	const int bufferSize = 128;
-	char buf[bufferSize];
-	if (eye == 0) {
-		sprintf_s(buf, bufferSize, m_panoList[m_currentPano].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+		m_.unlock();
+
+		ImageData *imageFile = new ImageData{ 0 };
+		downloadFile(imageFile, u.buf);
+
+		imageFile->activeTexture = GL_TEXTURE0 + u.face + (6 * u.eye);
+		imageFile->face = u.face;
+		imageFile->eye = u.eye;
+
+		m_.lock();
+		m_data.emplace_back(imageFile);
+		m_.unlock();
 	}
-	else {
-		sprintf_s(buf, bufferSize, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
+}
+
+void ImageHandler::Decompress()
+{
+	ImageData* imageFile = NULL;
+	while (true) {
+		m_.lock();
+
+		if (m_urls.empty() && m_data.empty()) {
+			m_.unlock();
+			return;
+		}
+
+		if (!m_data.empty()) {
+			imageFile = m_data.front();
+			m_data.pop_front();
+		}
+		else {
+			m_.unlock();
+			continue;
+		}
+
+		m_.unlock();
+
+		int width, height, nrChannels;
+		unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
+
+		free(imageFile->data);
+
+		imageFile->data = d;
+		imageFile->w_offset *= width;
+		imageFile->h_offset *= height;
+		ImageQueue::Enqueue(imageFile);
 	}
-
-	// Load the image, set ImageData values for later use
-	ImageData *imageFile = new ImageData{ 0 };
-	downloadFile(imageFile, buf);
-
-	// stbi_load_from_memory mallocs data using the first param
-	// Store that malloc to a new pointer, free our old one, then reassign
-	// Otherwise we get a big memory leak
-	int width, height, nrChannels;
-	unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
-
-	free(imageFile->data);
-
-	// Populate all our fields
-	imageFile->data = d;
-	imageFile->w_offset = depthQuadCol;
-	imageFile->h_offset = depthQuadRow;
-	imageFile->activeTexture = GL_TEXTURE0 + face + (6 * eye);
-	imageFile->face = face;
-	imageFile->eye = eye;
-	imageFile->w_offset *= width;
-	imageFile->h_offset *= height;
-
-	// Throw it into our queue
-	ImageQueue::Enqueue(imageFile);
-	// Do NOT delete the pointer here, we free that memory after loading it into the texture atlas
 }
 
 void ImageHandler::LoadFaceImage(int face, int depth, int eye)
@@ -218,16 +249,16 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 
 	// Initialize all our pointers on the heap ahead of time
 	// Might be a way to do this on imageFiles declaration?
-	ImageData **imageFiles = new ImageData*[urls.size()];
+	ImageData **imageFiles = new ImageData*[maxDepth * maxDepth];
 	for (int i = 0; i < maxDepth * maxDepth; i++) {
 		imageFiles[i] = new ImageData{ 0 };
 	}
 
 	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
-	//std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
-	//t.detach();
-	std::thread t(testReuseHandle, imageFiles, urls.data(), urls.size());
+	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
 	t.detach();
+	//std::thread t(testReuseHandle, imageFiles, urls.data(), urls.size());
+	//t.detach();}
 
 	int i = 0;
 	int width, height, nrChannels;

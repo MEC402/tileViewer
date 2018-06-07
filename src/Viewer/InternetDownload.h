@@ -7,6 +7,7 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include <deque>
 
 #include "Image.h"
 

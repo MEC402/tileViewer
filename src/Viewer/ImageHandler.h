@@ -5,6 +5,7 @@
 #include <GL\freeglut.h>
 #include <algorithm>
 #include <chrono>
+#include <deque>
 #include <fstream>
 #include <string>
 #include <thread>
@@ -20,7 +21,6 @@
 #include "Image.h"
 #include "ImageHandler.h"
 #include "ImageQueue.h"
-#include "InternetDownload.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
 
@@ -34,15 +34,24 @@ public:
 
 	static void InitTextureAtlas(GLuint program, bool stereo);
 	static void InitStereo(GLuint program);
-	static void InitPanoListFromOnlineFile(std::string url);
+	static void InitPanoList(std::string url);
+	static void InitURLs(int pano, bool stereo);
+	static void Decompress(void);
 	static void LoadImageData(ImageData *image);
 	static void LoadFaceImage(int face, int depth, int eye);
-	static void LoadQuadImage(int face, int row, int col, int depth, int eye);
+	static void LoadQuadImage(void);
 	static void RebindTextures(GLuint program, int eye);
 	static void WindowDump(int width, int height);
 
 private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
+
+	struct URL {
+		char buf[256];
+		int face;
+		int eye;
+		URL(int f = 0, int e = 0) :face(f), eye(e) {}
+	};
 
 	// WIN32 API calls for traversing a directory (no longer necessary?)
 #ifdef _USE_WIN_H
@@ -54,9 +63,14 @@ private:
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 
+	static std::deque<URL> m_urls;
+	static std::deque<ImageData*> m_data;
+
 	static int m_tileDepth[6][8][8];
 	//static std::vector<ImageData> m_imageData;
 	static int m_dumpcount;
+
+	static std::chrono::high_resolution_clock::time_point t1;
 };
 
 #endif

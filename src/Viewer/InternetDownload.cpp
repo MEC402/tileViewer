@@ -38,10 +38,10 @@ void populateImageData(ImageData *out_file, const char *url)
 void testReuseHandle(ImageData **out_files, const std::string *urls, unsigned int fileCount)
 {
 	CURL* curl = curl_easy_init();
-	for (int i = 0; i < fileCount; ++i)
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
+	for (unsigned int i = 0; i < fileCount; ++i)
 	{
 		curl_easy_setopt(curl, CURLOPT_URL, urls[i].c_str());
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
 		curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_files[i]);
 		curl_easy_perform(curl);
 		out_files[i]->complete = true;
@@ -75,7 +75,7 @@ void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsig
 
 	// Intialize file requests
 	//for (int i = fileCount-1; i >= 0; --i)
-	for (int i = 0; i < fileCount; ++i)
+	for (unsigned int i = 0; i < fileCount; ++i)
 	{
 		populateImageData(out_files[i], urls[i].c_str());
 		CURL *eh = curl_easy_init();

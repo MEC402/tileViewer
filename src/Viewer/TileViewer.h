@@ -14,7 +14,9 @@
 #include "Shared.h"
 #include "STViewer.h"
 #include "TileViewer.h"
-#include "VR.h"
 
+#ifdef USE_VR
+#include "VR.h"
+#endif
 
 #endif //_TILEVIEWER_H

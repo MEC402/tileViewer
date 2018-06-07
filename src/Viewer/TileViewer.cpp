@@ -23,11 +23,15 @@ int main(int argc, char **argv)
 			fivepanel = true;
 	}
 
-	ImageHandler::InitPanoListFromOnlineFile(argv[argc - 1]);
+	ImageHandler::InitPanoList(argv[argc - 1]);
 
-	VRDevice vrDevice;
 
 	DEBUG_FLAG = false;
 
+#ifdef USE_VR
+	VRDevice vrDevice;
 	STViewer::Init(vrDevice);
+#else
+	STViewer::Init();
+#endif
 }

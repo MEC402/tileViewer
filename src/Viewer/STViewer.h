@@ -12,7 +12,10 @@
 #include "PanoInfo.h"
 #include "Shared.h"
 #include "ThreadPool.hpp"
+
+#ifdef USE_VR
 #include "VR.h"
+#endif
 
 
 // I really didn't want to make this static, but GL callbacks require non-member functions
@@ -24,7 +27,11 @@
 class STViewer {
 
 public:
+#ifdef USE_VR
 	static void Init(VRDevice &vrRef);
+#else
+	static void Init();
+#endif
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -68,6 +75,8 @@ private:
 	/*				Cleanup function			*/
 	static void cleanup(void);
 
+	/*			CURL Download Cleanup Timer		*/
+	static void timerCleanup(int value);
 
 	//----------------------------------------------//
 	//				Private Variables				//
@@ -78,7 +87,7 @@ private:
 
 	// Pano data
 	static std::vector<PanoInfo> m_panolist;
-	static int m_currentPano;
+	static unsigned int m_currentPano;
 
 	// Thread pool data
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
@@ -88,7 +97,9 @@ private:
 	static bool textureHandling;
 	static bool workerHandling;
 
+#ifdef USE_VR
 	static bool m_usingVR;
+#endif
 
 	// Magic number for maximum depth (0 indexed)
 	static int m_maxDepth;
