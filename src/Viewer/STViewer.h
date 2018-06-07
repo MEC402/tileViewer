@@ -51,7 +51,8 @@ private:
 	static void timerFunc(int value);
 
 	/*					Builders				*/
-	static void initGL(void);
+	static void initWindowAndGL(void);
+	static void initTextures(void);
 	static void initCallbacks(void);
 	static void initMenus(void);
 
