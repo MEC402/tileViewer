@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "CubePoints.h"
+#include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "Shared.h"
 #include "ThreadPool.hpp"
@@ -30,19 +31,21 @@ public:
 #ifdef USE_VR
 	static void Init(VRDevice &vrRef);
 #else
-	static void Init();
+	static void Init(void);
 #endif
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
-	static void ToggleStereo();
+	static void ToggleStereo(void);
 
 	/*			Panorama Handlers				*/
-	static void NextPano();
-	static void PrevPano();
-	static void ReloadPano();
+	static void NextPano(void);
+	static void PrevPano(void);
+	static void ReloadPano(void);
 	static void SelectPano(int pano);
+
 #ifdef DEBUG
+	static void PrintAverage(void);
 	static void RebindVAO(void);
 #endif
 
@@ -71,7 +74,7 @@ private:
 
 	/*		For queueing texture load requests	*/
 	static void loadAllFaceDepths(void);
-	static void loadAllQuadDepths(int eye);
+	static void loadAllQuadDepths(void);
 
 	/*				Cleanup function			*/
 	static void cleanup(void);
@@ -99,6 +102,9 @@ private:
 	static bool workerHandling;
 	static bool imagesNeedResetting;
 
+	// ImageQueue is no longer static, so keep a reference to one we can instantiate
+	static ImageQueue *m_LoadedTextures;
+
 #ifdef USE_VR
 	static bool m_usingVR;
 #endif
@@ -109,7 +115,7 @@ private:
 #ifdef DEBUG
 	// Local face date
 	static int m_facecount[2][6];
-
+	static std::vector<float> m_average;
 	// Timer values (declared ahead of time so we can reference it in other functions with macro NOW defines
 	static std::chrono::high_resolution_clock::time_point t1;
 #endif // DEBUG

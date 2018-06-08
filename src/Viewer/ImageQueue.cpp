@@ -1,9 +1,9 @@
 //#include "stdafx.h"
 #include "ImageQueue.h"
 
-std::mutex ImageQueue::mutex_;
-std::queue<ImageData*> ImageQueue::queue_;
-bool ImageQueue::discard = false;
+std::mutex mutex_;
+std::queue<ImageData*> queue_;
+bool discard = false;
 
 void ImageQueue::Clear()
 {

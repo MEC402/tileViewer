@@ -31,17 +31,22 @@ class ImageHandler {
 public:
 	static std::vector<PanoInfo> m_panoList;
 	static int m_currentPano;
+	static ImageQueue *Decompressed;
 
-	static void InitTextureAtlas(GLuint program, bool stereo);
+	static void InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender);
 	static void InitStereo(GLuint program);
+	static void InitStereoURLs(void);
 	static void InitPanoList(std::string url);
 	static void InitURLs(int pano, bool stereo);
-	static void Decompress(void);
+
 	static void LoadImageData(ImageData *image);
-	static void LoadFaceImage(int face, int depth, int eye);
-	static void LoadQuadImage(void);
 	static void RebindTextures(GLuint program, int eye);
 	static void WindowDump(int width, int height);
+
+	static void ClearQueues(void);
+	static void LoadFaceImage(int face, int depth, int eye);
+	static void LoadQuadImage(void);
+	static void Decompress(void);
 
 private:
 	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
@@ -64,11 +69,12 @@ private:
 	static const char m_faceNames[6];
 
 	static std::deque<URL> m_urls;
-	static std::deque<ImageData*> m_data;
+	static ImageQueue *m_compressed;
 
 	static int m_tileDepth[6][8][8];
 	//static std::vector<ImageData> m_imageData;
 	static int m_dumpcount;
+	static bool m_stereoLoaded;
 
 	static std::chrono::high_resolution_clock::time_point t1;
 };
