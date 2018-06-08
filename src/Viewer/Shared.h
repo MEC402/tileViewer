@@ -4,9 +4,8 @@
 #include "CubePoints.h"
 
 #define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
-#ifdef _VR_H
 #define USE_VR
-#endif // _VR_H
+
 
 extern bool fullscreen;
 extern bool stereo;
