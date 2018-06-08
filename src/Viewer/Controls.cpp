@@ -1,26 +1,16 @@
-//#include "stdafx.h"
-#include <GL\glew.h>
-#include <GL\freeglut.h>
-#include <stdio.h>
-
-#include "Camera.h"
 #include "Controls.h"
-#include "ShaderHelper.h"
-#include "ImageHandler.h"
 
 // A great deal of this is just wrappers around Camera:: class calls
 
-bool Controls::DEBUG = false;
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-float Controls::DEBUG_fov = 34.8093072;
-float Controls::DEBUG_camera_degree_shift[5];
+float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
 
 void Controls::FlipDebug()
 {
 	GLuint uDebug = glGetUniformLocation(program, "Debug");
-	glUniform1f(uDebug, DEBUG);
+	glUniform1f(uDebug, DEBUG_FLAG);
 }
 
 void Controls::MouseMove(int posx, int posy)
@@ -63,7 +53,7 @@ void Controls::MouseWheel(int button, int direction, int x, int y)
 		Camera::FOV += 2.0f;
 	}
 	Camera::UpdateMVP();
-	Camera::SetCameras();
+	Camera::UpdateCameras();
 }
 
 // Aside from up/down/right/left these functions are all for debugging
@@ -88,48 +78,31 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_PAGE_UP:
 		Camera::FOV += 0.1f;
-		//if (DEBUG_row >= 7) {
-		//	DEBUG_row = 0;
-		//}
-		//else {
-		//	DEBUG_row++;
-		//}
-		//fprintf(stderr, "Select row/col to increase depth: %d / %d\n", DEBUG_row, DEBUG_col);
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
 		Camera::FOV -= 0.1f;
-		//if (DEBUG_col >= 7) {
-		//	DEBUG_col = 0;
-		//}
-		//else {
-		//	DEBUG_col++;
-		//}
-		//fprintf(stderr, "Select row/col to increase depth: %d / %d\n", DEBUG_row, DEBUG_col);
 		break;
 
 	case GLUT_KEY_F1:
 		program = ShaderHelper::ReloadShader(GL_VERTEX_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case GLUT_KEY_F2:
 		program = ShaderHelper::ReloadShader(GL_GEOMETRY_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case GLUT_KEY_F3:
 		program = ShaderHelper::ReloadShader(GL_FRAGMENT_SHADER);
-		ImageHandler::RebindTextures(program);
+		ImageHandler::RebindTextures(program, 0);
 		break;
 
 	case GLUT_KEY_F4:
-		Camera::SetCameras();
+		Camera::UpdateCameras();
 		break;
 
 	case GLUT_KEY_F5:
 		fprintf(stderr, "FOV is at %f\n", Camera::FOV);
-		for (int i = 0; i < 5; i++) {
-			fprintf(stderr, "Camera %d is shifted %f degrees\n", i, DEBUG_camera_degree_shift[i]);
-		}
 		break;
 
 	case GLUT_KEY_F6:
@@ -143,69 +116,96 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F8:
-		DEBUG = !DEBUG;
+		DEBUG_FLAG = !DEBUG_FLAG;
 		FlipDebug();
 		break;
 
 	case GLUT_KEY_F9:
-		Camera::UpdateMVP();
-		break;
-
-	case GLUT_KEY_F10:
-		//zoffset -= step;
-		break;
-
-	case GLUT_KEY_F12:
-		//Threads::DefaultThreadPool::submitJob(LoadFaceByQuads, 0);
+		ImageHandler::WindowDump(Camera::Width, Camera::Height);
 		break;
 	}
+	Camera::UpdateMVP();
+	//Camera::SetCameras();
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
 {
+	float average = 0.0f;
 	switch (key) {
 	case '1':
-		DEBUG_camera_degree_shift[0] += DEBUG_camerastep;
+		ImageHandler::RebindTextures(program, 0);
 		break;
 	case '2':
-		DEBUG_camera_degree_shift[0] -= DEBUG_camerastep;
+		ImageHandler::RebindTextures(program, 1);
 		break;
+
+#ifdef DEBUG
 	case '3':
-		DEBUG_camera_degree_shift[1] += DEBUG_camerastep;
+		STViewer::RebindVAO();
 		break;
-	case '4':
-		DEBUG_camera_degree_shift[1] -= DEBUG_camerastep;
+#endif
+	case 'f':
+		glutFullScreenToggle();
 		break;
-	case '5':
-		DEBUG_camera_degree_shift[2] += DEBUG_camerastep;
+
+	case 'h':
+		STViewer::ToggleStereo();
 		break;
-	case '6':
-		DEBUG_camera_degree_shift[2] -= DEBUG_camerastep;
+
+	case 'n':
+		STViewer::NextPano();
 		break;
-	case '7':
-		DEBUG_camera_degree_shift[3] += DEBUG_camerastep;
-		break;
-	case '8':
-		DEBUG_camera_degree_shift[3] -= DEBUG_camerastep;
-		break;
-	case '9':
-		DEBUG_camera_degree_shift[4] += DEBUG_camerastep;
-		break;
-	case '0':
-		DEBUG_camera_degree_shift[4] -= DEBUG_camerastep;
+
+	case 'p':
+		STViewer::PrevPano();
 		break;
 
 	case 'r':
-	case 'R':
 		Camera::FOV = DEBUG_fov;
 		Camera::Pitch = 0.0f;
 		Camera::UpdateMVP();
-		Camera::SetCameras();
+		Camera::UpdateCameras();
 		break;
 
+	case 'R':
+		STViewer::ReloadPano();
+		break;
+
+
 	case 27:
-		//glutLeaveFullScreen();
-		glutLeaveGameMode();
+		glutLeaveFullScreen();
+		exit(0);
 		break;
 	}
+}
+
+void Controls::MainMenu(int choice)
+{
+	switch (choice) {
+	case 1:
+		DEBUG_FLAG = !DEBUG_FLAG;
+		Controls::FlipDebug();
+		break;
+
+	case 2:
+		STViewer::NextPano();
+		break;
+
+	case 3:
+		STViewer::PrevPano();
+		break;
+
+	case 4:
+		ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		break;
+
+	case 5:
+		glutFullScreenToggle();
+		break;
+	}
+}
+
+void Controls::PanoMenu(int choice)
+{
+	STViewer::SelectPano(--choice);
 }

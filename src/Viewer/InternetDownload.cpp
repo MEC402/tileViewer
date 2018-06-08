@@ -1,7 +1,6 @@
 //#include "stdafx.h"
 #include "InternetDownload.h"
 
-
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file)
 {
 	// Files are progressivly written, so we append the new data to any previously downloaded data.
@@ -35,6 +34,22 @@ void populateImageData(ImageData *out_file, const char *url)
 	}
 }
 
+// Reusing curl handles is MUCH faster for loading data, we should look into integrating this somehow
+void testReuseHandle(ImageData **out_files, const std::string *urls, unsigned int fileCount)
+{
+	CURL* curl = curl_easy_init();
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
+	for (unsigned int i = 0; i < fileCount; ++i)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, urls[i].c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_files[i]);
+		curl_easy_perform(curl);
+		out_files[i]->complete = true;
+		populateImageData(out_files[i], urls[i].c_str());
+	}
+	curl_easy_cleanup(curl);
+}
+
 void downloadFile(ImageData *out_file, const std::string url)
 {
 	*out_file = { 0 };
@@ -46,7 +61,8 @@ void downloadFile(ImageData *out_file, const std::string url)
 	curl_easy_cleanup(curl);
 	out_file->complete = true;
 
-	populateImageData(out_file, url.c_str());
+	if (url.substr(url.find_last_of(".") + 1) != "json")
+		populateImageData(out_file, url.c_str());
 }
 
 void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsigned int fileCount)
@@ -58,20 +74,20 @@ void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsig
 	CURL **curlHandles = new CURL*[fileCount];
 
 	// Intialize file requests
+	//for (int i = fileCount-1; i >= 0; --i)
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
 		populateImageData(out_files[i], urls[i].c_str());
-
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
 		curl_easy_setopt(eh, CURLOPT_WRITEDATA, &(*out_files[i]));
 		curl_multi_add_handle(multi, eh);
 		curlHandles[i] = eh;
+		curl_multi_perform(multi, &transfersRunning);
 	}
 
 	// Progressively download the files
-	curl_multi_perform(multi, &transfersRunning);
 	do {
 		const int maxWaitTimeMiliseconds = 10 * 10000;
 		int numfds = 0;

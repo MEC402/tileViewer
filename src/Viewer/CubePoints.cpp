@@ -8,9 +8,11 @@
 /* -------------------- [ x y z | face | depth ] ------------------- */
 /* ----------------------------------------------------------------- */
 
-std::mutex m;
+std::mutex m_;
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth) - 1)
+CubePoints::CubePoints(int maxResDepth, int m_eye) : 
+	m_maxResDepth((int)pow(2, maxResDepth) - 1),
+	m_eye(m_eye)
 {
 	// Number of quads per axis
 	m_faceDimensions = (int)pow(2, maxResDepth);
@@ -122,140 +124,93 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2, maxResDepth)
 	m_setupOGL();
 }
 
-// Get the current depth of a given face
-int CubePoints::FaceCurrentDepth(int face)
+bool CubePoints::Ready()
 {
-	int faceIndex = face * (m_datasize * m_faceQuads);
-	return (int)m_positions[faceIndex + 10];
-}
-
-// Set an entire faces quads to the next depth
-void CubePoints::FaceNextDepth(int face)
-{
-	int startIndex = face * (m_datasize * m_faceQuads);
-	int currentDepth = (int)m_positions[startIndex + m_datasize - 1];
-	for (int i = 0, j = m_datasize - 1; i < m_faceQuads; i++, j += m_datasize) {
-		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
-	}
-	Ready = true;
-}
-
-// Easier way to call CubePoints functions with std::thread library
-std::thread CubePoints::FaceNextDepthThread(int face)
-{
-	return std::thread([=] { FaceNextDepth(face); });
-}
-
-// Get the current depth of a given quad
-int CubePoints::QuadCurrentDepth(int face, int row, int col)
-{
-	row = (m_faceDimensions - 1) - row;
-	m.lock();
-	int depth = m_tileMap[face][row][col][1];
-	m.unlock();
-	return depth;
+	return !m_VBOupdates.empty();
 }
 
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
-	m.lock();
+	std::lock_guard<std::mutex> lock(m_);
+
 	if (face != 5)
 		row = (m_faceDimensions - 1) - row;
 	if (face == 1 || face == 3)
 		col = (m_faceDimensions - 1) - col;
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
+
+	// Hopefully prevents loading lower-res tiles over high-res tiles?
+	if (m_tileMap[face][row][col][1] > depth) {
+		return;
+	}
+		
+	// Bunch of offset math so we can update groups of quads if we're not at the lowest depth
 	int quadToChange = m_tileMap[face][row][col][0];
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
 	int depthQuadRow = row / numQuadsToChange;
 	int depthQuadCol = col / numQuadsToChange;
 	int startRow = numQuadsToChange * depthQuadRow;
 	int startCol = numQuadsToChange * depthQuadCol;
+
 	for (int i = 0; i < numQuadsToChange; i++) {
 		for (int j = 0; j < numQuadsToChange; j++) {
 			m_tileMap[face][startRow + i][startCol + j][1] = depth;
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
 		}
 	}
-
-	// We've updated something, set our Ready flag to true so we can update our VBO
-	Ready = true;
-	m.unlock();
+	m_VBOupdates.emplace_back(std::tuple<int, int>(
+		m_tileMap[face][startRow][startCol][0],
+		m_tileMap[face][startRow + numQuadsToChange - 1][startCol + numQuadsToChange - 1][0] + m_datasize
+		));
 }
 
-void CubePoints::QuadNextDepth(int face, int row, int col)
+void CubePoints::ResetDepth()
 {
-	m.lock();
-	// Depending on the face, it's smoother to update rows or columns in reverse when loading in next
-	// texture levels.  They'll always get the right texture in the right spot eventually, but there's
-	// a strange ~3ish frame delay between the depth update and the correct texture being rendered if we
-	// don't do this
-	if (face != 5) {
-		row = (m_faceDimensions - 1) - row;
+	std::lock_guard<std::mutex> lock(m_);
+	for (unsigned int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
+		m_positions[i] = 0.0f;
 	}
-	if (face == 1 || face == 3) {
-		col = (m_faceDimensions - 1) - col;
-	}
-
-	// Get our vertex buffer index offset for the given quad
-	int quadToChange = m_tileMap[face][row][col][0];
-	// Get our next depth level of said quad
-	int nextDepth = m_tileMap[face][row][col][1] + 1;
-
-	// Maaaagic numbers
-	if (nextDepth > 3) {
-		fprintf(stderr, "Tile group is already at max depth, skipping\n");
-		return;
-	}
-
-	// Quads per axis / Depth level  -> How many quads in each axis need updating
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, nextDepth);
-
-	// Calculate what the new level position of a quad will be
-	// e.g. Level 1 might be (0,0) or (1,0) etc
-	// This is so we can update groups of quads 
-	int depthQuadRow = row / numQuadsToChange;
-	int depthQuadCol = col / numQuadsToChange;
-
-	// What row/col we want to start making changes on
-	// e.g. If we passed in row 3, col 2 but are going to Depth 1, this would offset us to (0,0)
-	// This makes it easier to iteratively update a group of quads
-	int startRow = numQuadsToChange * depthQuadRow;
-	int startCol = numQuadsToChange * depthQuadCol;
-
-
-	// This looks horrifying but it's just because of nested arrays
-	// m_tilemap[][][]	-> Vertex buffer offset
-	// startRow + i		-> Which row the next quad lives on (global coords)
-	// startCol + j		-> Which col the next quad lives on (global coords)
-	// m_datasize - 1	-> Depth value for a quad is the last index per quad, so however_much_data - 1 to get offset
-	for (int i = 0; i < numQuadsToChange; i++) {
-		for (int j = 0; j < numQuadsToChange; j++) {
-			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
-			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < m_faceDimensions; j++) {
+			for (int k = 0; k < m_faceDimensions; k++) {
+				m_tileMap[i][j][k][1] = 0;
+			}
 		}
 	}
 
-	// We've updated something, set our Ready flag to true so we can update our VBO
-	Ready = true;
-	m.unlock();
-}
-
-// Easier way to thread CubePoints:: calls with std::thread library
-std::thread CubePoints::QuadNextDepthThread(int face, int row, int col)
-{
-	return std::thread([=] { QuadNextDepth(face, row, col); });
+	m_VBOupdates.emplace_back(std::tuple<int, int>(0, m_positions.size()));
 }
 
 void CubePoints::RebindVAO()
 {
-	Ready = false;
+	std::lock_guard<std::mutex> lock(m_);
 
-	//TODO: Need some way to only update changed quad positions instead of repushing whole array
-	// Pushing entire array is m_datasize * 6 * quads per face
-	// As of 05/24/18 12:02PM that is: 5 * 6 * 64 -> 1920 * sizeof(float) -> 7.5MiB
+	if (m_VBOupdates.empty())
+		return;
+
+	std::tuple<int, int> Range = m_VBOupdates.front();
+	int front = std::get<0>(Range);
+	int back = std::get<1>(Range);
+	m_VBOupdates.pop_front();
+
+#ifdef DEBUG
+	GLenum error;
+#endif
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float), &m_positions.front());
-	glBindVertexArray(0);
+	if (m_buffer)
+		std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
+#ifdef DEBUG
+	else
+		fprintf(stderr, "MapBuffer pointer is NULL\n");
+#endif
+
+	glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
+#ifdef DEBUG
+	if ((error = glGetError()) != GL_NO_ERROR) {
+		fprintf(stderr, "Error flushing to MapBuffer: %s\n", gluErrorString(error));
+	}
+#endif
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void CubePoints::m_setupOGL()
@@ -272,7 +227,9 @@ void CubePoints::m_setupOGL()
 
 	// Give data
 	// https://www.opengl.org/sdk/docs/man/html/glBufferData.xhtml
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
+	glBufferStorage(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(),
+		GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
 	// Bind our xyz
 	glEnableVertexAttribArray(0);
@@ -286,5 +243,8 @@ void CubePoints::m_setupOGL()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
 
-	glBindVertexArray(0);
+	m_buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float),
+		GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_PERSISTENT_BIT);
+
+	glBindVertexArray(m_eye);
 }

@@ -3,6 +3,7 @@
 struct ImageData
 {
 	// Raw image data
+	//std::unique_ptr<unsigned char*> data;
 	unsigned char* data;
 	unsigned int dataSize;
 
@@ -15,8 +16,16 @@ struct ImageData
 	int row;
 	int col;
 	int face;
+	int eye;
 
 	// Done downloading?
 	bool complete;
+
+	void Free()
+	{
+		if (data != NULL)
+			free(data);
+		free(this);
+	}
 };
 #endif

@@ -3,28 +3,51 @@
 
 std::mutex ImageQueue::mutex_;
 std::queue<ImageData*> ImageQueue::queue_;
+bool ImageQueue::discard = false;
 
-bool ImageQueue::IsEmpty() 
+void ImageQueue::Clear()
 {
-	mutex_.lock();
-	bool isEmpty = queue_.empty();
-	mutex_.unlock();
-
-	return isEmpty;
+	ToggleDiscard();
+	std::lock_guard<std::mutex> lock(mutex_);
+	while (!queue_.empty()) {
+		ImageData *i = queue_.front();
+		queue_.pop();
+		i->Free();
+	}
+}
+ImageData* ImageQueue::Dequeue()
+{
+	std::lock_guard<std::mutex> lock(mutex_);
+	ImageData *file = queue_.front();
+	queue_.pop();
+	return file;
 }
 
 void ImageQueue::Enqueue(ImageData *file)
 {
-	mutex_.lock();
-	queue_.push(file);
-	mutex_.unlock();
+	if (discard) {
+		file->Free();
+	}
+	else {
+		std::lock_guard<std::mutex> lock(mutex_);
+		queue_.push(file);
+	}
 }
 
-ImageData* ImageQueue::Dequeue()
+bool ImageQueue::IsEmpty() 
 {
-	mutex_.lock();
-	ImageData *file = queue_.front();
-	queue_.pop();
-	mutex_.unlock();
-	return file;
+	std::lock_guard<std::mutex> lock(mutex_);
+	return queue_.empty();
+}
+
+int ImageQueue::Size()
+{
+	std::lock_guard<std::mutex> lock(mutex_);
+	return queue_.size();
+}
+
+void ImageQueue::ToggleDiscard()
+{
+	std::lock_guard<std::mutex> lock(mutex_);
+	discard = !discard;
 }

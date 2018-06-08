@@ -97,7 +97,10 @@ namespace Threads
 
 			auto get(void)
 			{
-				return m_future.get();
+				// This doesn't seem right since we've overridden the TaskFuture operator
+				// But it does cause less crashes, soooo?
+				if (m_future.valid())
+					return m_future.get();
 			}
 
 
@@ -171,9 +174,20 @@ namespace Threads
 			using TaskType = ThreadTask<PackagedTask>;
 
 			PackagedTask task{ std::move(boundTask) };
-			TaskFuture<ResultType> result{ task.get_future() };
+			//TaskFuture<ResultType> result{ task.get_future() }; // We don't care about promised return values, and this causes crashes
 			m_workQueue.push(std::make_unique<TaskType>(std::move(task)));
-			return result;
+			return;// result;
+		}
+
+		bool allstopped()
+		{
+			std::lock_guard<std::mutex> l(m_mutex);
+			return (m_waiting == m_threads.size());
+		}
+
+		void stopall()
+		{
+			m_workQueue.clear();
 		}
 
 	private:
@@ -185,11 +199,27 @@ namespace Threads
 			while (!m_done)
 			{
 				std::unique_ptr<IThreadTask> pTask{ nullptr };
+				incwaiting();
 				if (m_workQueue.waitPop(pTask))
-				{
+				{	
+					decwaiting();
 					pTask->execute();
 				}
 			}
+		}
+
+		void incwaiting()
+		{
+			m_mutex.lock();
+			m_waiting++;
+			m_mutex.unlock();
+		}
+
+		void decwaiting()
+		{
+			m_mutex.lock();
+			m_waiting--;
+			m_mutex.unlock();
 		}
 
 		/**
@@ -212,6 +242,8 @@ namespace Threads
 		std::atomic_bool m_done;
 		ThreadSafeQueue<std::unique_ptr<IThreadTask>> m_workQueue;
 		std::vector<std::thread> m_threads;
+		std::mutex m_mutex;
+		int m_waiting{ 0 };
 	};
 
 	namespace DefaultThreadPool
