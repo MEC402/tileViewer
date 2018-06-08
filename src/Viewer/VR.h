@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _VR_H
+#define _VR_H
 
 #include <assert.h>
 #include <GL/glew.h>
@@ -89,3 +90,5 @@ void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer);
 
 // TODO: leaking memory. Need to destroy the textures and stuff.
 void destroyVRDevice(VRDevice* vr);
+
+#endif // _VR_H

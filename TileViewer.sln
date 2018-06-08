@@ -15,6 +15,8 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release (No VR)|x64 = Release (No VR)|x64
+		Release (No VR)|x86 = Release (No VR)|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -23,6 +25,10 @@ Global
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Debug|x64.Build.0 = Debug|x64
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Debug|x86.ActiveCfg = Debug|Win32
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Debug|x86.Build.0 = Debug|Win32
+		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release (No VR)|x64.ActiveCfg = Release (No VR)|x64
+		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release (No VR)|x64.Build.0 = Release (No VR)|x64
+		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release (No VR)|x86.ActiveCfg = Release (No VR)|Win32
+		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release (No VR)|x86.Build.0 = Release (No VR)|Win32
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release|x64.ActiveCfg = Release|x64
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release|x64.Build.0 = Release|x64
 		{AA714E65-CFC8-4171-A514-7961713BAD41}.Release|x86.ActiveCfg = Release|Win32

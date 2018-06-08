@@ -270,3 +270,6 @@ __pycache__/
 /src/Viewer/b_0.jpg
 /src/Viewer/lib
 /src/Viewer/dll
+*.tlog
+*.ipdb
+*.iobj

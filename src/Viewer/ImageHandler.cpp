@@ -95,6 +95,9 @@ void ImageHandler::InitPanoList(std::string url)
 void ImageHandler::InitURLs(int pano, bool stereo)
 {
 	std::lock_guard<std::mutex> lock(m_);
+	if (m_panoList.size() < 1)
+		return;
+
 	if (!m_urls.empty())
 		m_urls.clear();
 

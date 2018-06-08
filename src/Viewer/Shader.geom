@@ -28,49 +28,39 @@ vec2 getST(vec4 pos, int face)
 	
 	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
 
-	// All the (1.0 * segl) - pos.n stuff is to flip ST coordinates across an axis without relying on wrapping
-	switch (face) {
-		case 1: 
-			pos.x = (1.0 * segl) - pos.x;
-		case 0:
-			pos.y = (1.0 * segl) - pos.y;
-			return vec2(pos.x, pos.y);
+	// F/B want X/Y, R/L want Z/Y, U/D want X/Z
+	// This allows us to swap the correct value out and return a vec2
+	int idx = ((face + 4) % 6) / 2;
 
-		case 3:
-			pos.z = (1.0 * segl) - pos.z;
-		case 2:
-			pos.y = (1.0 * segl) - pos.y;
-			return vec2(pos.z, pos.y);
+	// Only flip coordinates on Odd faces (Except if it's 4/5, then flip 4 and not 5)
+	int i = (face >> 2) ^ (face & 1);
 
-		case 4:
-			pos.z = (1.0 * segl) - pos.z;
-		case 5:
-			return vec2(pos.x, pos.z);
+	pos[idx] = 0.0;
+	if (i != 0) {
+		// Face 1 flips X, Face 3/4 flip Z
+		int n =  (( (face&2) | (face&4)) >> face-2) << 1; // Bitwise voodoo
+		pos[n] = (segl * 1.0) - pos[n];
 	}
+	// Everything flips Y, if it doesn't use Y then it will be overriden
+	pos[1] = (segl * 1.0) - pos[1];
+	pos[idx] = pos[2];
+	pos[2] = 0.0;
+	return vec2(pos);
 }
 
 
 void main()
 {
-	float x = TileWidth;
-	float y = TileWidth;
-	float z = TileWidth;
 	highp int face = vin[0].vFace;
 
-	switch (face) {
-		case 0:
-		case 1:
-			z = 0.0;
-			break;
-		case 2:
-		case 3:
-			x = 0.0;
-			break;
-		case 4:
-		case 5:
-			y = 0.0;
-			break;
-	}
+	// Front/Back need to set z to 0, Right/Left X to 0, Top/Bot Y to 0
+	// Indicies 2, 0, 1 respectively.  Below mod math rotates around values around correctly.
+	int idx = ((face + 4) % 6) / 2;
+	vec3 Shift = vec3(TileWidth, TileWidth, TileWidth);
+	Shift[idx] = 0.0;
+	float x = Shift.x;
+	float y = Shift.y;
+	float z = Shift.z;
 
 	vec4 position;
 	// TODO: I'm sure there's a better way to check which coordinates to use
