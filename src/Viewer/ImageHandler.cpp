@@ -26,7 +26,7 @@ ImageHandler::ImageHandler()
 	m_stereoLoaded = false;
 }
 
-void ImageHandler::InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender) 
+void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender) 
 {
 	Decompressed = toRender;
 	m_compressed = new ImageQueue();
@@ -38,28 +38,29 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toR
 	int maxDepth = 3;
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, 0, program);	
+		initFaceAtlas(i, maxDepth, 0);	
 	}
 
 	if (m_panoList.size() > 0)
 		InitURLs(0, stereo);
 
-	if (stereo)
-		InitStereo(program);
+	if (stereo) {
+		InitStereo();
+	}
 }
 
-void ImageHandler::InitStereo(GLuint program)
+void ImageHandler::InitStereo()
 {
 	// Try to populate stereo URLs first
 	InitStereoURLs();
 
 	// If our texture bindings != 0, we've already initialized the second eye textures
-	if (m_textures[1][0] != 0)
-		return;
+	if (m_textures[1][0] != 0) return;
 
 	glGenTextures(6, m_textures[1]);
-	for (int i = 0; i < 6; i++)
-		initFaceAtlas(i, 3, 1, program);
+	for (int i = 0; i < 6; i++) {
+		initFaceAtlas(i, 3, 1);
+	}
 
 }
 
@@ -362,7 +363,7 @@ void ImageHandler::WindowDump(int width, int height)
 /* ---------------- Private Functions ---------------- */
 
 
-void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
+void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 {
 	// TODO: Probably shouldn't hardcode image resolution like this
 	int maxWidth = 512 * (int)pow(2, depth);

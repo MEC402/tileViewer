@@ -33,8 +33,8 @@ public:
 	int m_currentPano;
 	ImageQueue *Decompressed;
 
-	void InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender);
-	void InitStereo(GLuint program);
+	void InitTextureAtlas(bool stereo, ImageQueue *toRender);
+	void InitStereo();
 	void InitStereoURLs(void);
 	void InitPanoList(std::string url);
 	void InitURLs(int pano, bool stereo);
@@ -51,7 +51,7 @@ public:
 	ImageHandler();
 
 private:
-	void initFaceAtlas(int face, int depth, int eye, GLuint program);
+	void initFaceAtlas(int face, int depth, int eye);
 
 	struct URL {
 		char buf[256];

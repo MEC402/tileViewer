@@ -17,9 +17,7 @@
 #include "Camera.h"
 #include "ImageHandler.h"
 
-#ifdef USE_VR
 #include "VR.h"
-#endif
 
 
 // I really didn't want to make this static, but GL callbacks require non-member functions
@@ -31,11 +29,7 @@
 class STViewer {
 
 public:
-#ifdef USE_VR
-	static void Init(VRDevice &vrRef, const char* panoFileAddress);
-#else
-	static void Init(const char* panoFileAddress);
-#endif
+	static void Init(const char* panoFileAddress, bool stereo);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -111,13 +105,13 @@ private:
 	static bool textureHandling;
 	static bool workerHandling;
 	static bool imagesNeedResetting;
+	static bool m_stereo;
 
 	// ImageQueue is no longer static, so keep a reference to one we can instantiate
 	static ImageQueue *m_LoadedTextures;
 
-#ifdef USE_VR
 	static bool m_usingVR;
-#endif
+	static VRDevice m_vr;
 
 	// Magic number for maximum depth (0 indexed)
 	static int m_maxDepth;

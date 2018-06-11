@@ -2,7 +2,6 @@
 
 std::vector<PanoInfo> panolist;
 bool fullscreen;
-bool stereo;
 bool fivepanel;
 bool usingVR;
 bool DEBUG_FLAG;
@@ -11,6 +10,8 @@ int main(int argc, char **argv)
 {
 	/* initialize GLUT, using any commandline parameters passed to the program */
 	glutInit(&argc, argv);
+
+	bool stereo = false;
 
 	for (int i = 0; i < argc; i++) {
 		if (argv[i] == std::string("-f"))
@@ -23,13 +24,7 @@ int main(int argc, char **argv)
 			fivepanel = true;
 	}
 
-
 	DEBUG_FLAG = false;
 
-#ifdef USE_VR
-	VRDevice vrDevice;
-	STViewer::Init(vrDevice, argv[argc - 1]);
-#else
-	STViewer::Init(argv[argc - 1]);
-#endif
+	STViewer::Init(argv[argc - 1], stereo);
 }

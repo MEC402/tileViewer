@@ -6,14 +6,14 @@
 #include "LibOVRKernel/Kernel/OVR_Types.h"
 #include "LibOVR/OVR_CAPI_GL.h"
 #include "LibOVR/Extras/OVR_Math.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "Shared.h"
 
 #if defined(_WIN32)
 #include <dxgi.h> // for GetDefaultAdapterLuid
 #pragma comment(lib, "dxgi.lib")
 #endif
-
-
-struct OculusTextureBuffer;
 
 struct VRControllerStates
 {
@@ -23,8 +23,8 @@ struct VRControllerStates
 	};
 
 	struct Controller {
-		OVR::Vector3f position;
-		OVR::Quatf rotation;
+		glm::vec3 position;
+		glm::quat rotation;
 		Button button1;
 		Button button2;
 		float thumbstickX;
@@ -37,8 +37,11 @@ struct VRControllerStates
 	Controller right;
 };
 
+struct OculusTextureBuffer;
+
 struct VRDevice
 {
+#ifdef OCULUS
 	OculusTextureBuffer * eyeRenderTexture[2];
 	ovrPosef eyeRenderPose[2];
 	ovrEyeRenderDesc eyeRenderDesc[2];
@@ -53,6 +56,7 @@ struct VRDevice
 	int mirrorWindowWidth;
 	int mirrorWindowHeight;
 	VRControllerStates controllers;
+#endif
 };
 
 // Call once to initialize
@@ -68,9 +72,9 @@ void updateVRDevice(VRDevice* vr);
 // Gets the view and projection matrices for a headset eye to be passed to OpenGL.
 // These may be transposed differently than another math library!
 // EyeIndex can be 0 and 1.
-OVR::Matrix4f buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ);
-OVR::Matrix4f buildVRProjectionMatrix(VRDevice* vr, int eyeIndex);
-OVR::Vector3f getVRHeadsetPosition(VRDevice* vr);
+glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ);
+glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex);
+glm::vec3 getVRHeadsetPosition(VRDevice* vr);
 
 // Gets the state of Oculus Touch controllers. You can access the returned data directly.
 VRControllerStates getVRControllerState(VRDevice* vr);

@@ -4,14 +4,11 @@
 #include "CubePoints.h"
 
 #define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
-#define USE_VR
+//#define OCULUS
 
 
 extern bool fullscreen;
-extern bool stereo;
 extern bool fivepanel;
-
-extern bool usingVR;
 
 extern bool DEBUG_FLAG;
 
