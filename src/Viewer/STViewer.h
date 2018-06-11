@@ -47,6 +47,7 @@ public:
 #ifdef DEBUG
 	static void PrintAverage(void);
 	static void RebindVAO(void);
+	static void WaitingThreads(void);
 #endif
 
 private:
