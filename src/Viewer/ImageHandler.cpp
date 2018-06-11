@@ -13,36 +13,18 @@
 
 #include <mutex>
 
-// Mutex
-std::mutex ImageHandler::m_;
-
-// Texture handles
-GLuint ImageHandler::m_textures[2][6];
-GLuint ImageHandler::m_pbos[2][6];
-
 // Texture names
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
 
-// Panos
-std::vector<PanoInfo> ImageHandler::m_panoList;
-int ImageHandler::m_currentPano = 0;
-
-// URL list
-std::deque<ImageHandler::URL> ImageHandler::m_urls;
-ImageQueue *ImageHandler::Decompressed;
-ImageQueue *ImageHandler::m_compressed;
-
-// Number of screen dumps we've made (Mostly for debug/comparison)
-int ImageHandler::m_dumpcount = 0;
-
-// Track whether or not we've loaded the Stereo eye URLs for the current Pano
-bool ImageHandler::m_stereoLoaded = false;
-
-// Don't overwrite nicer textures
-int ImageHandler::m_tileDepth[6][8][8];
-
 /* ---------------- Public Functions ---------------- */
+
+ImageHandler::ImageHandler()
+{
+	m_currentPano = 0;
+	m_dumpcount = 0;
+	m_stereoLoaded = false;
+}
 
 void ImageHandler::InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender) 
 {
@@ -349,7 +331,7 @@ void ImageHandler::WindowDump(int width, int height)
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glReadBuffer(GL_FRONT);
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
-	std::thread t([](unsigned char* image, int width, int height)
+	std::thread t([](unsigned char* image, int width, int height, int dumpcount)
 	{
 #ifdef _USE_WIN_H
 		// Windows pls
@@ -363,15 +345,15 @@ void ImageHandler::WindowDump(int width, int height)
 #endif
 		std::string cwd(buff);
 
-		sprintf_s(buf, "%s\\Output_%d.png", cwd.c_str(), m_dumpcount);
-		m_dumpcount++;
+		sprintf_s(buf, "%s\\Output_%d.png", cwd.c_str(), dumpcount);
+		dumpcount++;
 
 		stbi_flip_vertically_on_write(true);
 		stbi_write_png(buf, width, height, 3, image, width * 3);
 
 		fprintf(stderr, "Saved image to %s\n", buf);
 		free(image);
-	}, image, width, height);
+	}, image, width, height, m_dumpcount);
 	t.detach();
 }
 
@@ -412,39 +394,3 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
-
-#ifdef _USE_WIN_H
-// Gnarly WIN32 API calls to traverse a given directory and find out max resolution depth
-// No longer necessary?
-int ImageHandler::maxResDepth(const char *path)
-{
-	WIN32_FIND_DATAA findfiledata;
-	HANDLE hFind = INVALID_HANDLE_VALUE;
-	std::vector<int> output;
-	char fullpath[MAX_PATH];
-	GetFullPathNameA(path, MAX_PATH, fullpath, 0);
-	std::string fp(fullpath);
-
-	hFind = FindFirstFileA((fp + "\\*").c_str(), &findfiledata);
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			if ((findfiledata.dwFileAttributes | FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY
-				&& (findfiledata.cFileName[0] != '.'))
-			{
-				fprintf(stderr, "Found: %s\n", findfiledata.cFileName);
-				output.push_back(atoi(findfiledata.cFileName));
-			}
-		} while (FindNextFileA(hFind, &findfiledata) != 0);
-	}
-	int depth = 0;
-	for (unsigned int i = 0; i < output.size(); i++) {
-		if (output[i] > depth)
-			depth = output[i];
-	}
-
-	// Reduce depth by 1, since folders are listed 1/2/3/4 instead of 0/1/2/3
-	return depth-1;
-}
-#endif

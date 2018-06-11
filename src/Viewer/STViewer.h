@@ -15,6 +15,7 @@
 #include "ThreadPool.hpp"
 #include "Shader.h"
 #include "Camera.h"
+#include "ImageHandler.h"
 
 #ifdef USE_VR
 #include "VR.h"
@@ -33,7 +34,7 @@ public:
 #ifdef USE_VR
 	static void Init(VRDevice &vrRef);
 #else
-	static void Init(void);
+	static void Init(const char* panoFileAddress);
 #endif
 
 	/*		Viewer-Driven Stereo Function		*/
@@ -100,6 +101,7 @@ private:
 
 	static Shader m_shader;
 	static Camera m_camera;
+	static ImageHandler m_images;
 
 	// Thread pool data
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into

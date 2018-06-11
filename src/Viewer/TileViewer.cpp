@@ -23,8 +23,6 @@ int main(int argc, char **argv)
 			fivepanel = true;
 	}
 
-	ImageHandler::InitPanoList(argv[argc - 1]);
-
 
 	DEBUG_FLAG = false;
 
@@ -32,6 +30,6 @@ int main(int argc, char **argv)
 	VRDevice vrDevice;
 	STViewer::Init(vrDevice);
 #else
-	STViewer::Init();
+	STViewer::Init(argv[argc - 1]);
 #endif
 }
