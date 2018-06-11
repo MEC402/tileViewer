@@ -52,9 +52,6 @@ void main()
 {
 	highp int face = vin[0].vFace;
 
-	// Front/Back need to set z to 0, Right/Left X to 0, Top/Bot Y to 0
-	// Indicies 2, 0, 1 respectively.  Below mod math rotates around values around correctly.
-	int idx = ((face + 4) % 6) / 2;
 	vec3 Shift = vec3(TileWidth, TileWidth, TileWidth);
 	Shift[idx] = 0.0;
 	float x = Shift.x;
