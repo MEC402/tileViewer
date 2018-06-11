@@ -190,6 +190,11 @@ namespace Threads
 			m_workQueue.clear();
 		}
 
+		int size()
+		{
+			return m_threads.size();
+		}
+
 	private:
 		/**
 		* Constantly running function each thread uses to acquire work items from the queue.

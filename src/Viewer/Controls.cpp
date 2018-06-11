@@ -123,6 +123,11 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	case GLUT_KEY_F9:
 		ImageHandler::WindowDump(Camera::Width, Camera::Height);
 		break;
+#ifdef DEBUG
+	case GLUT_KEY_F10:
+		STViewer::PrintAverage();
+		break;
+#endif
 	}
 	Camera::UpdateMVP();
 	//Camera::SetCameras();

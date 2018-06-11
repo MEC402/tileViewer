@@ -69,7 +69,19 @@ void Camera::SetViewport(Viewport *viewport)
 	if (viewport == NULL)
 		return;
 	// rotation in degrees or radians?
-	glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
+	glm::vec3 front;
+	front.x = cos(glm::radians(Yaw + glm::degrees(viewport->rotation))) * cos(glm::radians(Pitch));
+	front.y = sin(glm::radians(Pitch));
+	front.z = sin(glm::radians(Yaw + glm::degrees(viewport->rotation))) * cos(glm::radians(Pitch));
+	glm::vec3 cameraFront = glm::normalize(front);
+
+	glm::mat4 newView = glm::lookAt(
+		glm::vec3(0, 0, 0),
+		cameraFront,
+		glm::vec3(0, 1, 0)
+	);
+
+	//glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
 	glm::mat4 mvp = Projection * newView * Model;
 
 	GLuint MatrixID = glGetUniformLocation(program, "MVP");
@@ -100,7 +112,7 @@ void Camera::SplitHorizontal()
 
 	hsplit = true;
 	RightCameras = new Viewport*[NumCameras];
-	createCameras(RightCameras, FOV, float(Height) / float(Width), true);
+	createCameras(RightCameras, FOV, float(1080) / float(1920), true);
 
 	for (int i = 0; i < NumCameras; i++) {
 		LeftCameras[i]->height = Height / 2;
@@ -116,27 +128,19 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 {
 	// Ported from spviewer
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	unsigned int numScreens = 1;
-	float rotate_x = 0.0;
-	if (multiscreen) {
-		numScreens = NumCameras;
-		rotate_x = -float(numScreens - 1) * 0.5f * fovx;
-		for (unsigned int i = 0; i < numScreens; i++) {
-			viewports[i] = new Viewport{ 0 };
-		}
-	}
-	else {
-		viewports = new Viewport*[1];
-		viewports[0] = new Viewport{ 0 };
+
+	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
+	for (unsigned int i = 0; i < NumCameras; i++) {
+		viewports[i] = new Viewport{ 0 };
 	}
 
 	// Rotate backwards so our center screen is our "0" rotation camera
-	rotate_x -= (fovx * (int)(numScreens / 2));
+	rotate_x -= (fovx * (int)(NumCameras / 2));
 
-	for (unsigned int i = 0; i < numScreens; ++i, rotate_x += fovx) {
-		viewports[i]->widthstart = (Width / numScreens) * i;
+	for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+		viewports[i]->widthstart = (Width / NumCameras) * i;
 		viewports[i]->heightstart = 0;
-		viewports[i]->width = (Width / numScreens);
+		viewports[i]->width = (Width / NumCameras);
 		viewports[i]->height = Height;
 		viewports[i]->rotation = rotate_x;
 	}

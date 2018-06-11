@@ -8,17 +8,20 @@
 class ImageQueue {
 
 public:
-	static void Clear();
-	static ImageData* Dequeue();
-	static void Enqueue(ImageData *file);
-	static bool IsEmpty();
-	static int Size();
-	static void ToggleDiscard();
+
+	~ImageQueue() = default;
+
+	void Clear();
+	ImageData* Dequeue();
+	void Enqueue(ImageData *file);
+	bool IsEmpty();
+	int Size();
+	void ToggleDiscard();
 
 private:
-	static std::mutex mutex_;
-	static std::queue<ImageData*> queue_;
-	static bool discard; // Discard anything that comes in while we're clearing a queue
+	std::mutex mutex_;
+	std::queue<ImageData*> queue_;
+	bool discard; // Discard anything that comes in while we're clearing a queue
 
 };
 

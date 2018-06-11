@@ -13,11 +13,6 @@
 
 #include <mutex>
 
-#define TIMERSTART t1 = std::chrono::high_resolution_clock::now();
-#define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - t1).count()
-
-std::chrono::high_resolution_clock::time_point ImageHandler::t1;
-
 // Mutex
 std::mutex ImageHandler::m_;
 
@@ -35,17 +30,25 @@ int ImageHandler::m_currentPano = 0;
 
 // URL list
 std::deque<ImageHandler::URL> ImageHandler::m_urls;
-std::deque<ImageData*> ImageHandler::m_data;
+ImageQueue *ImageHandler::Decompressed;
+ImageQueue *ImageHandler::m_compressed;
 
 // Number of screen dumps we've made (Mostly for debug/comparison)
 int ImageHandler::m_dumpcount = 0;
+
+// Track whether or not we've loaded the Stereo eye URLs for the current Pano
+bool ImageHandler::m_stereoLoaded = false;
+
 // Don't overwrite nicer textures
 int ImageHandler::m_tileDepth[6][8][8];
 
 /* ---------------- Public Functions ---------------- */
 
-void ImageHandler::InitTextureAtlas(GLuint program, bool stereo) 
+void ImageHandler::InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender) 
 {
+	Decompressed = toRender;
+	m_compressed = new ImageQueue();
+	
 	// 6 for each eye
 	glGenTextures(6, m_textures[0]);
 
@@ -65,6 +68,9 @@ void ImageHandler::InitTextureAtlas(GLuint program, bool stereo)
 
 void ImageHandler::InitStereo(GLuint program)
 {
+	// Try to populate stereo URLs first
+	InitStereoURLs();
+
 	// If our texture bindings != 0, we've already initialized the second eye textures
 	if (m_textures[1][0] != 0)
 		return;
@@ -72,6 +78,27 @@ void ImageHandler::InitStereo(GLuint program)
 	glGenTextures(6, m_textures[1]);
 	for (int i = 0; i < 6; i++)
 		initFaceAtlas(i, 3, 1, program);
+
+}
+
+void ImageHandler::InitStereoURLs()
+{
+	if (m_stereoLoaded)
+		return;
+
+	m_stereoLoaded = true;
+	for (int depth = 0; depth < 4; depth++) {
+		int maxDepth = (int)pow(2, depth);
+		for (int i = maxDepth - 1; i >= 0; i--) {
+			for (int j = maxDepth - 1; j >= 0; j--) {
+				for (int face = 0; face < 6; face++) {
+					URL url(face, 1);
+					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+					m_urls.emplace_back(url);
+				}
+			}
+		}
+	}
 }
 
 void ImageHandler::InitPanoList(std::string url)
@@ -97,6 +124,7 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 	std::lock_guard<std::mutex> lock(m_);
 	if (m_panoList.size() < 1)
 		return;
+	m_stereoLoaded = stereo;
 
 	if (!m_urls.empty())
 		m_urls.clear();
@@ -119,6 +147,8 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 		}
 	}
 
+	// m_tileDepth is useful for discarding image files for which we already have a better texture
+	// Due to logic flow I'm not convinced there's a good place to put such a check, but maybe?
 	for (int face = 0; face < 6; face++) {
 		for (int row = 0; row < 8; row++) {
 			for (int col = 0; col < 8; col++) {
@@ -126,8 +156,14 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 			}
 		}
 	}
+}
 
-	TIMERSTART
+void ImageHandler::ClearQueues()
+{
+	std::lock_guard<std::mutex> lock(m_);
+	m_compressed->Clear();
+	m_compressed->ToggleDiscard();
+	m_urls.clear();
 }
 
 void ImageHandler::LoadImageData(ImageData *image)
@@ -175,7 +211,6 @@ void ImageHandler::LoadQuadImage()
 
 		URL u = m_urls.front();
 		m_urls.pop_front();
-
 		m_.unlock();
 
 		ImageData *imageFile = new ImageData{ 0 };
@@ -185,43 +220,7 @@ void ImageHandler::LoadQuadImage()
 		imageFile->face = u.face;
 		imageFile->eye = u.eye;
 
-		m_.lock();
-		m_data.emplace_back(imageFile);
-		m_.unlock();
-	}
-}
-
-void ImageHandler::Decompress()
-{
-	ImageData* imageFile = NULL;
-	while (true) {
-		m_.lock();
-
-		if (m_urls.empty() && m_data.empty()) {
-			m_.unlock();
-			return;
-		}
-
-		if (!m_data.empty()) {
-			imageFile = m_data.front();
-			m_data.pop_front();
-		}
-		else {
-			m_.unlock();
-			continue;
-		}
-
-		m_.unlock();
-
-		int width, height, nrChannels;
-		unsigned char* d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
-
-		free(imageFile->data);
-
-		imageFile->data = d;
-		imageFile->w_offset *= width;
-		imageFile->h_offset *= height;
-		ImageQueue::Enqueue(imageFile);
+		m_compressed->Enqueue(imageFile);
 	}
 }
 
@@ -280,7 +279,7 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 			imageFiles[i]->w_offset *= width;
 			imageFiles[i]->h_offset *= height;
 
-			ImageQueue::Enqueue(imageFiles[i]);
+			Decompressed->Enqueue(imageFiles[i]);
 
 			// Reset complete flag to false so we aren't double-counting (This is only set to true in InternetDownloader)
 			imageFiles[i]->complete = false;
@@ -289,6 +288,39 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 	}
 	// No longer need the pointer for our array of ImageData pointers, they're all in the ImageQueue now
 	delete[]imageFiles;
+}
+
+void ImageHandler::Decompress()
+{
+	ImageData* imageFile = NULL;
+	while (true) {
+		m_.lock();
+
+		if (m_urls.empty() && m_compressed->IsEmpty()) {
+			m_.unlock();
+			return;
+		}
+
+		if (!m_compressed->IsEmpty()) {
+			imageFile = m_compressed->Dequeue();
+		}
+		else {
+			m_.unlock();
+			continue;
+		}
+
+		m_.unlock();
+
+		int width, height, nrChannels;
+		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
+
+		free(imageFile->data);
+
+		imageFile->data = d;
+		imageFile->w_offset *= width;
+		imageFile->h_offset *= height;
+		Decompressed->Enqueue(imageFile);
+	}
 }
 
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
@@ -373,6 +405,8 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	else {
 		glUniform1i(TxUniform, face);
 	}
+
+	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
@@ -381,6 +415,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 
 #ifdef _USE_WIN_H
 // Gnarly WIN32 API calls to traverse a given directory and find out max resolution depth
+// No longer necessary?
 int ImageHandler::maxResDepth(const char *path)
 {
 	WIN32_FIND_DATAA findfiledata;
