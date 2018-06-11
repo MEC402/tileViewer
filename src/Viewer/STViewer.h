@@ -94,6 +94,7 @@ private:
 	static unsigned int m_currentPano;
 
 	// Thread pool data
+	static Threads::ThreadPool *downloadPool;
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
 	static Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
 	

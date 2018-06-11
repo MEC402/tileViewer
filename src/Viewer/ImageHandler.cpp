@@ -11,6 +11,9 @@
 #define STBI_MSC_SECURE_CRT
 #include "stb_image_write.h"
 
+#define TIMERSTART std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+#define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()
+
 #include <mutex>
 
 // Mutex
@@ -294,6 +297,7 @@ void ImageHandler::Decompress()
 {
 	ImageData* imageFile = NULL;
 	while (true) {
+		TIMERSTART
 		m_.lock();
 
 		if (m_urls.empty() && m_compressed->IsEmpty()) {

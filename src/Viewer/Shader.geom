@@ -36,6 +36,7 @@ vec2 getST(vec4 pos, int face)
 	int i = (face >> 2) ^ (face & 1);
 
 	pos[idx] = 0.0;
+
 	if (i != 0) {
 		// Face 1 flips X, Face 3/4 flip Z
 		int n =  (( (face&2) | (face&4)) >> face-2) << 1; // Bitwise voodoo
