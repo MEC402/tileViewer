@@ -32,7 +32,7 @@ class STViewer {
 
 public:
 #ifdef USE_VR
-	static void Init(VRDevice &vrRef);
+	static void Init(VRDevice &vrRef, const char* panoFileAddress);
 #else
 	static void Init(const char* panoFileAddress);
 #endif

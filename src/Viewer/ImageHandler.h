@@ -40,7 +40,7 @@ public:
 	void InitURLs(int pano, bool stereo);
 
 	void LoadImageData(ImageData *image);
-	void RebindTextures(GLuint program, int eye);
+	void bindTextures(GLuint program, int eye);
 	void WindowDump(int width, int height);
 
 	void ClearQueues(void);

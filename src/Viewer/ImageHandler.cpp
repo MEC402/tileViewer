@@ -167,7 +167,7 @@ void ImageHandler::LoadImageData(ImageData *image)
 		}
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
-		glActiveTexture(image->activeTexture);
+		glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		if ((errCode = glGetError()) != GL_NO_ERROR) {
@@ -198,7 +198,7 @@ void ImageHandler::LoadQuadImage()
 		ImageData *imageFile = new ImageData{ 0 };
 		downloadFile(imageFile, u.buf);
 
-		imageFile->activeTexture = GL_TEXTURE0 + u.face + (6 * u.eye);
+		imageFile->activeTexture = m_textures[u.eye][u.face];
 		imageFile->face = u.face;
 		imageFile->eye = u.eye;
 
@@ -210,7 +210,7 @@ void ImageHandler::LoadFaceImage(int face, int depth, int eye)
 {
 	// Basically the same as LoadQuadImage
 	const char facename = m_faceNames[face];
-	int activeTexture = GL_TEXTURE0 + face + (6 * eye);
+	int activeTexture = m_textures[eye][face];
 	
 	// This seems to work pretty nicely
 	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
@@ -306,7 +306,7 @@ void ImageHandler::Decompress()
 }
 
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
-void ImageHandler::RebindTextures(GLuint program, int eye)
+void ImageHandler::bindTextures(GLuint program, int eye)
 {
 	if (m_textures[eye][0] == 0) {
 		fprintf(stderr, "No texture loaded for that eye\n");
@@ -319,7 +319,9 @@ void ImageHandler::RebindTextures(GLuint program, int eye)
 			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
 		}
 		else {
-			glUniform1i(TxUniform, i + (6 * eye));
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, m_textures[eye][i]);
+			glUniform1i(TxUniform, i);
 		}
 	}
 }
@@ -367,7 +369,6 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	int maxHeight = 512 * (int)pow(2, depth);
 
 	const char *uniform = m_txUniforms[face];
-	glActiveTexture(GL_TEXTURE0 + face + (eye * 6));
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[eye][face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -380,13 +381,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, GLuint program)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	GLuint TxUniform = glGetUniformLocation(program, uniform);
-	if (TxUniform == -1) {
-		fprintf(stderr, "Error getting %s uniform\n", uniform);
-	}
-	else {
-		glUniform1i(TxUniform, face);
-	}
+	
 
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);

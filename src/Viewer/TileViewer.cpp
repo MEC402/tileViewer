@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
 #ifdef USE_VR
 	VRDevice vrDevice;
-	STViewer::Init(vrDevice);
+	STViewer::Init(vrDevice, argv[argc - 1]);
 #else
 	STViewer::Init(argv[argc - 1]);
 #endif
