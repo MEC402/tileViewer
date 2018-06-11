@@ -84,26 +84,6 @@ void ImageHandler::InitStereo(GLuint program)
 
 }
 
-void ImageHandler::InitStereoURLs()
-{
-	if (m_stereoLoaded)
-		return;
-
-	m_stereoLoaded = true;
-	for (int depth = 0; depth < 4; depth++) {
-		int maxDepth = (int)pow(2, depth);
-		for (int i = maxDepth - 1; i >= 0; i--) {
-			for (int j = maxDepth - 1; j >= 0; j--) {
-				for (int face = 0; face < 6; face++) {
-					URL url(face, 1);
-					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-					m_urls.emplace_back(url);
-				}
-			}
-		}
-	}
-}
-
 void ImageHandler::InitPanoList(std::string url)
 {
 	ImageData jsonFile;
@@ -156,6 +136,27 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 		for (int row = 0; row < 8; row++) {
 			for (int col = 0; col < 8; col++) {
 				m_tileDepth[face][row][col] = 0;
+			}
+		}
+	}
+}
+
+
+void ImageHandler::InitStereoURLs()
+{
+	if (m_stereoLoaded)
+		return;
+
+	m_stereoLoaded = true;
+	for (int depth = 0; depth < 4; depth++) {
+		int maxDepth = (int)pow(2, depth);
+		for (int i = maxDepth - 1; i >= 0; i--) {
+			for (int j = maxDepth - 1; j >= 0; j--) {
+				for (int face = 0; face < 6; face++) {
+					URL url(face, 1);
+					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+					m_urls.emplace_back(url);
+				}
 			}
 		}
 	}
@@ -297,7 +298,6 @@ void ImageHandler::Decompress()
 {
 	ImageData* imageFile = NULL;
 	while (true) {
-		TIMERSTART
 		m_.lock();
 
 		if (m_urls.empty() && m_compressed->IsEmpty()) {

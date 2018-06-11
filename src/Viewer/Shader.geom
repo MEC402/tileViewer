@@ -19,33 +19,33 @@ uniform bool Debug;
 // For use in calculating ST coordinates
 int wl = (0x01 << (3 - vin[0].vDepth));
 float segl = 1.0 / (wl * 1.0);
+if (Debug) {
+	segl = 1.0;
+}
+
+// Calculate these things ahead of time so we don't repeat them 4x
+
+// F/B want X/Y, R/L want Z/Y, U/D want X/Z
+// This allows us to swap the correct value out and return a vec2
+int idx = ((face + 4) % 6) / 2;
+
+// Only flip coordinates on Odd faces (Except if it's 4/5, then flip 4 and not 5)
+int flip = (face >> 2) ^ (face & 1);
+
+// Get the coordinate to flip (0 for face 1, 2 for faces 3/4)
+int n =  ((( (face&2) | (face&4)) >> face-2) << 1) * flip;
 
 vec2 getST(vec4 pos, int face)
-{
-	if (Debug) {
-		segl = 1.0;
-	}
-	
+{	
 	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
 
-	// F/B want X/Y, R/L want Z/Y, U/D want X/Z
-	// This allows us to swap the correct value out and return a vec2
-	int idx = ((face + 4) % 6) / 2;
-
-	// Only flip coordinates on Odd faces (Except if it's 4/5, then flip 4 and not 5)
-	int i = (face >> 2) ^ (face & 1);
-
 	pos[idx] = 0.0;
+	 // If flip, flip.  Otherwise retain the original pos[n] value.
+	pos[n] = (((segl * 1.0) - pos[n])*flip) + ((flip^1) * pos[n]);
 
-	if (i != 0) {
-		// Face 1 flips X, Face 3/4 flip Z
-		int n =  (( (face&2) | (face&4)) >> face-2) << 1; // Bitwise voodoo
-		pos[n] = (segl * 1.0) - pos[n];
-	}
-	// Everything flips Y, if it doesn't use Y then it will be overriden
+	// Everything flips Y, if it doesn't use Y then it will be replaced anyways
 	pos[1] = (segl * 1.0) - pos[1];
 	pos[idx] = pos[2];
-	pos[2] = 0.0;
 	return vec2(pos);
 }
 
