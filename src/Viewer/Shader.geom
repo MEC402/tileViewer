@@ -19,21 +19,19 @@ uniform bool Debug;
 // For use in calculating ST coordinates
 int wl = (0x01 << (3 - vin[0].vDepth));
 float segl = 1.0 / (wl * 1.0);
-if (Debug) {
-	segl = 1.0;
-}
+
 
 // Calculate these things ahead of time so we don't repeat them 4x
 
 // F/B want X/Y, R/L want Z/Y, U/D want X/Z
 // This allows us to swap the correct value out and return a vec2
-int idx = ((face + 4) % 6) / 2;
+int idx = ((vin[0].vFace + 4) % 6) / 2;
 
 // Only flip coordinates on Odd faces (Except if it's 4/5, then flip 4 and not 5)
-int flip = (face >> 2) ^ (face & 1);
+int flip = (vin[0].vFace >> 2) ^ (vin[0].vFace & 1);
 
 // Get the coordinate to flip (0 for face 1, 2 for faces 3/4)
-int n =  ((( (face&2) | (face&4)) >> face-2) << 1) * flip;
+int n =  ((( (vin[0].vFace&2) | (vin[0].vFace&4)) >> vin[0].vFace-2) << 1) * flip;
 
 vec2 getST(vec4 pos, int face)
 {	
@@ -62,6 +60,10 @@ void main()
 	float x = Shift.x;
 	float y = Shift.y;
 	float z = Shift.z;
+
+	if (Debug) {
+		segl = 1.0;
+	}
 
 	vec4 position;
 	// TODO: I'm sure there's a better way to check which coordinates to use
