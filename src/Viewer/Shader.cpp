@@ -1,62 +1,59 @@
 //#include "stdafx.h"
-#include "ShaderHelper.h"
+#include "Shader.h"
 
-GLuint ShaderHelper::m_program;
-GLuint ShaderHelper::m_vertShader;
-GLuint ShaderHelper::m_geomShader;
-GLuint ShaderHelper::m_fragShader;
 
 /* ---------------- Public Functions ---------------- */
 
-GLuint ShaderHelper::CreateProgram()
+void Shader::createProgram(char* geometryFile, char* vertexFile, char* fragmentFile)
 {
-	m_vertShader = loadShader(GL_VERTEX_SHADER, "Shader.vert");
-	m_geomShader = loadShader(GL_GEOMETRY_SHADER, "Shader.geom");
-	m_fragShader = loadShader(GL_FRAGMENT_SHADER, "Shader.frag");
 
 	GLuint program = glCreateProgram();
-	glAttachShader(program, m_vertShader);
-	glAttachShader(program, m_geomShader);
-	glAttachShader(program, m_fragShader);
+	if (vertexFile) {
+		m_vertShader = loadShader(GL_VERTEX_SHADER, vertexFile);
+		glAttachShader(program, m_vertShader);
+	}
+	if (geometryFile) {
+		m_geomShader = loadShader(GL_GEOMETRY_SHADER, geometryFile);
+		glAttachShader(program, m_geomShader);
+	}
+	if (fragmentFile) {
+		m_fragShader = loadShader(GL_FRAGMENT_SHADER, fragmentFile);
+		glAttachShader(program, m_fragShader);
+	}
 	glLinkProgram(program);
-	glUseProgram(program);
 	m_program = program;
-	return program;
 }
 
-GLuint ShaderHelper::ReloadShader(GLenum type)
+void Shader::reload()
 {
-	switch (type) {
-	case GL_VERTEX_SHADER:
-		return reloadShader(type, m_vertShader, "Shader.vert");
-		break;
-	case GL_GEOMETRY_SHADER:
-		return reloadShader(type, m_geomShader, "Shader.geom");
-		break;
-	case GL_FRAGMENT_SHADER:
-		return reloadShader(type, m_fragShader, "Shader.frag");
-		break;
-	default:
-		fprintf(stderr, "No such shader type found\n");
-		return -1;
-	}
+	reloadShader(GL_VERTEX_SHADER, m_vertShader, "Shader.vert");
+	reloadShader(GL_GEOMETRY_SHADER, m_geomShader, "Shader.geom");
+	reloadShader(GL_FRAGMENT_SHADER, m_fragShader, "Shader.frag");
+}
+
+void Shader::bind()
+{
+	glUseProgram(m_program);
+}
+
+GLuint Shader::getProgram()
+{
+	return m_program;
 }
 
 /* ---------------- Private Functions ---------------- */
 
 
-GLuint ShaderHelper::reloadShader(GLenum type, GLuint &shader, const char *path)
+void Shader::reloadShader(GLenum type, GLuint &shader, const char *path)
 {
 	glDetachShader(m_program, shader);
 	glDeleteShader(shader);
 	shader = loadShader(type, path);
 	glAttachShader(m_program, shader);
 	glLinkProgram(m_program);
-	glUseProgram(m_program);
-	return m_program;
 }
 
-GLuint ShaderHelper::loadShader(GLenum type, const char *path)
+GLuint Shader::loadShader(GLenum type, const char *path)
 {
 	std::string shaderData = readFile(path);
 	if (shaderData == "") {
@@ -67,7 +64,7 @@ GLuint ShaderHelper::loadShader(GLenum type, const char *path)
 	return createShader(type, shaderSrc);
 }
 
-std::string ShaderHelper::readFile(const char *filePath)
+std::string Shader::readFile(const char *filePath)
 {
 	std::string content;
 	std::ifstream fileStream(filePath, std::ios::in);
@@ -87,7 +84,7 @@ std::string ShaderHelper::readFile(const char *filePath)
 	return content;
 }
 
-GLuint ShaderHelper::createShader(GLenum type, const GLchar *src)
+GLuint Shader::createShader(GLenum type, const GLchar *src)
 {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &src, nullptr);

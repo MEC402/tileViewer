@@ -9,8 +9,8 @@ float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
 
 void Controls::FlipDebug()
 {
-	GLuint uDebug = glGetUniformLocation(program, "Debug");
-	glUniform1f(uDebug, DEBUG_FLAG);
+	//GLuint uDebug = glGetUniformLocation(program, "Debug");
+	//glUniform1f(uDebug, DEBUG_FLAG);
 }
 
 void Controls::MouseMove(int posx, int posy)
@@ -85,16 +85,9 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F1:
-		program = ShaderHelper::ReloadShader(GL_VERTEX_SHADER);
-		ImageHandler::RebindTextures(program, 0);
-		break;
 	case GLUT_KEY_F2:
-		program = ShaderHelper::ReloadShader(GL_GEOMETRY_SHADER);
-		ImageHandler::RebindTextures(program, 0);
-		break;
 	case GLUT_KEY_F3:
-		program = ShaderHelper::ReloadShader(GL_FRAGMENT_SHADER);
-		ImageHandler::RebindTextures(program, 0);
+		STViewer::reloadShaders();
 		break;
 
 	case GLUT_KEY_F4:
@@ -138,11 +131,8 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	float average = 0.0f;
 	switch (key) {
 	case '1':
-		ImageHandler::RebindTextures(program, 0);
-		break;
 	case '2':
-		ImageHandler::RebindTextures(program, 1);
-		break;
+		STViewer::reloadShaders();
 
 #ifdef DEBUG
 	case '3':

@@ -7,7 +7,6 @@
 #include <numeric>
 
 #include "Camera.h"
-#include "ShaderHelper.h"
 #include "ImageHandler.h"
 #include "STViewer.h"
 

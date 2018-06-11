@@ -13,6 +13,7 @@
 #include "PanoInfo.h"
 #include "Shared.h"
 #include "ThreadPool.hpp"
+#include "Shader.h"
 
 #ifdef USE_VR
 #include "VR.h"
@@ -43,6 +44,8 @@ public:
 	static void PrevPano(void);
 	static void ReloadPano(void);
 	static void SelectPano(int pano);
+
+	static void reloadShaders();
 
 #ifdef DEBUG
 	static void PrintAverage(void);
@@ -92,6 +95,7 @@ private:
 	// Pano data
 	static std::vector<PanoInfo> m_panolist;
 	static unsigned int m_currentPano;
+	static Shader m_shader;
 
 	// Thread pool data
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into

@@ -9,6 +9,7 @@ Camera::Viewport **Camera::LeftCameras;
 Camera::Viewport **Camera::RightCameras;
 
 bool Camera::hsplit = false;
+GLuint Camera::m_shader = 0;
 
 glm::mat4 Camera::Projection;
 glm::mat4 Camera::View;
@@ -84,7 +85,7 @@ void Camera::SetViewport(Viewport *viewport)
 	//glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
 	glm::mat4 mvp = Projection * newView * Model;
 
-	GLuint MatrixID = glGetUniformLocation(program, "MVP");
+	GLuint MatrixID = glGetUniformLocation(m_shader, "MVP");
 	if (MatrixID != -1) {
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 	}
@@ -120,6 +121,11 @@ void Camera::SplitHorizontal()
 
 		RightCameras[i]->height = Height / 2;
 	}
+}
+
+void Camera::setShader(GLuint shader)
+{
+	m_shader = shader;
 }
 
 /* --------------- Private Functions --------------- */
@@ -210,7 +216,7 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 
 	glm::mat4 mvp = Projection * View * Model;
 
-	GLuint MatrixID = glGetUniformLocation(program, "MVP");
+	GLuint MatrixID = glGetUniformLocation(m_shader, "MVP");
 	if (MatrixID != -1) {
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 	}

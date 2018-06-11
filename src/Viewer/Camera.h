@@ -45,10 +45,12 @@ public:
 	static void SplitHorizontal();
 	static void UpdateCameras();
 	static void UpdateMVP();
+	static void setShader(GLuint shader);
 
 
 private:
 	static bool hsplit;
+	static GLuint m_shader;
 
 	static void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	static void updateCameras(float fovy, float aRatio, bool hsplit);
