@@ -18,43 +18,44 @@ public:
 		float rotation;
 	};
 
-	static int NumCameras;
-	static Viewport **LeftCameras;
-	static Viewport **RightCameras;
+	int NumCameras;
+	Viewport **LeftCameras;
+	Viewport **RightCameras;
 	// Matricies
-	static glm::mat4 Projection;
-	static glm::mat4 View;
-	static glm::mat4 Model;
+	glm::mat4 Projection;
+	glm::mat4 View;
+	glm::mat4 Model;
 
 	// Defaults for window height/width
-	static int Width;
-	static int Height;
+	int Width;
+	int Height;
 
 	// Camera rotation stuff
-	static bool FirstMouse;
-	static float Yaw;
-	static float Pitch;
-	static float LastX;
-	static float LastY;
-	static float Zoom;
-	static float FOV;
+	bool FirstMouse;
+	float Yaw;
+	float Pitch;
+	float LastX;
+	float LastY;
+	float Zoom;
+	float FOV;
 
-	static void Init(int cameracount);
-	static void CreateCameras();
-	static void SetViewport(Viewport *viewport);
-	static void SplitHorizontal();
-	static void UpdateCameras();
-	static void UpdateMVP();
-	static void setShader(GLuint shader);
+	void Init(int cameracount);
+	void CreateCameras();
+	void SetViewport(Viewport *viewport);
+	void SplitHorizontal();
+	void UpdateCameras();
+	void UpdateMVP();
+	void setShader(GLuint shader);
 
+	Camera() {}
 
 private:
-	static bool hsplit;
-	static GLuint m_shader;
+	bool hsplit;
+	GLuint m_shader;
 
-	static void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
-	static void updateCameras(float fovy, float aRatio, bool hsplit);
-	static void updateMVP(float pitch, float yaw, float fov, int height, int width);
+	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
+	void updateCameras(float fovy, float aRatio, bool hsplit);
+	void updateMVP(float pitch, float yaw, float fov, int height, int width);
 };
 
 #endif

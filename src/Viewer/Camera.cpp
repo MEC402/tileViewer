@@ -1,34 +1,18 @@
 #include "Camera.h"
 
 
-int Camera::Width = 1280;
-int Camera::Height = 800;
-
-int Camera::NumCameras;
-Camera::Viewport **Camera::LeftCameras;
-Camera::Viewport **Camera::RightCameras;
-
-bool Camera::hsplit = false;
-GLuint Camera::m_shader = 0;
-
-glm::mat4 Camera::Projection;
-glm::mat4 Camera::View;
-glm::mat4 Camera::Model;
-
-// Camera rotation stuff
-bool Camera::FirstMouse = true;
-float Camera::Yaw = -270.0f;
-float Camera::Pitch = 0.0f;
-float Camera::LastX = Width / 2.0f;
-float Camera::LastY = Height / 2.0f;
-float Camera::FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
-//float Camera::FOV = 73.74f;
-//float Camera::FOV = 25.854f;
-//float Camera::FOV = 129.27f;
-//float Camera::FOV = 45.0f;
-
 void Camera::Init(int cameracount)
 {
+	Width = 1280;
+	Height = 800;
+
+	FirstMouse = true;
+	Yaw = -270.0f;
+	Pitch = 0.0f;
+	LastX = Width / 2.0f;
+	LastY = Height / 2.0f;
+	FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
+
 	if (cameracount < 2) {
 		NumCameras = 1;
 		FOV = 45.0f;
@@ -44,10 +28,6 @@ void Camera::Init(int cameracount)
 
 void Camera::CreateCameras()
 {
-	//createCameras(LeftCameras, FOV, float(Height) / float(Width), true);
-	//createCameras(LeftCameras, FOV, float(Width) / float(Height), true);
-	//createCameras(LeftCameras, FOV, float(Width / NumCameras) / float(Height), true);
-	//createCameras(LeftCameras, FOV, float(Height) / float(Width / NumCameras), true);
 	createCameras(LeftCameras, FOV, float(1080) / float(1920), true);
 }
 
@@ -58,10 +38,6 @@ void Camera::UpdateMVP()
 
 void Camera::UpdateCameras()
 {
-	//updateCameras(FOV, float(Height) / float(Width), hsplit);
-	//updateCameras(FOV, float(Width) / float(Height), hsplit);
-	//updateCameras(FOV, float(Width / NumCameras) / float(Height), hsplit);
-	//updateCameras(FOV, float(Height) / float(Width / NumCameras), hsplit);
 	updateCameras(FOV, float(1080) / float(1920), hsplit);
 }
 

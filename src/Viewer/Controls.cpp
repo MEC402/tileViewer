@@ -5,7 +5,7 @@
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
+//float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
 
 void Controls::FlipDebug()
 {
@@ -15,7 +15,7 @@ void Controls::FlipDebug()
 
 void Controls::MouseMove(int posx, int posy)
 {
-	if (Camera::FirstMouse)
+	/*if (Camera::FirstMouse)
 	{
 		Camera::LastX = (float)posx;
 		Camera::LastY = (float)posy;
@@ -35,53 +35,51 @@ void Controls::MouseMove(int posx, int posy)
 	Camera::Pitch += yoffset;
 	Camera::UpdateMVP();
 	Camera::LastX = Camera::Width / 2.0f;
-	Camera::LastY = Camera::Height / 2.0f;
+	Camera::LastY = Camera::Height / 2.0f;*/
 }
 
 void Controls::MouseWheel(int button, int direction, int x, int y)
 {
+	float FOVChange = 0;
 	// Zoom in/out by manipulating fov and updating MVP matrix
-	if (direction > 0)
-	{
-		Camera::FOV -= 2.0f;
-		if (Camera::FOV < 0) {
-			Camera::FOV = 1.0f;
-		}
+	if (direction > 0) {
+		FOVChange -= 2.0f;
 	}
-	else
-	{
-		Camera::FOV += 2.0f;
+	else {
+		FOVChange += 2.0f;
 	}
-	Camera::UpdateMVP();
-	Camera::UpdateCameras();
+	STViewer::moveCamera(0, 0, FOVChange);
 }
 
 // Aside from up/down/right/left these functions are all for debugging
 void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 {
+	float pitchChange = 0;
+	float yawChange = 0;
+	float FOVChange = 0;
 	switch (key) {
 	case GLUT_KEY_UP:
-		Camera::Pitch += 1.0f;
+		pitchChange += 1.0f;
 		break;
 
 	case GLUT_KEY_DOWN:
-		Camera::Pitch -= 1.0f;
+		pitchChange -= 1.0f;
 		break;
 
 	case GLUT_KEY_RIGHT:
-		Camera::Yaw += 1.0f;
+		yawChange += 1.0f;
 		break;
 
 	case GLUT_KEY_LEFT:
-		Camera::Yaw -= 1.0f;
+		yawChange -= 1.0f;
 		break;
 
 	case GLUT_KEY_PAGE_UP:
-		Camera::FOV += 0.1f;
+		FOVChange += 0.1f;
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
-		Camera::FOV -= 0.1f;
+		FOVChange -= 0.1f;
 		break;
 
 	case GLUT_KEY_F1:
@@ -91,11 +89,11 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F4:
-		Camera::UpdateCameras();
+		//Camera::UpdateCameras();
 		break;
 
 	case GLUT_KEY_F5:
-		fprintf(stderr, "FOV is at %f\n", Camera::FOV);
+		//fprintf(stderr, "FOV is at %f\n", Camera::FOV);
 		break;
 
 	case GLUT_KEY_F6:
@@ -114,7 +112,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F9:
-		ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		//ImageHandler::WindowDump(Camera::Width, Camera::Height);
 		break;
 #ifdef DEBUG
 	case GLUT_KEY_F10:
@@ -122,8 +120,8 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 #endif
 	}
-	Camera::UpdateMVP();
-	//Camera::SetCameras();
+	
+	STViewer::moveCamera(pitchChange, yawChange, FOVChange);
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
@@ -156,10 +154,10 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'r':
-		Camera::FOV = DEBUG_fov;
+		/*Camera::FOV = DEBUG_fov;
 		Camera::Pitch = 0.0f;
 		Camera::UpdateMVP();
-		Camera::UpdateCameras();
+		Camera::UpdateCameras();*/
 		break;
 
 	case 'R':
@@ -191,7 +189,7 @@ void Controls::MainMenu(int choice)
 		break;
 
 	case 4:
-		ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		//ImageHandler::WindowDump(Camera::Width, Camera::Height);
 		break;
 
 	case 5:
