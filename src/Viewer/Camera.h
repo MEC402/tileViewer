@@ -6,8 +6,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
-#include "GLhandles.h"
-
 class Camera {
 public:
 	struct Viewport {

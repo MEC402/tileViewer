@@ -70,7 +70,6 @@ void Camera::SetViewport(Viewport *viewport)
 	}
 
 	glViewport(viewport->widthstart, viewport->heightstart, viewport->width, viewport->height);
-	glDrawArrays(GL_POINTS, 0, pointCount);
 }
 
 void Camera::SplitHorizontal()

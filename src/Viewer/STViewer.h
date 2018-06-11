@@ -29,7 +29,7 @@
 class STViewer {
 
 public:
-	static void Init(const char* panoFileAddress, bool stereo);
+	static void Init(const char* panoFileAddress, bool stereo, bool fullscreen, bool fivepanel);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -88,6 +88,7 @@ private:
 	// Geometry data
 	static CubePoints *m_LeftEye;
 	static CubePoints *m_RightEye;
+	static GLsizei m_pointCount;
 
 	// Pano data
 	static std::vector<PanoInfo> m_panolist;
@@ -106,6 +107,8 @@ private:
 	static bool workerHandling;
 	static bool imagesNeedResetting;
 	static bool m_stereo;
+	static bool m_fullscreen;
+	static bool m_fivepanel;
 
 	// ImageQueue is no longer static, so keep a reference to one we can instantiate
 	static ImageQueue *m_LoadedTextures;

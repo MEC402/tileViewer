@@ -1,9 +1,6 @@
 #include "TileViewer.h"
 
 std::vector<PanoInfo> panolist;
-bool fullscreen;
-bool fivepanel;
-bool usingVR;
 bool DEBUG_FLAG;
 
 int main(int argc, char **argv)
@@ -12,6 +9,8 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 
 	bool stereo = false;
+	bool fullscreen = false;
+	bool fivepanel = false;
 
 	for (int i = 0; i < argc; i++) {
 		if (argv[i] == std::string("-f"))
@@ -26,5 +25,5 @@ int main(int argc, char **argv)
 
 	DEBUG_FLAG = false;
 
-	STViewer::Init(argv[argc - 1], stereo);
+	STViewer::Init(argv[argc - 1], stereo, fullscreen, fivepanel);
 }

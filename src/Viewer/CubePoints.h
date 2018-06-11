@@ -4,7 +4,7 @@
 #include <deque>
 #include <thread>
 #include <vector>
-#include "GLhandles.h"
+#include <GL\glew.h>
 #include "Shared.h"
 
 

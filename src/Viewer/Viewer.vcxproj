@@ -246,7 +246,6 @@
   <ItemGroup>
     <ClInclude Include="Controls.h" />
     <ClInclude Include="CubePoints.h" />
-    <ClInclude Include="GLhandles.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
     <ClInclude Include="ImageQueue.h" />

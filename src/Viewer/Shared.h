@@ -7,9 +7,6 @@
 //#define OCULUS
 
 
-extern bool fullscreen;
-extern bool fivepanel;
-
 extern bool DEBUG_FLAG;
 
 #endif // _SHARED_H
