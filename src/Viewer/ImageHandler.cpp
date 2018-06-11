@@ -96,6 +96,9 @@ void ImageHandler::InitPanoList(std::string url)
 			std::string baseURL = url.substr(0, lastSlashPosition);
 			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
 		}
+		else {
+			fprintf(stderr, "Could not open provided pano list URI\n");
+		}
 	}
 	catch (const std::exception &exc) {
 		fprintf(stderr, "%s\n", exc.what());
