@@ -23,6 +23,7 @@
 #include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
+#include "Shader.h"
 
 struct PanoInfo;
 
@@ -40,7 +41,7 @@ public:
 	void InitURLs(int pano, bool stereo);
 
 	void LoadImageData(ImageData *image);
-	void bindTextures(GLuint program, int eye);
+	void bindTextures(Shader &shader, int eye);
 	void WindowDump(int width, int height);
 
 	void ClearQueues(void);

@@ -13,7 +13,9 @@ public:
 	void createProgram(char* geometryFile, char* vertexFile, char* fragmentFile);
 	void reload();
 	void bind();
+	void setFloatUniform(const char* nameInShader, float value);
 	void setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix);
+	void bindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID);
 
 	GLuint getProgram();
 	

@@ -307,7 +307,7 @@ void ImageHandler::Decompress()
 }
 
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
-void ImageHandler::bindTextures(GLuint program, int eye)
+void ImageHandler::bindTextures(Shader &shader, int eye)
 {
 	if (m_textures[eye][0] == 0) {
 		fprintf(stderr, "No texture loaded for that eye\n");
@@ -315,15 +315,7 @@ void ImageHandler::bindTextures(GLuint program, int eye)
 	}
 
 	for (int i = 0; i < 6; i++) {
-		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
-		if (TxUniform == -1) {
-			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
-		}
-		else {
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D, m_textures[eye][i]);
-			glUniform1i(TxUniform, i);
-		}
+		shader.bindTexture(m_txUniforms[i], i, m_textures[eye][i]);
 	}
 }
 

@@ -36,10 +36,39 @@ void Shader::bind()
 	glUseProgram(m_program);
 }
 
+void Shader::setFloatUniform(const char* nameInShader, float value)
+{
+	GLuint uniform = glGetUniformLocation(m_program, nameInShader);
+	if (uniform == -1) {
+		fprintf(stderr, "Error getting %s uniform\n", nameInShader);
+	}
+	else {
+		glUniform1f(uniform, value);
+	}
+}
+
 void Shader::setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
 {
 	GLuint MatrixID = glGetUniformLocation(m_program, "MVP");
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, (float*)&(matrix));
+	if (MatrixID == -1) {
+		fprintf(stderr, "Error getting %s uniform\n", nameInShader);
+	}
+	else {
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, (float*)&(matrix));
+	}
+}
+
+void Shader::bindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID)
+{
+	GLuint TxUniform = glGetUniformLocation(m_program, samplerNameInShader);
+	if (TxUniform == -1) {
+		fprintf(stderr, "Error getting %s uniform\n", samplerNameInShader);
+	}
+	else {
+		glActiveTexture(GL_TEXTURE0 + activeTextureSlot);
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glUniform1i(TxUniform, activeTextureSlot);
+	}
 }
 
 GLuint Shader::getProgram()

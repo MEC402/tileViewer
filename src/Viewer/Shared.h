@@ -4,7 +4,7 @@
 #include "CubePoints.h"
 
 #define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
-#define OCULUS
+//#define OCULUS
 
 
 extern bool DEBUG_FLAG;
