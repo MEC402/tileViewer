@@ -369,8 +369,6 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 	int maxWidth = 512 * (int)pow(2, depth);
 	int maxHeight = 512 * (int)pow(2, depth);
 
-	const char *uniform = m_txUniforms[face];
-
 	glBindTexture(GL_TEXTURE_2D, m_textures[eye][face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);

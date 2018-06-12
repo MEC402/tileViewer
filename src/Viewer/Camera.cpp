@@ -58,16 +58,7 @@ void Camera::SetViewport(Viewport *viewport)
 		glm::vec3(0, 1, 0)
 	);
 
-	//glm::mat4 newView = glm::rotate(View, viewport->rotation, glm::vec3(0, 1, 0));
-	glm::mat4 mvp = Projection * newView * Model;
-
-	GLuint MatrixID = glGetUniformLocation(m_shader, "MVP");
-	if (MatrixID != -1) {
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-	}
-	else {
-		fprintf(stderr, "Error occured trying to update MVP uniform!\n%s\n", gluErrorString(glGetError()));
-	}
+	MVP = Projection * newView * Model;
 
 	glViewport(viewport->widthstart, viewport->heightstart, viewport->width, viewport->height);
 }
@@ -96,11 +87,6 @@ void Camera::SplitHorizontal()
 
 		RightCameras[i]->height = Height / 2;
 	}
-}
-
-void Camera::setShader(GLuint shader)
-{
-	m_shader = shader;
 }
 
 /* --------------- Private Functions --------------- */
@@ -189,14 +175,5 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 
 	Model = glm::mat4(1.0f);
 
-	glm::mat4 mvp = Projection * View * Model;
-
-	GLuint MatrixID = glGetUniformLocation(m_shader, "MVP");
-	if (MatrixID != -1) {
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-	}
-	else {
-		GLenum error = glGetError();
-		fprintf(stderr, "Error occured trying to set MVP uniform!\n%s\n", gluErrorString(error));
-	}
+	MVP = Projection * View * Model;
 }

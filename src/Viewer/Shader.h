@@ -6,13 +6,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "glm/glm.hpp"
 
 class Shader {
 public:
 	void createProgram(char* geometryFile, char* vertexFile, char* fragmentFile);
 	void reload();
 	void bind();
+	void setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix);
+
 	GLuint getProgram();
+	
 	Shader() {}
 
 private:

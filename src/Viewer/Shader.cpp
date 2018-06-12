@@ -36,6 +36,12 @@ void Shader::bind()
 	glUseProgram(m_program);
 }
 
+void Shader::setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
+{
+	GLuint MatrixID = glGetUniformLocation(m_program, "MVP");
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, (float*)&(matrix));
+}
+
 GLuint Shader::getProgram()
 {
 	return m_program;

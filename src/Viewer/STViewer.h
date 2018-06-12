@@ -57,10 +57,8 @@ private:
 	//				Private Functions				//
 	//----------------------------------------------//
 
-	/*			GLUT Callback Functions			*/
-
 	/*					Builders				*/
-	void initWindowAndGL(void);
+	void initGL(void);
 	void initTextures(void);
 
 

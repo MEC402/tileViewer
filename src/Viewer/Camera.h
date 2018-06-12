@@ -23,6 +23,7 @@ public:
 	glm::mat4 Projection;
 	glm::mat4 View;
 	glm::mat4 Model;
+	glm::mat4 MVP;
 
 	// Defaults for window height/width
 	int Width;
@@ -43,13 +44,11 @@ public:
 	void SplitHorizontal();
 	void UpdateCameras();
 	void UpdateMVP();
-	void setShader(GLuint shader);
 
 	Camera() {}
 
 private:
 	bool hsplit;
-	GLuint m_shader;
 
 	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	void updateCameras(float fovy, float aRatio, bool hsplit);
