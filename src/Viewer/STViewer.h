@@ -51,6 +51,7 @@ public:
 #ifdef DEBUG
 	void PrintAverage(void);
 	void RebindVAO(void);
+	void WaitingThreads();
 #endif
 
 private:
@@ -92,6 +93,7 @@ private:
 	ImageHandler m_images;
 
 	// Thread pool data
+	Threads::ThreadPool *downloadPool;
 	Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
 	Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
 	

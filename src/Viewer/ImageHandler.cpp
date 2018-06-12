@@ -11,6 +11,9 @@
 #define STBI_MSC_SECURE_CRT
 #include "stb_image_write.h"
 
+#define TIMERSTART std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+#define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()
+
 #include <mutex>
 
 // Texture names
@@ -95,6 +98,9 @@ void ImageHandler::InitPanoList(std::string url)
 			size_t lastSlashPosition = url.find_last_of("/\\");
 			std::string baseURL = url.substr(0, lastSlashPosition);
 			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+		}
+		else {
+			fprintf(stderr, "Could not open provided pano list URI\n");
 		}
 	}
 	catch (const std::exception &exc) {

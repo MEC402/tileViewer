@@ -179,6 +179,11 @@ namespace Threads
 			return;// result;
 		}
 
+		int running()
+		{
+			return m_threads.size() - m_waiting;
+		}
+
 		bool allstopped()
 		{
 			std::lock_guard<std::mutex> l(m_mutex);
