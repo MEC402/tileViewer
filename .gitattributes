@@ -1,3 +1,6 @@
+# Git thinks some .cpp files are binary.
+*.cpp diff
+
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
