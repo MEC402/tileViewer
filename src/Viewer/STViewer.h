@@ -11,6 +11,7 @@
 #include "CubePoints.h"
 #include "ImageQueue.h"
 #include "PanoInfo.h"
+#include "RemoteClient.h"
 #include "Shared.h"
 #include "ThreadPool.hpp"
 
@@ -94,6 +95,9 @@ private:
 	static std::vector<PanoInfo> m_panolist;
 	static unsigned int m_currentPano;
 
+	// Remote control
+	static RemoteClient *m_remote;
+
 	// Thread pool data
 	static Threads::ThreadPool *downloadPool;
 	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
@@ -102,7 +106,6 @@ private:
 	// State flags so we don't spawn multiple threads to collect ThreadPool promises
 	static bool textureHandling;
 	static bool workerHandling;
-	static bool imagesNeedResetting;
 
 	// ImageQueue is no longer static, so keep a reference to one we can instantiate
 	static ImageQueue *m_LoadedTextures;

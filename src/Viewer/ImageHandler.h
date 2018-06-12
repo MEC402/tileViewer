@@ -19,12 +19,9 @@
 #endif
 
 #include "Image.h"
-#include "ImageHandler.h"
 #include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
-
-struct PanoInfo;
 
 class ImageHandler {
 
@@ -36,7 +33,7 @@ public:
 	static void InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender);
 	static void InitStereo(GLuint program);
 	static void InitStereoURLs(void);
-	static void InitPanoList(std::string url);
+	static bool InitPanoList(std::string url);
 	static void InitURLs(int pano, bool stereo);
 
 	static void LoadImageData(ImageData *image);

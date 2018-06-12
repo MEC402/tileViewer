@@ -152,6 +152,31 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		STViewer::RebindVAO();
 		break;
 #endif
+	case 'w':
+		break;
+	case 'a':
+		Camera::Yaw -= 1.0f;
+		Camera::UpdateMVP();
+		break;
+	case 's':
+		break;
+	case 'd':
+		Camera::Yaw += 1.0f;
+		Camera::UpdateMVP();
+		break;
+	case 'W':
+		break;
+	case 'A':
+		Camera::Yaw -= 2.0f;
+		Camera::UpdateMVP();
+		break;
+	case 'S':
+		break;
+	case 'D':
+		Camera::Yaw += 2.0f;
+		Camera::UpdateMVP();
+		break;
+
 	case 'f':
 		glutFullScreenToggle();
 		break;

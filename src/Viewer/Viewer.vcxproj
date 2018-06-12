@@ -253,8 +253,11 @@
     <ClInclude Include="InternetDownload.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
+    <ClInclude Include="RemoteClient.h" />
+    <ClInclude Include="NetServices.h" />
     <ClInclude Include="ShaderHelper.h" />
     <ClInclude Include="Shared.h" />
+    <ClInclude Include="Socket.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
     <ClInclude Include="ThreadPool.hpp" />
@@ -272,7 +275,9 @@
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
+    <ClCompile Include="RemoteClient.cpp" />
     <ClCompile Include="ShaderHelper.cpp" />
+    <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TileViewer.cpp" />
     <ClCompile Include="STViewer.cpp" />
     <ClCompile Include="VR.cpp">
