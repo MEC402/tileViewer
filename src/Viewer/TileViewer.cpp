@@ -1,7 +1,9 @@
 #include "TileViewer.h"
+#include "Controls.h"
 
 std::vector<PanoInfo> panolist;
 bool DEBUG_FLAG;
+
 
 int main(int argc, char **argv)
 {
@@ -25,5 +27,5 @@ int main(int argc, char **argv)
 
 	DEBUG_FLAG = false;
 
-	STViewer::Init(argv[argc - 1], stereo, fullscreen, fivepanel);
+	Controls::init(argv[argc - 1], stereo, fullscreen, fivepanel);
 }

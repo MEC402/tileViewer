@@ -1,11 +1,64 @@
 #include "Controls.h"
 
+STViewer Controls::viewer;
+
 // A great deal of this is just wrappers around Camera:: class calls
 
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-//float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
+
+void Controls::init(const char* panoFileAddress, bool stereo, bool fullscreen, bool fivepanel)
+{
+	int windowWidth = 1280;
+	int windowHeight = 800;
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
+	glutInitWindowSize(windowWidth, windowHeight); // Defaults to 1280 x 800 windowed
+	glutCreateWindow("TileViewer - ST Shader Annihilation Edition");
+	if (fullscreen) {
+		glutFullScreen();
+	}
+
+	GLenum initErr = glewInit();
+	if (GLEW_OK != initErr) {
+		fprintf(stderr, "Error %s\n", glewGetErrorString(initErr));
+	}
+
+	// Setup callbacks
+	atexit(cleanup);
+	glutDisplayFunc(display);
+	glutIdleFunc(idle);
+	glutReshapeFunc(resize);
+	glutSpecialFunc(ProcessGLUTKeys);
+	glutKeyboardFunc(ProcessKeys);
+	//glutMotionFunc(Controls::MouseMove); // This is super broken with 5-panel displays, just disable it.
+	glutMouseWheelFunc(MouseWheel);
+	//glutTimerFunc(5000, timerCleanup, 0);
+
+	// Init right-click menus
+	std::vector<PanoInfo> panoList = viewer.getPanoList();
+	int panomenu = glutCreateMenu(PanoMenu);
+	for (unsigned int i = 0; i < panoList.size(); i++) {
+		char buf[64];
+		sprintf_s(buf, "%s", panoList[i].displayName.c_str());
+		glutAddMenuEntry(buf, i + 1);
+	}
+
+	int mainmenu = glutCreateMenu(MainMenu);
+	glutAddMenuEntry("Toggle ST scaling (F8)", 1);
+	glutAddSubMenu("Pano Select", panomenu);
+	glutAddMenuEntry("Next Pano (n)", 2);
+	glutAddMenuEntry("Prev Pano (p)", 3);
+	glutAddMenuEntry("Screenshot (F9)", 4);
+	glutAddMenuEntry("Toggle Fullscreen (f)", 5);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+	// Init STViewer
+	viewer.Init(panoFileAddress, stereo, fivepanel, windowWidth, windowHeight);
+
+	// Pass control to GLUT and start main loop
+	glutMainLoop();
+}
 
 void Controls::FlipDebug()
 {
@@ -48,7 +101,7 @@ void Controls::MouseWheel(int button, int direction, int x, int y)
 	else {
 		FOVChange += 2.0f;
 	}
-	STViewer::moveCamera(0, 0, FOVChange);
+	viewer.moveCamera(0, 0, FOVChange);
 }
 
 // Aside from up/down/right/left these functions are all for debugging
@@ -85,7 +138,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	case GLUT_KEY_F1:
 	case GLUT_KEY_F2:
 	case GLUT_KEY_F3:
-		STViewer::reloadShaders();
+		viewer.reloadShaders();
 		break;
 
 	case GLUT_KEY_F4:
@@ -116,12 +169,12 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 #ifdef DEBUG
 	case GLUT_KEY_F10:
-		STViewer::PrintAverage();
+		viewer.PrintAverage();
 		break;
 #endif
 	}
 	
-	STViewer::moveCamera(pitchChange, yawChange, FOVChange);
+	viewer.moveCamera(pitchChange, yawChange, FOVChange);
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
@@ -130,11 +183,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	switch (key) {
 	case '1':
 	case '2':
-		STViewer::reloadShaders();
+		viewer.reloadShaders();
 
 #ifdef DEBUG
 	case '3':
-		STViewer::RebindVAO();
+		viewer.RebindVAO();
 		break;
 #endif
 	case 'f':
@@ -142,15 +195,15 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'h':
-		STViewer::ToggleStereo();
+		viewer.ToggleStereo();
 		break;
 
 	case 'n':
-		STViewer::NextPano();
+		viewer.NextPano();
 		break;
 
 	case 'p':
-		STViewer::PrevPano();
+		viewer.PrevPano();
 		break;
 
 	case 'r':
@@ -161,7 +214,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'R':
-		STViewer::ReloadPano();
+		viewer.ReloadPano();
 		break;
 
 
@@ -181,11 +234,11 @@ void Controls::MainMenu(int choice)
 		break;
 
 	case 2:
-		STViewer::NextPano();
+		viewer.NextPano();
 		break;
 
 	case 3:
-		STViewer::PrevPano();
+		viewer.PrevPano();
 		break;
 
 	case 4:
@@ -200,5 +253,21 @@ void Controls::MainMenu(int choice)
 
 void Controls::PanoMenu(int choice)
 {
-	STViewer::SelectPano(--choice);
+	viewer.SelectPano(--choice);
+}
+
+void Controls::cleanup() {
+	viewer.cleanup();
+}
+
+void Controls::display() {
+	viewer.display();
+}
+
+void Controls::idle() {
+	viewer.update();
+}
+
+void Controls::resize(int w, int h) {
+	viewer.resize(w, h);
 }

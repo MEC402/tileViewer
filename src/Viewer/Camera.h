@@ -37,7 +37,7 @@ public:
 	float Zoom;
 	float FOV;
 
-	void Init(int cameracount);
+	void Init(int cameracount, int width, int height);
 	void CreateCameras();
 	void SetViewport(Viewport *viewport);
 	void SplitHorizontal();

@@ -1,10 +1,10 @@
 #include "Camera.h"
 
 
-void Camera::Init(int cameracount)
+void Camera::Init(int cameracount, int width, int height)
 {
-	Width = 1280;
-	Height = 800;
+	Width = width;
+	Height = height;
 
 	FirstMouse = true;
 	Yaw = -270.0f;

@@ -20,33 +20,36 @@
 #include "VR.h"
 
 
-// I really didn't want to make this static, but GL callbacks require non-member functions
-// Which left us two choices, have the main object class be non-static and have some secondary, static h file
-// with all the callback routines
-// Or just make the whole thing static
-
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
 class STViewer {
 
 public:
-	static void Init(const char* panoFileAddress, bool stereo, bool fullscreen, bool fivepanel);
+	void Init(const char* panoFileAddress, bool stereo, bool fivepanel, int viewportWidth, int viewportHeight);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
-	static void ToggleStereo(void);
+	void ToggleStereo(void);
 
 	/*			Panorama Handlers				*/
-	static void NextPano(void);
-	static void PrevPano(void);
-	static void ReloadPano(void);
-	static void SelectPano(int pano);
+	void NextPano(void);
+	void PrevPano(void);
+	void ReloadPano(void);
+	void SelectPano(int pano);
 
-	static void reloadShaders();
-	static void moveCamera(float pitchChange, float yawChange, float FOVChange);
+	void reloadShaders();
+	void moveCamera(float pitchChange, float yawChange, float FOVChange);
+
+	void display();
+	void update();
+	void resize(int w, int h);
+	void timer(int value);
+	void cleanup();
+
+	std::vector<PanoInfo> getPanoList();
 
 #ifdef DEBUG
-	static void PrintAverage(void);
-	static void RebindVAO(void);
+	void PrintAverage(void);
+	void RebindVAO(void);
 #endif
 
 private:
@@ -55,76 +58,65 @@ private:
 	//----------------------------------------------//
 
 	/*			GLUT Callback Functions			*/
-	static void display(void);
-	static void idleFunc(void);
-	static void resizeFunc(int w, int h);
-	static void timerFunc(int value);
 
 	/*					Builders				*/
-	static void initWindowAndGL(void);
-	static void initTextures(void);
-	static void initCallbacks(void);
-	static void initMenus(void);
+	void initWindowAndGL(void);
+	void initTextures(void);
 
 
 	/*		For resetting Cube Depths and		*/
 	/*		loading the next panorama in		*/
-	static void resetImages(void);
-	static void resetCubes(void);
+	void resetImages(void);
+	void resetCubes(void);
 
 	/*		For queueing texture load requests	*/
-	static void loadAllFaceDepths(void);
-	static void loadAllQuadDepths(void);
-
-	/*				Cleanup function			*/
-	static void cleanup(void);
+	void loadAllFaceDepths(void);
+	void loadAllQuadDepths(void);
 
 	/*			CURL Download Cleanup Timer		*/
-	static void timerCleanup(int value);
+	void timerCleanup(int value);
 
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//
 	// Geometry data
-	static CubePoints *m_LeftEye;
-	static CubePoints *m_RightEye;
-	static GLsizei m_pointCount;
+	CubePoints *m_LeftEye;
+	CubePoints *m_RightEye;
+	GLsizei m_pointCount;
 
 	// Pano data
-	static std::vector<PanoInfo> m_panolist;
-	static unsigned int m_currentPano;
+	std::vector<PanoInfo> m_panolist;
+	unsigned int m_currentPano;
 
-	static Shader m_shader;
-	static Camera m_camera;
-	static ImageHandler m_images;
+	Shader m_shader;
+	Camera m_camera;
+	ImageHandler m_images;
 
 	// Thread pool data
-	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
-	static Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
+	Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
+	Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
 	
 	// State flags so we don't spawn multiple threads to collect ThreadPool promises
-	static bool textureHandling;
-	static bool workerHandling;
-	static bool imagesNeedResetting;
-	static bool m_stereo;
-	static bool m_fullscreen;
-	static bool m_fivepanel;
+	bool textureHandling;
+	bool workerHandling;
+	bool imagesNeedResetting;
+	bool m_stereo;
+	bool m_fivepanel;
 
-	// ImageQueue is no longer static, so keep a reference to one we can instantiate
-	static ImageQueue *m_LoadedTextures;
+	ImageQueue *m_LoadedTextures;
 
-	static bool m_usingVR;
-	static VRDevice m_vr;
+	bool m_usingVR;
+	VRDevice m_vr;
 
 	// Magic number for maximum depth (0 indexed)
-	static int m_maxDepth;
+	int m_maxDepth;
 
 #ifdef DEBUG
 	// Local face date
-	static int m_facecount[2][6];
-	static std::vector<float> m_average;
+	int m_facecount[2][6];
+	std::vector<float> m_average;
 	// Timer values (declared ahead of time so we can reference it in other functions with macro NOW defines
-	static std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t1;
 #endif // DEBUG
 };
 
