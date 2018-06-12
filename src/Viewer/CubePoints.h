@@ -15,6 +15,7 @@ public:
 	CubePoints(int maxResDepth, int m_eye);
 	~CubePoints() = default;
 
+	void BindVAO();
 	void RebindVAO();
 	void QuadSetDepth(int face, int row, int col, int depth);
 	void ResetDepth();

@@ -151,29 +151,22 @@ void ImageHandler::ClearQueues()
 
 void ImageHandler::LoadImageData(ImageData *image)
 {
-	GLenum errCode;
 	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
 	if (image->data) {
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[image->eye][image->face]);
-		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			printf("OPENGL ERROR BINDBUFFER: %s\n", gluErrorString(errCode));
-		}
+		PRINT_GL_ERRORS;
 
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
 			std::memcpy(dst, image->data, 512 * 512 * 3);
 		}
-		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			printf("OPENGL ERROR Texture Map Buffer: %s\n", gluErrorString(errCode));
-		}
+		PRINT_GL_ERRORS;
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 		glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			printf("OPENGL ERROR Loading Image: %s\n", gluErrorString(errCode));
-		}
+		PRINT_GL_ERRORS;
 		
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}

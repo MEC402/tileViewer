@@ -181,6 +181,26 @@ void CubePoints::ResetDepth()
 	m_VBOupdates.emplace_back(std::tuple<int, int>(0, m_positions.size()));
 }
 
+void CubePoints::BindVAO()
+{
+	glBindVertexArray(m_PositionVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+
+	// Bind our xyz
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
+	
+	// Which face the quad belongs to
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
+	
+	// Depth level
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
+
+	glBindVertexArray(m_PositionVAOID);
+}
+
 void CubePoints::RebindVAO()
 {
 	std::lock_guard<std::mutex> lock(m_);
@@ -232,20 +252,8 @@ void CubePoints::m_setupOGL()
 	glBufferStorage(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(),
 		GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
 
-	// Bind our xyz
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
-
-	// Which face the quad belongs to
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
-
-	// Depth level
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
+	BindVAO();
 
 	m_buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float),
 		GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_PERSISTENT_BIT);
-
-	glBindVertexArray(m_eye);
 }

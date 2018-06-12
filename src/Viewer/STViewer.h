@@ -18,6 +18,7 @@
 #include "ImageHandler.h"
 
 #include "VR.h"
+#include "GUI.h"
 
 
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
@@ -105,6 +106,7 @@ private:
 
 	bool m_usingVR;
 	VRDevice m_vr;
+	GraphicalInterface m_gui;
 
 	// Magic number for maximum depth (0 indexed)
 	int m_maxDepth;

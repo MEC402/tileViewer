@@ -61,15 +61,16 @@ void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsig
 	//for (int i = fileCount-1; i >= 0; --i)
 	for (unsigned int i = 0; i < fileCount; ++i)
 	{
-		populateImageData(out_files[i], urls[i].c_str());
+		*(out_files[i]) = { 0 };
 		CURL *eh = curl_easy_init();
 		curl_easy_setopt(eh, CURLOPT_URL, urls[i].c_str());
 		curl_easy_setopt(eh, CURLOPT_WRITEFUNCTION, downloadFileWriterCallback);
-		curl_easy_setopt(eh, CURLOPT_WRITEDATA, &(*out_files[i]));
+		curl_easy_setopt(eh, CURLOPT_WRITEDATA, out_files[i]);
 		curl_multi_add_handle(multi, eh);
 		curlHandles[i] = eh;
-		curl_multi_perform(multi, &transfersRunning);
 	}
+
+	curl_multi_perform(multi, &transfersRunning);
 
 	// Progressively download the files
 	do {

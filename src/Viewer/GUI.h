@@ -3,7 +3,10 @@
 #include "stb_image.h"
 #include <GL\glew.h>
 #include "PanoInfo.h"
+#include "Shader.h"
 #include "VR.h"
+#include "glm/glm.hpp"
+#include "glm/gtx/transform.hpp"
 
 struct Model
 {
@@ -18,10 +21,11 @@ struct GraphicalInterface
 	unsigned int thumbnailCount;
 
 	Model quad;
+	Shader shader;
 };
 
 void createModelFromQuad(Model* model);
-void renderModel(Model model, GLuint tex, OVR::Matrix4f mvp);
+void renderModel(Model model, Shader& shader, GLuint tex, glm::mat4x4 mvp);
 
 void createGUI(GraphicalInterface* gui, std::vector<PanoInfo> panoList);
-void displayGUI(GraphicalInterface gui, OVR::Matrix4f viewProjection, float panoSelection);
+void displayGUI(GraphicalInterface gui, glm::mat4x4 viewProjection, float panoSelection);

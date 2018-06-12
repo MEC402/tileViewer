@@ -246,6 +246,7 @@
   <ItemGroup>
     <ClInclude Include="Controls.h" />
     <ClInclude Include="CubePoints.h" />
+    <ClInclude Include="GUI.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
     <ClInclude Include="ImageQueue.h" />
@@ -268,6 +269,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="CubePoints.cpp" />
+    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
@@ -279,6 +281,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="gui.frag" />
+    <None Include="gui.vert" />
     <None Include="packages.config" />
     <None Include="Shader.frag" />
     <None Include="Shader.geom" />
