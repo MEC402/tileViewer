@@ -24,6 +24,9 @@ void Controls::init(const char* panoFileAddress, bool stereo, bool fullscreen, b
 		fprintf(stderr, "Error %s\n", glewGetErrorString(initErr));
 	}
 
+	// Init STViewer
+	viewer.Init(panoFileAddress, stereo, fivepanel, windowWidth, windowHeight);
+
 	// Setup callbacks
 	atexit(cleanup);
 	glutDisplayFunc(display);
@@ -52,9 +55,6 @@ void Controls::init(const char* panoFileAddress, bool stereo, bool fullscreen, b
 	glutAddMenuEntry("Screenshot (F9)", 4);
 	glutAddMenuEntry("Toggle Fullscreen (f)", 5);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
-
-	// Init STViewer
-	viewer.Init(panoFileAddress, stereo, fivepanel, windowWidth, windowHeight);
 
 	// Pass control to GLUT and start main loop
 	glutMainLoop();
