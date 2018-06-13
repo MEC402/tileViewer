@@ -128,11 +128,11 @@ void _MainMenu(int choice)
 		break;
 
 	case 4:
-		//TODO: Screenshot
+		_viewer->Screenshot();
 		break;
 
 	case 5:
-		//TOOD: Fullscreen toggle
+		glutFullScreenToggle();
 		break;
 	}
 }

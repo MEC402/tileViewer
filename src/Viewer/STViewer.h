@@ -41,6 +41,7 @@ public:
 	void ReloadShaders(void);
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
+	void Screenshot(void);
 	void FlipDebug(void);
 
 	void Update(void);

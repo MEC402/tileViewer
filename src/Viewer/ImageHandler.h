@@ -43,7 +43,7 @@ public:
 
 	void LoadImageData(ImageData *image);
 	void BindTextures(Shader &shader, int eye);
-	void WindowDump(int width, int height);
+	void Screenshot(int width, int height);
 
 	void ClearQueues(void);
 	void LoadFaceImage(int face, int depth, int eye);
