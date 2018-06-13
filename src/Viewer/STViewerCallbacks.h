@@ -5,7 +5,7 @@
 
 STViewer *_viewer;
 
-void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye);
+void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
 void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void _InitCallbacks(STViewer *v, bool fullscreen);
 #ifdef OCULUS
@@ -33,10 +33,11 @@ CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
 
-void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye)
+void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 {
 	_lefteye = lefteye;
 	_righteye = righteye;
+	_stereo = stereo;
 }
 
 void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, 

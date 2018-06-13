@@ -43,8 +43,6 @@ public:
 	void ResetCamera(void);
 	void FlipDebug(void);
 
-	void Display(void);
-	void Resize(int w, int h);
 	void Update(void);
 	void Cleanup(void);
 
@@ -63,7 +61,9 @@ private:
 
 	/*					Builders				*/
 	void initGL(void);
+#ifdef OCULUS
 	void initVR(void);
+#endif
 	void initTextures(void);
 
 
