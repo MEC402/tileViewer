@@ -145,6 +145,9 @@ void _Display()
 
 	if (_usingVR) {
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
+			_shader->Bind();
+			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
+
 			bindEyeRenderSurface(_vr, eyeIndex);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
