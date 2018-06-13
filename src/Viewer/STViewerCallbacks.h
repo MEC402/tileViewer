@@ -5,6 +5,8 @@
 
 STViewer *_viewer;
 
+void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye);
+void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void _InitCallbacks(STViewer *v, bool fullscreen);
 void _EnableVR(VRDevice *vr);
 void _InitMenus(std::vector<PanoInfo> panoList);
@@ -140,6 +142,7 @@ void _Cleanup()
 
 void _Display()
 {
+
 	if (_usingVR) {
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
 			bindEyeRenderSurface(_vr, eyeIndex);
@@ -168,10 +171,13 @@ void _Display()
 		blitHeadsetView(_vr, 0);
 	} 
 	else {
+		_shader->Bind();
+		_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
+		_images->BindTextures(*_shader, 0);
 		glBindVertexArray(_lefteye->m_PositionVAOID);
 		for (int i = 0; i < _camera->NumCameras; i++) {
 			_camera->SetViewport(_camera->LeftCameras[i]);
