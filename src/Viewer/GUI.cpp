@@ -40,9 +40,9 @@ void renderModel(Model model, Shader& shader, GLuint tex, glm::mat4x4 mvp)
 	// Send our transformation to the currently bound shader, 
 	// in the "MVP" uniform
 	// Get a handle for our "MVP" uniform
-	shader.bind();
-	shader.setMatrixUniform("MVP", mvp);
-	shader.bindTexture("image", 0, tex);
+	shader.Bind();
+	shader.SetMatrixUniform("MVP", mvp);
+	shader.BindTexture("image", 0, tex);
 	
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
@@ -62,7 +62,7 @@ void renderModel(Model model, Shader& shader, GLuint tex, glm::mat4x4 mvp)
 
 void createGUI(GraphicalInterface* gui, std::vector<PanoInfo> panoList)
 {
-	gui->shader.createProgram(0, "gui.vert", "gui.frag");
+	gui->shader.CreateProgram(0, "gui.vert", "gui.frag");
 	createModelFromQuad(&gui->quad);
 
 	std::vector<ImageData*> thumbnails;

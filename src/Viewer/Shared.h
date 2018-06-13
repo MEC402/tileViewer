@@ -1,10 +1,9 @@
 #ifndef _SHARED_H
 #define _SHARED_H
 
-#include "CubePoints.h"
 #include <GL\glew.h>
 
-#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
+//#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
 //#define OCULUS
 
 

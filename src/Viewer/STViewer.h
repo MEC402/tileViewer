@@ -8,14 +8,15 @@
 #include <thread>
 #include <vector>
 
+#include "Camera.h"
 #include "CubePoints.h"
+#include "ImageHandler.h"
 #include "ImageQueue.h"
 #include "PanoInfo.h"
-#include "Shared.h"
-#include "ThreadPool.hpp"
 #include "Shader.h"
-#include "Camera.h"
-#include "ImageHandler.h"
+#include "Shared.h"
+#include "RemoteClient.h"
+#include "ThreadPool.hpp"
 
 #include "VR.h"
 #include "GUI.h"
@@ -25,7 +26,7 @@
 class STViewer {
 
 public:
-	void Init(const char* panoFileAddress, bool stereo, bool fivepanel, int viewportWidth, int viewportHeight);
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -37,8 +38,10 @@ public:
 	void ReloadPano(void);
 	void SelectPano(int pano);
 
-	void reloadShaders();
-	void moveCamera(float pitchChange, float yawChange, float FOVChange);
+	void ReloadShaders(void);
+	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
+	void ResetCamera(void);
+	void FlipDebug(void);
 
 	void display(double globalTime);
 	void update(double globalTime, float deltaTime);
@@ -46,7 +49,7 @@ public:
 	void timer(int value);
 	void cleanup();
 
-	std::vector<PanoInfo> getPanoList();
+	std::vector<PanoInfo> GetPanos(void);
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -61,6 +64,7 @@ private:
 
 	/*					Builders				*/
 	void initGL(void);
+	void initVR(void);
 	void initTextures(void);
 
 
@@ -79,6 +83,7 @@ private:
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//
+
 	// Geometry data
 	CubePoints *m_LeftEye;
 	CubePoints *m_RightEye;
@@ -97,12 +102,9 @@ private:
 	Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
 	Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
 	
-	// State flags so we don't spawn multiple threads to collect ThreadPool promises
-	bool textureHandling;
-	bool workerHandling;
-	bool imagesNeedResetting;
 	bool m_stereo;
 	bool m_fivepanel;
+	bool m_fullscreen;
 
 	ImageQueue *m_LoadedTextures;
 
@@ -111,6 +113,8 @@ private:
 	GraphicalInterface m_gui;
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
+
+	RemoteClient *m_remote;
 
 	// Magic number for maximum depth (0 indexed)
 	int m_maxDepth;

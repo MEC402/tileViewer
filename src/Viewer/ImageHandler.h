@@ -38,11 +38,11 @@ public:
 	void InitTextureAtlas(bool stereo, ImageQueue *toRender);
 	void InitStereo();
 	void InitStereoURLs(void);
-	void InitPanoList(std::string url);
+	bool InitPanoList(std::string url);
 	void InitURLs(int pano, bool stereo);
 
 	void LoadImageData(ImageData *image);
-	void bindTextures(Shader &shader, int eye);
+	void BindTextures(Shader &shader, int eye);
 	void WindowDump(int width, int height);
 
 	void ClearQueues(void);

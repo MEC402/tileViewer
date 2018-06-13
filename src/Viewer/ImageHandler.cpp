@@ -87,7 +87,7 @@ void ImageHandler::InitStereoURLs()
 	}
 }
 
-void ImageHandler::InitPanoList(std::string url)
+bool ImageHandler::InitPanoList(std::string url)
 {
 	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
@@ -98,6 +98,7 @@ void ImageHandler::InitPanoList(std::string url)
 			size_t lastSlashPosition = url.find_last_of("/\\");
 			std::string baseURL = url.substr(0, lastSlashPosition);
 			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+			return true;
 		}
 		else {
 			fprintf(stderr, "Could not open provided pano list URI\n");
@@ -106,6 +107,7 @@ void ImageHandler::InitPanoList(std::string url)
 	catch (const std::exception &exc) {
 		fprintf(stderr, "%s\n", exc.what());
 	}
+	return false;
 }
 
 void ImageHandler::InitURLs(int pano, bool stereo)
@@ -306,7 +308,7 @@ void ImageHandler::Decompress()
 }
 
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
-void ImageHandler::bindTextures(Shader &shader, int eye)
+void ImageHandler::BindTextures(Shader &shader, int eye)
 {
 	if (m_textures[eye][0] == 0) {
 		fprintf(stderr, "No texture loaded for that eye\n");
@@ -314,7 +316,7 @@ void ImageHandler::bindTextures(Shader &shader, int eye)
 	}
 
 	for (int i = 0; i < 6; i++) {
-		shader.bindTexture(m_txUniforms[i], i, m_textures[eye][i]);
+		shader.BindTexture(m_txUniforms[i], i, m_textures[eye][i]);
 	}
 }
 

@@ -1,10 +1,11 @@
 //#include "stdafx.h"
 #include "Shader.h"
+#include "Shared.h"
 
 
 /* ---------------- Public Functions ---------------- */
 
-void Shader::createProgram(char* geometryFile, char* vertexFile, char* fragmentFile)
+void Shader::CreateProgram(const char* geometryFile, const char* vertexFile, const char* fragmentFile)
 {
 
 	GLuint program = glCreateProgram();
@@ -24,19 +25,25 @@ void Shader::createProgram(char* geometryFile, char* vertexFile, char* fragmentF
 	m_program = program;
 }
 
-void Shader::reload()
+void Shader::Reload()
 {
 	reloadShader(GL_VERTEX_SHADER, m_vertShader, "Shader.vert");
 	reloadShader(GL_GEOMETRY_SHADER, m_geomShader, "Shader.geom");
 	reloadShader(GL_FRAGMENT_SHADER, m_fragShader, "Shader.frag");
 }
 
-void Shader::bind()
+void Shader::Bind()
 {
 	glUseProgram(m_program);
 }
 
-void Shader::setFloatUniform(const char* nameInShader, float value)
+void Shader::FlipDebug()
+{
+	GLuint uDebug = glGetUniformLocation(m_program, "Debug");
+	glUniform1f(uDebug, DEBUG_FLAG);
+}
+
+void Shader::SetFloatUniform(const char* nameInShader, float value)
 {
 	GLuint uniform = glGetUniformLocation(m_program, nameInShader);
 	if (uniform == -1) {
@@ -47,7 +54,7 @@ void Shader::setFloatUniform(const char* nameInShader, float value)
 	}
 }
 
-void Shader::setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
+void Shader::SetMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
 {
 	GLuint MatrixID = glGetUniformLocation(m_program, "MVP");
 	if (MatrixID == -1) {
@@ -58,7 +65,7 @@ void Shader::setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
 	}
 }
 
-void Shader::bindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID)
+void Shader::BindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID)
 {
 	GLuint TxUniform = glGetUniformLocation(m_program, samplerNameInShader);
 	if (TxUniform == -1) {
@@ -71,7 +78,7 @@ void Shader::bindTexture(const char* samplerNameInShader, int activeTextureSlot,
 	}
 }
 
-GLuint Shader::getProgram()
+GLuint Shader::GetProgram()
 {
 	return m_program;
 }

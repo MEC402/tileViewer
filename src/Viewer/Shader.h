@@ -10,14 +10,15 @@
 
 class Shader {
 public:
-	void createProgram(char* geometryFile, char* vertexFile, char* fragmentFile);
-	void reload();
-	void bind();
-	void setFloatUniform(const char* nameInShader, float value);
-	void setMatrixUniform(const char* nameInShader, glm::mat4x4 matrix);
-	void bindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID);
+	void CreateProgram(const char* geometryFile, const char* vertexFile, const char* fragmentFile);
+	void FlipDebug();
+	void Reload();
+	void Bind();
+	void SetFloatUniform(const char* nameInShader, float value);
+	void SetMatrixUniform(const char* nameInShader, glm::mat4x4 matrix);
+	void BindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID);
 
-	GLuint getProgram();
+	GLuint GetProgram();
 	
 	Shader() {}
 

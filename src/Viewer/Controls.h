@@ -12,20 +12,13 @@
 
 class Controls {
 public:
-	static STViewer viewer;
+	static STViewer *viewer;
 
-	static void init(const char* panoFileAddress, bool stereo, bool fullscreen, bool fivepanel);
-	static void FlipDebug();
+	static void SetViewer(STViewer *v);
 	static void MouseMove(int posx, int posy);
 	static void MouseWheel(int button, int direction, int x, int y);
 	static void ProcessGLUTKeys(int key, int x, int y);
 	static void ProcessKeys(unsigned char key, int x, int y);
-	static void MainMenu(int choice);
-	static void PanoMenu(int choice);
-	static void display();
-	static void idle();
-	static void resize(int w, int h);
-	static void cleanup();
 
 private:
 	static double globalTime;

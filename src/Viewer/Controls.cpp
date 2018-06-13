@@ -1,8 +1,12 @@
 #include "Controls.h"
 
+<<<<<<< HEAD
 STViewer Controls::viewer;
 double Controls::globalTime;
 long long Controls::programStartTime;
+=======
+STViewer *Controls::viewer;
+>>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 
 // A great deal of this is just wrappers around Camera:: class calls
 
@@ -10,8 +14,9 @@ int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
 
-void Controls::init(const char* panoFileAddress, bool stereo, bool fullscreen, bool fivepanel)
+void Controls::SetViewer(STViewer *v)
 {
+<<<<<<< HEAD
 	int windowWidth = 1280;
 	int windowHeight = 800;
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
@@ -72,6 +77,9 @@ void Controls::FlipDebug()
 {
 	//GLuint uDebug = glGetUniformLocation(program, "Debug");
 	//glUniform1f(uDebug, DEBUG_FLAG);
+=======
+	viewer = v;
+>>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 }
 
 void Controls::MouseMove(int posx, int posy)
@@ -109,7 +117,7 @@ void Controls::MouseWheel(int button, int direction, int x, int y)
 	else {
 		FOVChange += 2.0f;
 	}
-	viewer.moveCamera(0, 0, FOVChange);
+	viewer->MoveCamera(0, 0, FOVChange);
 }
 
 // Aside from up/down/right/left these functions are all for debugging
@@ -146,7 +154,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	case GLUT_KEY_F1:
 	case GLUT_KEY_F2:
 	case GLUT_KEY_F3:
-		viewer.reloadShaders();
+		viewer->ReloadShaders();
 		break;
 
 	case GLUT_KEY_F4:
@@ -156,7 +164,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	case GLUT_KEY_F5:
 		//fprintf(stderr, "FOV is at %f\n", Camera::FOV);
 #ifdef DEBUG
-		viewer.WaitingThreads();
+		viewer->WaitingThreads();
 #endif
 		break;
 
@@ -172,7 +180,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F8:
 		DEBUG_FLAG = !DEBUG_FLAG;
-		FlipDebug();
+		viewer->FlipDebug();
 		break;
 
 	case GLUT_KEY_F9:
@@ -180,12 +188,12 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 #ifdef DEBUG
 	case GLUT_KEY_F10:
-		viewer.PrintAverage();
+		viewer->PrintAverage();
 		break;
 #endif
 	}
 	
-	viewer.moveCamera(pitchChange, yawChange, FOVChange);
+	viewer->MoveCamera(pitchChange, yawChange, FOVChange);
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
@@ -194,11 +202,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	switch (key) {
 	case '1':
 	case '2':
-		viewer.reloadShaders();
+		viewer->ReloadShaders();
 
 #ifdef DEBUG
 	case '3':
-		viewer.RebindVAO();
+		viewer->RebindVAO();
 		break;
 #endif
 	case 'f':
@@ -206,26 +214,23 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		break;
 
 	case 'h':
-		viewer.ToggleStereo();
+		viewer->ToggleStereo();
 		break;
 
 	case 'n':
-		viewer.NextPano();
+		viewer->NextPano();
 		break;
 
 	case 'p':
-		viewer.PrevPano();
+		viewer->PrevPano();
 		break;
 
 	case 'r':
-		/*Camera::FOV = DEBUG_fov;
-		Camera::Pitch = 0.0f;
-		Camera::UpdateMVP();
-		Camera::UpdateCameras();*/
+		viewer->ResetCamera();
 		break;
 
 	case 'R':
-		viewer.ReloadPano();
+		viewer->ReloadPano();
 		break;
 
 
@@ -234,6 +239,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		exit(0);
 		break;
 	}
+<<<<<<< HEAD
 }
 
 void Controls::MainMenu(int choice)
@@ -289,4 +295,6 @@ void Controls::idle() {
 
 void Controls::resize(int w, int h) {
 	viewer.resize(w, h);
+=======
+>>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 }
