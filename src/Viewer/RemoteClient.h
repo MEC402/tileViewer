@@ -16,7 +16,7 @@
 
 
 #define MSG_TEMPLATE "{\
-\"id\": 9001,\
+\"id\": "",\
 	\"command\" : \"no_command\",\
 	\"body\" : {\
 		\
