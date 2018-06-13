@@ -7,13 +7,15 @@
 //#define OCULUS
 
 
-#define PRINT_GL_ERRORS \
-{\
-	GLenum errCode;\
-	if ((errCode = glGetError()) != GL_NO_ERROR) {\
-		const GLubyte *errString = gluErrorString(errCode);\
-		printf("OpenGL error on line %d in %s: %s\n", __LINE__, __FUNCTION__, errString);\
-	}\
+#define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__)
+
+inline void print_gl_errors(int line, const char* func)
+{
+	GLenum errCode;
+	if ((errCode = glGetError()) != GL_NO_ERROR) {
+		const GLubyte *errString = gluErrorString(errCode);
+		fprintf(stderr, "OpenGL error on line %d in %s: %s\n", line, func, errString);
+	}
 }
 
 extern bool DEBUG_FLAG;

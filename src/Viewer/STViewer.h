@@ -57,6 +57,10 @@ public:
 	void WaitingThreads();
 #endif
 
+	GraphicalInterface m_gui;
+	float m_guiPanoSelection;
+	double m_lastUIInteractionTime;
+
 private:
 	//----------------------------------------------//
 	//				Private Functions				//
@@ -64,7 +68,9 @@ private:
 
 	/*					Builders				*/
 	void initGL(void);
+#ifdef OCULUS
 	void initVR(void);
+#endif
 	void initTextures(void);
 
 
@@ -110,9 +116,6 @@ private:
 
 	bool m_usingVR;
 	VRDevice m_vr;
-	GraphicalInterface m_gui;
-	float m_guiPanoSelection;
-	double m_lastUIInteractionTime;
 
 	RemoteClient *m_remote;
 

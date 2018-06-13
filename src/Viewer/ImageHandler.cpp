@@ -284,16 +284,14 @@ void ImageHandler::Decompress()
 			m_.unlock();
 			return;
 		}
+		m_.unlock();
 
 		if (!m_compressed->IsEmpty()) {
 			imageFile = m_compressed->Dequeue();
 		}
 		else {
-			m_.unlock();
 			continue;
 		}
-
-		m_.unlock();
 
 		int width, height, nrChannels;
 		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);

@@ -1,12 +1,6 @@
 #include "Controls.h"
 
-<<<<<<< HEAD
-STViewer Controls::viewer;
-double Controls::globalTime;
-long long Controls::programStartTime;
-=======
 STViewer *Controls::viewer;
->>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 
 // A great deal of this is just wrappers around Camera:: class calls
 
@@ -16,70 +10,7 @@ float Controls::DEBUG_camerastep = 1.0f;
 
 void Controls::SetViewer(STViewer *v)
 {
-<<<<<<< HEAD
-	int windowWidth = 1280;
-	int windowHeight = 800;
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(windowWidth, windowHeight); // Defaults to 1280 x 800 windowed
-	glutCreateWindow("TileViewer - ST Shader Annihilation Edition");
-	if (fullscreen) {
-		glutFullScreen();
-	}
-
-	GLenum initErr = glewInit();
-	if (GLEW_OK != initErr) {
-		fprintf(stderr, "Error %s\n", glewGetErrorString(initErr));
-	}
-
-	// Init STViewer
-	viewer.Init(panoFileAddress, stereo, fivepanel, windowWidth, windowHeight);
-
-	// Setup callbacks
-	atexit(cleanup);
-	glutDisplayFunc(display);
-	glutIdleFunc(idle);
-	glutReshapeFunc(resize);
-	glutSpecialFunc(ProcessGLUTKeys);
-	glutKeyboardFunc(ProcessKeys);
-	//glutMotionFunc(Controls::MouseMove); // This is super broken with 5-panel displays, just disable it.
-	glutMouseWheelFunc(MouseWheel);
-	//glutTimerFunc(5000, timerCleanup, 0);
-
-	// Init right-click menus
-	std::vector<PanoInfo> panoList = viewer.getPanoList();
-	int panomenu = glutCreateMenu(PanoMenu);
-	for (unsigned int i = 0; i < panoList.size(); i++) {
-		char buf[64];
-		sprintf_s(buf, "%s", panoList[i].displayName.c_str());
-		glutAddMenuEntry(buf, i + 1);
-	}
-
-	int mainmenu = glutCreateMenu(MainMenu);
-	glutAddMenuEntry("Toggle ST scaling (F8)", 1);
-	glutAddSubMenu("Pano Select", panomenu);
-	glutAddMenuEntry("Next Pano (n)", 2);
-	glutAddMenuEntry("Prev Pano (p)", 3);
-	glutAddMenuEntry("Screenshot (F9)", 4);
-	glutAddMenuEntry("Toggle Fullscreen (f)", 5);
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
-
-	// Init time
-	LARGE_INTEGER time;
-	QueryPerformanceCounter(&time);
-	programStartTime = time.QuadPart;
-	globalTime = time.QuadPart;
-
-	// Pass control to GLUT and start main loop
-	glutMainLoop();
-}
-
-void Controls::FlipDebug()
-{
-	//GLuint uDebug = glGetUniformLocation(program, "Debug");
-	//glUniform1f(uDebug, DEBUG_FLAG);
-=======
 	viewer = v;
->>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 }
 
 void Controls::MouseMove(int posx, int posy)
@@ -239,62 +170,4 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		exit(0);
 		break;
 	}
-<<<<<<< HEAD
-}
-
-void Controls::MainMenu(int choice)
-{
-	switch (choice) {
-	case 1:
-		DEBUG_FLAG = !DEBUG_FLAG;
-		Controls::FlipDebug();
-		break;
-
-	case 2:
-		viewer.NextPano();
-		break;
-
-	case 3:
-		viewer.PrevPano();
-		break;
-
-	case 4:
-		//ImageHandler::WindowDump(Camera::Width, Camera::Height);
-		break;
-
-	case 5:
-		glutFullScreenToggle();
-		break;
-	}
-}
-
-void Controls::PanoMenu(int choice)
-{
-	viewer.SelectPano(--choice);
-}
-
-void Controls::cleanup() {
-	viewer.cleanup();
-}
-
-void Controls::display() {
-	viewer.display(globalTime);
-}
-
-void Controls::idle() {
-	// Update time
-	LARGE_INTEGER time;
-	LARGE_INTEGER ticksPerSecond;
-	QueryPerformanceCounter(&time);
-	QueryPerformanceFrequency(&ticksPerSecond);
-	float deltaTime = float(time.QuadPart-programStartTime)/float(ticksPerSecond.QuadPart) - globalTime;
-	globalTime = (time.QuadPart-programStartTime) / double(ticksPerSecond.QuadPart);
-	
-	viewer.update(globalTime, deltaTime);
-}
-
-void Controls::resize(int w, int h) {
-	viewer.resize(w, h);
-=======
->>>>>>> 24407dcb6849fd7581ac65287c19cdd8de202a1d
 }
