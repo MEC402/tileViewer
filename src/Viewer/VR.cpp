@@ -469,6 +469,7 @@ void updateVRDevice(VRDevice* vr) {}
 glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ) { return glm::mat4x4(); }
 glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex) { return glm::mat4x4(); }
 glm::vec3 getVRHeadsetPosition(VRDevice* vr) { return glm::vec3(); }
+glm::quat getVRHeadsetRotation(VRDevice* vr) { return glm::quat(); }
 VRControllerStates getVRControllerState(VRDevice* vr) { VRControllerStates c; return c; }
 void bindEyeRenderSurface(VRDevice* vr, int eyeIndex) {}
 void commitEyeRenderSurface(VRDevice* vr, int eyeIndex) {}
