@@ -360,7 +360,15 @@ void updateVRDevice(VRDevice* vr)
 	updateButton(&vr->controllers.left.button1, inputState.Buttons & ovrButton_X);
 	updateButton(&vr->controllers.left.button2, inputState.Buttons & ovrButton_Y);
 
+	vr->controllers.right.thumbstickX = inputState.Thumbstick[ovrHand_Right].x;
+	vr->controllers.right.thumbstickY = inputState.Thumbstick[ovrHand_Right].y;
+	vr->controllers.right.indexFingerTrigger = inputState.IndexTrigger[ovrHand_Right];
+	vr->controllers.right.middleFingerTrigger = inputState.HandTrigger[ovrHand_Right];
 
+	vr->controllers.left.thumbstickX = inputState.Thumbstick[ovrHand_Left].x;
+	vr->controllers.left.thumbstickY = inputState.Thumbstick[ovrHand_Left].y;
+	vr->controllers.left.indexFingerTrigger = inputState.IndexTrigger[ovrHand_Left];
+	vr->controllers.left.middleFingerTrigger = inputState.HandTrigger[ovrHand_Left];
 }
 
 glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)
@@ -389,6 +397,11 @@ glm::vec3 getVRHeadsetPosition(VRDevice* vr)
 	OVR::Vector3f rightEye = vr->eyeRenderPose[1].Position;
 	OVR::Vector3f betweenEyes = leftEye + ((rightEye - leftEye) / 2);
 	return OVRtoGLM(betweenEyes);
+}
+
+glm::quat getVRHeadsetRotation(VRDevice* vr)
+{
+	return OVRtoGLM(vr->eyeRenderPose[0].Orientation);
 }
 
 VRControllerStates getVRControllerState(VRDevice* vr)

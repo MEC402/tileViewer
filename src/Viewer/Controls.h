@@ -28,6 +28,9 @@ public:
 	static void cleanup();
 
 private:
+	static double globalTime;
+	static long long programStartTime;
+
 	static int DEBUG_row;
 	static int DEBUG_col;
 	static float DEBUG_camerastep;

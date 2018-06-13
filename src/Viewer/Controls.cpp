@@ -1,6 +1,8 @@
 #include "Controls.h"
 
 STViewer Controls::viewer;
+double Controls::globalTime;
+long long Controls::programStartTime;
 
 // A great deal of this is just wrappers around Camera:: class calls
 
@@ -55,6 +57,12 @@ void Controls::init(const char* panoFileAddress, bool stereo, bool fullscreen, b
 	glutAddMenuEntry("Screenshot (F9)", 4);
 	glutAddMenuEntry("Toggle Fullscreen (f)", 5);
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+	// Init time
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	programStartTime = time.QuadPart;
+	globalTime = time.QuadPart;
 
 	// Pass control to GLUT and start main loop
 	glutMainLoop();
@@ -264,11 +272,19 @@ void Controls::cleanup() {
 }
 
 void Controls::display() {
-	viewer.display();
+	viewer.display(globalTime);
 }
 
 void Controls::idle() {
-	viewer.update();
+	// Update time
+	LARGE_INTEGER time;
+	LARGE_INTEGER ticksPerSecond;
+	QueryPerformanceCounter(&time);
+	QueryPerformanceFrequency(&ticksPerSecond);
+	float deltaTime = float(time.QuadPart-programStartTime)/float(ticksPerSecond.QuadPart) - globalTime;
+	globalTime = (time.QuadPart-programStartTime) / double(ticksPerSecond.QuadPart);
+	
+	viewer.update(globalTime, deltaTime);
 }
 
 void Controls::resize(int w, int h) {

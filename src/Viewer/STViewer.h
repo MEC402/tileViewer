@@ -40,8 +40,8 @@ public:
 	void reloadShaders();
 	void moveCamera(float pitchChange, float yawChange, float FOVChange);
 
-	void display();
-	void update();
+	void display(double globalTime);
+	void update(double globalTime, float deltaTime);
 	void resize(int w, int h);
 	void timer(int value);
 	void cleanup();
@@ -109,6 +109,8 @@ private:
 	bool m_usingVR;
 	VRDevice m_vr;
 	GraphicalInterface m_gui;
+	float m_guiPanoSelection;
+	double m_lastUIInteractionTime;
 
 	// Magic number for maximum depth (0 indexed)
 	int m_maxDepth;
