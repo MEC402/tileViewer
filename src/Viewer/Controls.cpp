@@ -115,7 +115,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F9:
-		//ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		viewer->Screenshot();
 		break;
 #ifdef DEBUG
 	case GLUT_KEY_F10:

@@ -32,8 +32,6 @@ ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
-long long programStartTime;
-double globalTime;
 
 void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 {
@@ -130,11 +128,11 @@ void _MainMenu(int choice)
 		break;
 
 	case 4:
-		//TODO: Screenshot
+		_viewer->Screenshot();
 		break;
 
 	case 5:
-		//TOOD: Fullscreen toggle
+		glutFullScreenToggle();
 		break;
 	}
 }
@@ -146,7 +144,7 @@ void _PanoMenu(int choice)
 
 void _Cleanup()
 {
-	_viewer->cleanup();
+	_viewer->Cleanup();
 }
 
 void _Display()
@@ -176,13 +174,6 @@ void _Display()
 				glBindVertexArray(_lefteye->m_PositionVAOID);
 
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
-
-			double uiDisplayWaitTime = 1.5;
-			if (globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
-				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
-				float uiRadius = 0.65;
-				displayGUI(_viewer->m_gui, getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection);
-			}
 
 			commitEyeRenderSurface(_vr, eyeIndex);
 		}
@@ -228,15 +219,7 @@ void _Display()
 
 void _Idle()
 {
-	// Update time
-	LARGE_INTEGER time;
-	LARGE_INTEGER ticksPerSecond;
-	QueryPerformanceCounter(&time);
-	QueryPerformanceFrequency(&ticksPerSecond);
-	float deltaTime = float(time.QuadPart - programStartTime) / float(ticksPerSecond.QuadPart) - globalTime;
-	globalTime = (time.QuadPart - programStartTime) / double(ticksPerSecond.QuadPart);
-	
-	_viewer->update(globalTime, deltaTime);
+	_viewer->Update();
 }
 
 void _Resize(int w, int h)

@@ -97,29 +97,25 @@ void createGUI(GraphicalInterface* gui, std::vector<PanoInfo> panoList)
 	}
 }
 
-void displayGUI(GraphicalInterface gui, glm::quat headsetRotation, glm::mat4x4 viewProjection, float radius, float panoSelection)
+void displayGUI(GraphicalInterface gui, glm::mat4x4 viewProjection, float panoSelection)
 {
-	float tileSeparation = 0.4f;
+	float radius = 0.5f;
+	float tileSeparation = 0.5f;
 	float menuRotation = panoSelection*tileSeparation;
 	glDisable(GL_DEPTH_TEST);
 	
 	for (unsigned int i = 0; i < gui.thumbnailCount; ++i)
 	{
-
-		float tileScale = 0.05f;
+		float tileScale = 0.1f;
 		if (abs(i - panoSelection) < 1.0f) {
-			tileScale += (1-abs(i - panoSelection)) * 0.03f;
+			tileScale += abs(1-(i - panoSelection)) * 0.05f;
 		}
 		glm::vec3 tilePosition(0, 0, -radius);
 		glm::mat4x4 translation = glm::translate(tilePosition);
 		glm::vec3 verticalAxis(0, 1, 0);
-		// Get camera yaw
-		glm::quat q = headsetRotation;
-		float cameraYaw = -atan2(2.0*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
-		glm::mat4x4 rotation = glm::rotate(menuRotation - (i*tileSeparation) + cameraYaw, verticalAxis);
-		glm::mat4x4 tiltDown = glm::rotate(glm::radians(-20.0f), glm::vec3(1, 0, 0));
+		glm::mat4x4 rotation = glm::rotate(-(i*tileSeparation), verticalAxis);
 		glm::mat4x4 scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
-		glm::mat4x4 model = rotation*tiltDown*translation*scale;
+		glm::mat4x4 model = rotation*translation*scale;
 
 		renderModel(gui.quad, gui.shader, gui.thumbnails[i], viewProjection*model);
 	}

@@ -28,4 +28,4 @@ void createModelFromQuad(Model* model);
 void renderModel(Model model, Shader& shader, GLuint tex, glm::mat4x4 mvp);
 
 void createGUI(GraphicalInterface* gui, std::vector<PanoInfo> panoList);
-void displayGUI(GraphicalInterface gui, glm::quat headsetRotation, glm::mat4x4 viewProjection, float radius, float panoSelection);
+void displayGUI(GraphicalInterface gui, glm::mat4x4 viewProjection, float panoSelection);

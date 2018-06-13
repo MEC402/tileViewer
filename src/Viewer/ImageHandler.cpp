@@ -318,7 +318,7 @@ void ImageHandler::BindTextures(Shader &shader, int eye)
 	}
 }
 
-void ImageHandler::WindowDump(int width, int height)
+void ImageHandler::Screenshot(int width, int height)
 {
 	unsigned char* image = (unsigned char*)malloc(width * height * 3 * sizeof(char));
 

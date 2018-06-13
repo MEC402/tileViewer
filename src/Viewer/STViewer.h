@@ -41,13 +41,11 @@ public:
 	void ReloadShaders(void);
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
+	void Screenshot(void);
 	void FlipDebug(void);
 
-	void display(double globalTime);
-	void update(double globalTime, float deltaTime);
-	void resize(int w, int h);
-	void timer(int value);
-	void cleanup();
+	void Update(void);
+	void Cleanup(void);
 
 	std::vector<PanoInfo> GetPanos(void);
 
@@ -56,10 +54,6 @@ public:
 	void RebindVAO(void);
 	void WaitingThreads();
 #endif
-
-	GraphicalInterface m_gui;
-	float m_guiPanoSelection;
-	double m_lastUIInteractionTime;
 
 private:
 	//----------------------------------------------//
@@ -116,6 +110,7 @@ private:
 
 	bool m_usingVR;
 	VRDevice m_vr;
+	GraphicalInterface m_gui;
 
 	RemoteClient *m_remote;
 
