@@ -198,6 +198,10 @@ void _Display()
 
 		glFlush();
 	}
+
+#ifdef DEBUG
+	PRINT_GL_ERRORS
+#endif
 }
 
 void _Idle()
