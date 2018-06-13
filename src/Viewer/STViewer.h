@@ -9,13 +9,13 @@
 #include <vector>
 
 #include "Camera.h"
-//#include "Controls.h"
 #include "CubePoints.h"
 #include "ImageHandler.h"
 #include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
+#include "RemoteClient.h"
 #include "ThreadPool.hpp"
 
 #include "VR.h"
@@ -26,7 +26,7 @@
 class STViewer {
 
 public:
-	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, int viewWidth, int viewHeight);
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -82,6 +82,7 @@ private:
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//
+
 	// Geometry data
 	CubePoints *m_LeftEye;
 	CubePoints *m_RightEye;
@@ -109,6 +110,8 @@ private:
 	bool m_usingVR;
 	VRDevice m_vr;
 	GraphicalInterface m_gui;
+
+	RemoteClient *m_remote;
 
 	// Magic number for maximum depth (0 indexed)
 	int m_maxDepth;

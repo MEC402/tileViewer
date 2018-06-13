@@ -38,7 +38,7 @@ public:
 	void InitTextureAtlas(bool stereo, ImageQueue *toRender);
 	void InitStereo();
 	void InitStereoURLs(void);
-	void InitPanoList(std::string url);
+	bool InitPanoList(std::string url);
 	void InitURLs(int pano, bool stereo);
 
 	void LoadImageData(ImageData *image);

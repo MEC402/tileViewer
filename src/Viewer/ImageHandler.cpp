@@ -87,7 +87,7 @@ void ImageHandler::InitStereoURLs()
 	}
 }
 
-void ImageHandler::InitPanoList(std::string url)
+bool ImageHandler::InitPanoList(std::string url)
 {
 	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
@@ -98,6 +98,7 @@ void ImageHandler::InitPanoList(std::string url)
 			size_t lastSlashPosition = url.find_last_of("/\\");
 			std::string baseURL = url.substr(0, lastSlashPosition);
 			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+			return true;
 		}
 		else {
 			fprintf(stderr, "Could not open provided pano list URI\n");
@@ -106,6 +107,7 @@ void ImageHandler::InitPanoList(std::string url)
 	catch (const std::exception &exc) {
 		fprintf(stderr, "%s\n", exc.what());
 	}
+	return false;
 }
 
 void ImageHandler::InitURLs(int pano, bool stereo)
