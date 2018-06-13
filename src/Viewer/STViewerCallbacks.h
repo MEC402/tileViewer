@@ -9,7 +9,7 @@ void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye);
 void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void _InitCallbacks(STViewer *v, bool fullscreen);
 void _EnableVR(VRDevice *vr);
-void _InitMenus(std::vector<PanoInfo> panoList);
+void _InitMenus(std::vector<PanoInfo> &panoList);
 void _MainMenu(int choice);
 void _PanoMenu(int choice);
 void _Cleanup(void);
@@ -85,7 +85,7 @@ void _InitCallbacks(STViewer *v, bool fullscreen)
 	//glutTimerFunc(5000, timerCleanup, 0);
 }
 
-void _InitMenus(std::vector<PanoInfo> panoList)
+void _InitMenus(std::vector<PanoInfo> &panoList)
 {
 	int panomenu = glutCreateMenu(_PanoMenu);
 	for (unsigned int i = 0; i < panoList.size(); i++) {

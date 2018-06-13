@@ -28,5 +28,4 @@ int main(int argc, char **argv)
 	DEBUG_FLAG = false;
 
 	STViewer viewer(argv[argc - 1], stereo, fivepanel, fullscreen, 1280, 800);
-	Controls::SetViewer(&viewer);
 }
