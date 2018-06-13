@@ -7,7 +7,7 @@
 //#define OCULUS
 
 
-#define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__)
+#define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__);
 
 inline void print_gl_errors(int line, const char* func)
 {
