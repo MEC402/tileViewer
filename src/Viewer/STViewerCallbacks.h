@@ -8,7 +8,9 @@ STViewer *_viewer;
 void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye);
 void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void _InitCallbacks(STViewer *v, bool fullscreen);
+#ifdef OCULUS
 void _EnableVR(VRDevice *vr);
+#endif
 void _InitMenus(std::vector<PanoInfo> &panoList);
 void _MainMenu(int choice);
 void _PanoMenu(int choice);
@@ -20,8 +22,10 @@ void _Resize(int width, int height);
 int _Width = 1280;
 int _Height = 800;
 
+#ifdef OCULUS
 bool _usingVR = false;
 VRDevice *_vr;
+#endif
 bool _stereo = false;
 Shader *_shader;
 ImageHandler *_images;
@@ -47,12 +51,14 @@ void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images,
 	_camera = camera;
 }
 
+#ifdef OCULUS
 void _EnableVR(VRDevice *vr)
 {
 	_stereo = true;
 	_usingVR = true;
 	_vr = vr;
 }
+#endif
 
 void _InitCallbacks(STViewer *v, bool fullscreen)
 {
@@ -142,7 +148,7 @@ void _Cleanup()
 
 void _Display()
 {
-
+#ifdef OCULUS
 	if (_usingVR) {
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
 			_shader->Bind();
@@ -174,6 +180,7 @@ void _Display()
 		blitHeadsetView(_vr, 0);
 	} 
 	else {
+#endif
 		_shader->Bind();
 		_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -200,7 +207,9 @@ void _Display()
 		}
 
 		glFlush();
+#ifdef OCULUS
 	}
+#endif
 
 #ifdef DEBUG
 	PRINT_GL_ERRORS
@@ -223,7 +232,9 @@ void _Resize(int w, int h)
 #endif
 	_camera->UpdateMVP();
 	_camera->UpdateCameras();
+#ifdef OCULUS
 	if (_usingVR) {
 		resizeMirrorTexture(_vr, w, h);
 	}
+#endif
 }
