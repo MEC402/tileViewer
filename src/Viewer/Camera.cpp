@@ -20,6 +20,8 @@ void Camera::Init(int cameracount, int width, int height)
 	else {
 		NumCameras = cameracount;
 	}
+
+	ResetFOV = FOV;
 	LeftCameras = new Viewport*[NumCameras]();
 	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();

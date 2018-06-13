@@ -37,6 +37,7 @@ public:
 	float LastY;
 	float Zoom;
 	float FOV;
+	float ResetFOV;
 
 	void Init(int cameracount, int width, int height);
 	void CreateCameras();

@@ -41,7 +41,7 @@ public:
 	void InitURLs(int pano, bool stereo);
 
 	void LoadImageData(ImageData *image);
-	void bindTextures(Shader &shader, int eye);
+	void BindTextures(Shader &shader, int eye);
 	void WindowDump(int width, int height);
 
 	void ClearQueues(void);

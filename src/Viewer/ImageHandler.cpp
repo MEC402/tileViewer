@@ -307,7 +307,7 @@ void ImageHandler::Decompress()
 }
 
 // For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
-void ImageHandler::bindTextures(Shader &shader, int eye)
+void ImageHandler::BindTextures(Shader &shader, int eye)
 {
 	if (m_textures[eye][0] == 0) {
 		fprintf(stderr, "No texture loaded for that eye\n");
@@ -315,7 +315,7 @@ void ImageHandler::bindTextures(Shader &shader, int eye)
 	}
 
 	for (int i = 0; i < 6; i++) {
-		shader.bindTexture(m_txUniforms[i], i, m_textures[eye][i]);
+		shader.BindTexture(m_txUniforms[i], i, m_textures[eye][i]);
 	}
 }
 
