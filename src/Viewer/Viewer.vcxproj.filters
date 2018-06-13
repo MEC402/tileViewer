@@ -69,6 +69,9 @@
     <ClInclude Include="Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="STViewerCallbacks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -104,6 +107,9 @@
     <ClCompile Include="Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -114,6 +120,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="gui.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="gui.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

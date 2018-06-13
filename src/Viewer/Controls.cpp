@@ -94,6 +94,9 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F5:
 		//fprintf(stderr, "FOV is at %f\n", Camera::FOV);
+#ifdef DEBUG
+		viewer->WaitingThreads();
+#endif
 		break;
 
 	case GLUT_KEY_F6:

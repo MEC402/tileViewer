@@ -24,6 +24,7 @@
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
 #include "Shader.h"
+#include "Shared.h"
 
 struct PanoInfo;
 
