@@ -78,7 +78,7 @@ void ImageHandler::InitStereoURLs()
 		return;
 
 	m_stereoLoaded = true;
-	for (int depth = 0; depth < 4; depth++) {
+	for (int depth = 0; depth <= MAXDEPTH; depth++) {
 		int maxDepth = (int)pow(2, depth);
 		for (int i = maxDepth - 1; i >= 0; i--) {
 			for (int j = maxDepth - 1; j >= 0; j--) {
@@ -125,7 +125,7 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 	if (!m_urls.empty())
 		m_urls.clear();
 
-	for (int depth = 0; depth < 4; depth++) {
+	for (int depth = 0; depth <= MAXDEPTH; depth++) {
 		int maxDepth = (int)pow(2, depth);
 		for (int i = maxDepth - 1; i >= 0; i--) {
 			for (int j = maxDepth - 1; j >= 0; j--) {
