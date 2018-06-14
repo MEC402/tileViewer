@@ -19,6 +19,9 @@
 // Texture names
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
+const int WIDTH = 512;
+const int HEIGHT = 512;
+const int MAXDEPTH = 3;
 
 /* ---------------- Public Functions ---------------- */
 
@@ -37,11 +40,8 @@ void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &s
 	// 6 for each eye
 	glGenTextures(6, m_textures[0]);
 
-	// hardcoded magic
-	int maxDepth = 3;
-
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, 0, shader);	
+		initFaceAtlas(i, MAXDEPTH, 0, shader);	
 	}
 
 	if (m_panoList.size() > 0)
@@ -62,7 +62,7 @@ void ImageHandler::InitStereo(Shader &shader)
 
 	glGenTextures(6, m_textures[1]);
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, 3, 1, shader);
+		initFaceAtlas(i, MAXDEPTH, 1, shader);
 	}
 
 }
@@ -166,14 +166,14 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
-			std::memcpy(dst, image->data, 512 * 512 * 3);
+			std::memcpy(dst, image->data, WIDTH * HEIGHT * 3); //3 comes from RGB only values, our images don't have alpha channels
 		}
 		PRINT_GL_ERRORS
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 		//glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glActiveTexture(image->activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		PRINT_GL_ERRORS
 		
@@ -370,8 +370,8 @@ void ImageHandler::Screenshot(int width, int height)
 void ImageHandler::initFaceAtlas(int face, int depth, int eye, Shader &shader)
 {
 	// TODO: Probably shouldn't hardcode image resolution like this
-	int maxWidth = 512 * (int)pow(2, depth);
-	int maxHeight = 512 * (int)pow(2, depth);
+	int maxWidth = WIDTH * (int)pow(2, depth);
+	int maxHeight = HEIGHT * (int)pow(2, depth);
 
 	GLuint program = shader.GetProgram();
 
@@ -400,6 +400,6 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye, Shader &shader)
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
-	glBufferData(GL_PIXEL_UNPACK_BUFFER, 512 * 512 * 3, 0, GL_STREAM_DRAW);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, WIDTH * HEIGHT * 3, 0, GL_STREAM_DRAW);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
