@@ -97,7 +97,7 @@ private:
 
 	// Pano data
 	std::vector<PanoInfo> m_panolist;
-	unsigned int m_currentPano;
+	int m_currentPano;
 
 	Shader m_shader;
 	Camera m_camera;

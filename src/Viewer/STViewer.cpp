@@ -79,24 +79,16 @@ void STViewer::ReloadPano()
 
 void STViewer::PrevPano()
 {
-	if (m_currentPano > 0) {
-		m_currentPano--;
-		SelectPano(m_currentPano);
-	}
-	else {
-		fprintf(stderr, "At first pano\n");
-	}
+	if (--m_currentPano < 0)
+		m_currentPano = m_panolist.size() - 1;
+	SelectPano(m_currentPano);
 }
 
 void STViewer::NextPano()
 {
-	if (m_currentPano < m_panolist.size() - 1) {
-		m_currentPano++;
-		SelectPano(m_currentPano);
-	}
-	else {
-		fprintf(stderr, "At last pano\n");
-	}
+	if (++m_currentPano >= m_panolist.size())
+		m_currentPano = 0;
+	SelectPano(m_currentPano);
 }
 
 void STViewer::SelectPano(int pano)
