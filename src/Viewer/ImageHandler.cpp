@@ -162,19 +162,19 @@ void ImageHandler::LoadImageData(ImageData *image)
 	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
 	if (image->data) {
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[image->eye][image->face]);
-		PRINT_GL_ERRORS;
+		PRINT_GL_ERRORS
 
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
 			std::memcpy(dst, image->data, 512 * 512 * 3);
 		}
-		PRINT_GL_ERRORS;
+		PRINT_GL_ERRORS
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
 		glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-		PRINT_GL_ERRORS;
+		PRINT_GL_ERRORS
 		
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 	}
@@ -284,14 +284,15 @@ void ImageHandler::Decompress()
 			m_.unlock();
 			return;
 		}
-		m_.unlock();
 
 		if (!m_compressed->IsEmpty()) {
 			imageFile = m_compressed->Dequeue();
 		}
 		else {
+			m_.unlock();
 			continue;
 		}
+		m_.unlock();
 
 		int width, height, nrChannels;
 		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);

@@ -19,7 +19,6 @@ public:
 	void RebindVAO();
 	void QuadSetDepth(int face, int row, int col, int depth);
 	void ResetDepth();
-	bool Ready();
 
 
 	GLuint m_PositionVBOID{ 0 };
