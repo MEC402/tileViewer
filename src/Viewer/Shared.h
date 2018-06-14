@@ -3,8 +3,8 @@
 
 #include <GL\glew.h>
 
-#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
-#define OCULUS
+//#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
+//#define OCULUS
 
 
 #define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__);

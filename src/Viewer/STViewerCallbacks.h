@@ -206,8 +206,6 @@ void _Display()
 	} 
 	else {
 #endif
-		_shader->Bind();
-		_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();

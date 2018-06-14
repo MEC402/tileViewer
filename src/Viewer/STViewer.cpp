@@ -323,8 +323,10 @@ void STViewer::resetCubes()
 		m_RightEye = new CubePoints(m_maxDepth, 1);
 
 	// LeftEye is default
-	if (m_LeftEye == NULL)
+	if (m_LeftEye == NULL) {
 		m_LeftEye = new CubePoints(m_maxDepth, 0);
+		m_shader.SetFloatUniform("TileWidth", m_LeftEye->m_TILEWIDTH);
+	}
 	else {
 		m_LeftEye->ResetDepth();
 		m_LeftEye->RebindVAO();
