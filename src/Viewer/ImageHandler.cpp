@@ -4,6 +4,9 @@
 #include "InternetDownload.h"
 #include <chrono>
 
+#define STBI_NO_HDR		// Totally optional, but reduces total codebase size
+#define STBI_ONLY_PNG	// Totally optional, but reduces total codebase size
+#define STBI_ONLY_JPEG	// Totally optional, but reduces total codebase size
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -11,8 +14,10 @@
 #define STBI_MSC_SECURE_CRT
 #include "stb_image_write.h"
 
+#ifdef DEBUG
 #define TIMERSTART std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 #define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()
+#endif
 
 #include <mutex>
 
@@ -140,13 +145,13 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 
 	// m_tileDepth is useful for discarding image files for which we already have a better texture
 	// Due to logic flow I'm not convinced there's a good place to put such a check, but maybe?
-	for (int face = 0; face < 6; face++) {
-		for (int row = 0; row < 8; row++) {
-			for (int col = 0; col < 8; col++) {
-				m_tileDepth[face][row][col] = 0;
-			}
-		}
-	}
+	//for (int face = 0; face < 6; face++) {
+	//	for (int row = 0; row < 8; row++) {
+	//		for (int col = 0; col < 8; col++) {
+	//			m_tileDepth[face][row][col] = 0;
+	//		}
+	//	}
+	//}
 }
 
 void ImageHandler::ClearQueues()
@@ -208,72 +213,6 @@ void ImageHandler::LoadQuadImage()
 
 		m_compressed->Enqueue(imageFile);
 	}
-}
-
-void ImageHandler::LoadFaceImage(int face, int depth, int eye)
-{
-	// Basically the same as LoadQuadImage
-	const char facename = m_faceNames[face];
-	int activeTexture = m_textures[eye][face];
-	
-	// This seems to work pretty nicely
-	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
-	std::vector<std::string> urls;
-
-	// Populate our URL vectors in reverse, this helps make loading in images appear smoother (we don't overwrite lower-depth tiles until last)
-	for (int i = maxDepth-1; i >= 0; i--) {
-		int bufferSize = 256;
-		char buf[256];
-		for (int j = maxDepth-1; j >= 0; j--) {
-			if (eye == 0) {
-				sprintf_s(buf, m_panoList[m_currentPano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-			}
-			else {
-				sprintf_s(buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-			}
-			urls.push_back(buf);
-		}
-	}
-
-	// Initialize all our pointers on the heap ahead of time
-	// Might be a way to do this on imageFiles declaration?
-	ImageData **imageFiles = new ImageData*[maxDepth * maxDepth];
-	for (int i = 0; i < maxDepth * maxDepth; i++) {
-		imageFiles[i] = new ImageData{ 0 };
-	}
-
-	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
-	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
-	t.detach();
-	//std::thread t(testReuseHandle, imageFiles, urls.data(), urls.size());
-	//t.detach();}
-
-	int i = 0;
-	int width, height, nrChannels;
-	while(i < (maxDepth * maxDepth)) {
-		// Check the completion status of each image before trying to load it
-		if (imageFiles[i]->complete) {
-			// Same as LoadQuadImage, new pointers then free then reassign to avoid memory leaks
-			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)imageFiles[i]->data, imageFiles[i]->dataSize, &width, &height, &nrChannels, 0));
-
-			free(imageFiles[i]->data);
-
-			imageFiles[i]->data = d;
-			imageFiles[i]->activeTexture = activeTexture;
-			imageFiles[i]->face = face;
-			imageFiles[i]->eye = eye;
-			imageFiles[i]->w_offset *= width;
-			imageFiles[i]->h_offset *= height;
-
-			Decompressed->Enqueue(imageFiles[i]);
-
-			// Reset complete flag to false so we aren't double-counting (This is only set to true in InternetDownloader)
-			imageFiles[i]->complete = false;
-			i++;
-		}
-	}
-	// No longer need the pointer for our array of ImageData pointers, they're all in the ImageQueue now
-	delete[]imageFiles;
 }
 
 void ImageHandler::Decompress()

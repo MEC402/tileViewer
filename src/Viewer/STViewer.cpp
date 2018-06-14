@@ -72,6 +72,9 @@ void STViewer::ToggleStereo()
 	_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 }
 
+
+/* ---------------------- Panorama / Texture Controls ---------------------- */
+
 void STViewer::ReloadPano()
 {
 	resetImages();
@@ -116,6 +119,13 @@ void STViewer::ReloadShaders()
 	m_shader.Bind();
 }
 
+std::vector<PanoInfo> STViewer::GetPanos()
+{
+	return m_panolist;
+}
+
+/* ---------------------- Camera Controls ---------------------- */
+
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.FOV += FOVChange;
@@ -137,10 +147,6 @@ void STViewer::ResetCamera()
 	m_camera.UpdateCameras();
 }
 
-std::vector<PanoInfo> STViewer::GetPanos()
-{
-	return m_panolist;
-}
 
 void STViewer::Screenshot()
 {
@@ -153,26 +159,6 @@ void STViewer::FlipDebug()
 }
 
 /*---------------- Private Functions ----------------*/
-
-//This ends up being slower than LoadAllQuadDepths, probably from fewer threads running?
-void STViewer::loadAllFaceDepths()
-{
-	int eyes = 1;
-	if (m_stereo)
-		eyes = 2;
-
-	ImageHandler& images = m_images;
-	for (int depth = 0; depth < 4; depth++) {
-		for (int face = 0; face < 6; face++) {
-			for (int eye = 0; eye < eyes; eye++) {
-				texturePool->submit([&images](int face, int depth, int eye)
-				{
-					images.LoadFaceImage(face, depth, eye);
-				}, face, depth, eye);
-			}
-		}
-	}
-}
 
 void STViewer::loadAllQuadDepths()
 {
@@ -380,6 +366,8 @@ void STViewer::initTextures()
 	// Trigger our logic pattern to init cubes and start loading images
 	resetImages();
 
+	// Left eye is default and always exists.
+	// Texture bindings swap in _Display so no need to deal with Stereo mode here
 	m_pointCount = m_LeftEye->m_NumVertices;
 	m_images.BindTextures(m_shader, 0);
 
