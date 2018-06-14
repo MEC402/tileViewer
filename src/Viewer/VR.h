@@ -75,6 +75,7 @@ void updateVRDevice(VRDevice* vr);
 glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ);
 glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex);
 glm::vec3 getVRHeadsetPosition(VRDevice* vr);
+glm::quat getVRHeadsetRotation(VRDevice* vr);
 
 // Gets the state of Oculus Touch controllers. You can access the returned data directly.
 VRControllerStates getVRControllerState(VRDevice* vr);

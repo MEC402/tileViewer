@@ -124,11 +124,6 @@ CubePoints::CubePoints(int maxResDepth, int m_eye) :
 	m_setupOGL();
 }
 
-bool CubePoints::Ready()
-{
-	return !m_VBOupdates.empty();
-}
-
 void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
 	std::lock_guard<std::mutex> lock(m_);
@@ -205,33 +200,27 @@ void CubePoints::RebindVAO()
 {
 	std::lock_guard<std::mutex> lock(m_);
 
-	if (m_VBOupdates.empty())
-		return;
+	while (!m_VBOupdates.empty()) {
+		std::tuple<int, int> Range = m_VBOupdates.front();
+		int front = std::get<0>(Range);
+		int back = std::get<1>(Range);
+		m_VBOupdates.pop_front();
 
-	std::tuple<int, int> Range = m_VBOupdates.front();
-	int front = std::get<0>(Range);
-	int back = std::get<1>(Range);
-	m_VBOupdates.pop_front();
-
+		glBindVertexArray(m_PositionVAOID);
+		glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+		if (m_buffer)
+			std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
 #ifdef DEBUG
-	GLenum error;
-#endif
-	glBindVertexArray(m_PositionVAOID);
-	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	if (m_buffer)
-		std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
-#ifdef DEBUG
-	else
-		fprintf(stderr, "MapBuffer pointer is NULL\n");
+		else
+			fprintf(stderr, "MapBuffer pointer is NULL\n");
 #endif
 
-	glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
+		glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
 #ifdef DEBUG
-	if ((error = glGetError()) != GL_NO_ERROR) {
-		fprintf(stderr, "Error flushing to MapBuffer: %s\n", gluErrorString(error));
+		PRINT_GL_ERRORS
+#endif
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
-#endif
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void CubePoints::m_setupOGL()

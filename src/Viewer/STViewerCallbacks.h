@@ -2,6 +2,8 @@
 // This file should not be included anywhere except STViewer.cpp
 #include "STViewer.h"
 #include "Controls.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 STViewer *_viewer;
 
@@ -32,6 +34,9 @@ ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
+double _globalTime;
+long long _programStartTime;
+
 
 void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 {
@@ -50,6 +55,11 @@ void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images,
 	if (_stereo)
 		_righteye = righteye;
 	_camera = camera;
+
+	// Init time
+	LARGE_INTEGER time;
+	QueryPerformanceCounter(&time);
+	_programStartTime = time.QuadPart;
 }
 
 #ifdef OCULUS
@@ -151,6 +161,7 @@ void _Display()
 {
 #ifdef OCULUS
 	if (_usingVR) {
+		glDisable(GL_CULL_FACE);
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
@@ -168,12 +179,22 @@ void _Display()
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 			_shader->SetMatrixUniform("MVP", perspective*view);
 
-			if (eyeIndex == 0)
-				glBindVertexArray(_lefteye->m_PositionVAOID);
-			else 
-				glBindVertexArray(_lefteye->m_PositionVAOID);
+			if (eyeIndex == 0) {
+				_lefteye->BindVAO();
+				glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
+			}
+			else {
+				_righteye->BindVAO();
+				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
+			}
 
-			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
+
+			double uiDisplayWaitTime = 1.5;
+			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
+				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
+				float uiRadius = 0.65;
+				displayGUI(_viewer->m_gui, getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection);
+			}
 
 			commitEyeRenderSurface(_vr, eyeIndex);
 		}
@@ -219,7 +240,14 @@ void _Display()
 
 void _Idle()
 {
-	_viewer->Update();
+	LARGE_INTEGER time;
+	LARGE_INTEGER ticksPerSecond;
+	QueryPerformanceCounter(&time);
+	QueryPerformanceFrequency(&ticksPerSecond);
+	float deltaTime = float(time.QuadPart - _programStartTime) / float(ticksPerSecond.QuadPart) - _globalTime;
+	_globalTime = (time.QuadPart - _programStartTime) / double(ticksPerSecond.QuadPart);
+
+	_viewer->Update(_globalTime, deltaTime);
 }
 
 void _Resize(int w, int h)
