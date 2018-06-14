@@ -18,9 +18,10 @@
 #include "RemoteClient.h"
 #include "ThreadPool.hpp"
 
+#ifdef OCULUS
 #include "VR.h"
 #include "GUI.h"
-
+#endif
 
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
 class STViewer {
@@ -46,14 +47,21 @@ public:
 	void Screenshot(void);
 	void FlipDebug(void);
 
+#ifdef OCULUS
 	void Update(double globalTime, float deltaTime);
+#else
+	void Update(void);
+#endif
+
 	void Cleanup(void);
 
 	std::vector<PanoInfo> GetPanos(void);
 
+#ifdef OCULUS
 	GraphicalInterface m_gui;
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
+#endif
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -114,8 +122,10 @@ private:
 
 	ImageQueue *m_LoadedTextures;
 
+#ifdef OCULUS
 	bool m_usingVR;
 	VRDevice m_vr;
+#endif
 
 	RemoteClient *m_remote;
 

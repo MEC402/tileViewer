@@ -148,6 +148,32 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->RebindVAO();
 		break;
 #endif
+	case 'a':
+		viewer->MoveCamera(0, -1.0f, 0);
+		break;
+	case 'A':
+		viewer->MoveCamera(0, -3.0f, 0);
+		break;
+	case 'd':
+		viewer->MoveCamera(0, 1.0f, 0);
+		break;
+	case 'D':
+		viewer->MoveCamera(0, 3.0f, 0);
+		break;
+	case 'w':
+		viewer->MoveCamera(1.0f, 0, 0);
+		break;
+	case 'W':
+		viewer->MoveCamera(3.0f, 0, 0);
+		break;
+	case 's':
+		viewer->MoveCamera(-1.0f, 0, 0);
+		break;
+	case 'S':
+		viewer->MoveCamera(-3.0f, 0, 0);
+		break;
+
+
 	case 'f':
 		glutFullScreenToggle();
 		break;

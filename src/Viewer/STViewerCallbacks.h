@@ -27,6 +27,8 @@ int _Height = 800;
 #ifdef OCULUS
 bool _usingVR = false;
 VRDevice *_vr;
+double _globalTime;
+long long _programStartTime;
 #endif
 bool _stereo = false;
 Shader *_shader;
@@ -34,8 +36,7 @@ ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
-double _globalTime;
-long long _programStartTime;
+
 
 
 void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
@@ -56,10 +57,12 @@ void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images,
 		_righteye = righteye;
 	_camera = camera;
 
+#ifdef OCULUS
 	// Init time
 	LARGE_INTEGER time;
 	QueryPerformanceCounter(&time);
 	_programStartTime = time.QuadPart;
+#endif
 }
 
 #ifdef OCULUS
@@ -239,6 +242,7 @@ void _Display()
 
 void _Idle()
 {
+#ifdef OCULUS
 	LARGE_INTEGER time;
 	LARGE_INTEGER ticksPerSecond;
 	QueryPerformanceCounter(&time);
@@ -247,6 +251,9 @@ void _Idle()
 	_globalTime = (time.QuadPart - _programStartTime) / double(ticksPerSecond.QuadPart);
 
 	_viewer->Update(_globalTime, deltaTime);
+#else
+	_viewer->Update();
+#endif
 }
 
 void _Resize(int w, int h)

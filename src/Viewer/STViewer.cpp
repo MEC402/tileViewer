@@ -184,7 +184,11 @@ void STViewer::loadAllQuadDepths()
 	}
 }
 
+#ifdef OCULUS
 void STViewer::Update(double globalTime, float deltaTime)
+#else
+void STViewer::Update()
+#endif
 {
 	if (m_remote != NULL && m_remote->ChangePano()) {
 		if (m_images.InitPanoList(m_remote->GetPano())) {

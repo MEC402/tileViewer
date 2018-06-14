@@ -293,7 +293,7 @@ void ImageHandler::Decompress()
 			continue;
 		}
 		m_.unlock();
-
+		
 		int width, height, nrChannels;
 		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
 
