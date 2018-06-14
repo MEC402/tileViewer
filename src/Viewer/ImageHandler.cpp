@@ -29,7 +29,7 @@ ImageHandler::ImageHandler()
 	m_stereoLoaded = false;
 }
 
-void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender) 
+void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &shader) 
 {
 	Decompressed = toRender;
 	m_compressed = new ImageQueue();
@@ -41,18 +41,18 @@ void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender)
 	int maxDepth = 3;
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, 0);	
+		initFaceAtlas(i, maxDepth, 0, shader);	
 	}
 
 	if (m_panoList.size() > 0)
 		InitURLs(0, stereo);
 
 	if (stereo) {
-		InitStereo();
+		InitStereo(shader);
 	}
 }
 
-void ImageHandler::InitStereo()
+void ImageHandler::InitStereo(Shader &shader)
 {
 	// Try to populate stereo URLs first
 	InitStereoURLs();
@@ -62,7 +62,7 @@ void ImageHandler::InitStereo()
 
 	glGenTextures(6, m_textures[1]);
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, 3, 1);
+		initFaceAtlas(i, 3, 1, shader);
 	}
 
 }
@@ -171,7 +171,8 @@ void ImageHandler::LoadImageData(ImageData *image)
 		PRINT_GL_ERRORS
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
-		glBindTexture(GL_TEXTURE_2D, image->activeTexture);
+		//glBindTexture(GL_TEXTURE_2D, image->activeTexture);
+		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, 512, 512, 
 			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 		PRINT_GL_ERRORS
@@ -200,7 +201,8 @@ void ImageHandler::LoadQuadImage()
 		ImageData *imageFile = new ImageData{ 0 };
 		downloadFile(imageFile, u.buf);
 
-		imageFile->activeTexture = m_textures[u.eye][u.face];
+		//imageFile->activeTexture = m_textures[u.eye][u.face];
+		imageFile->activeTexture = GL_TEXTURE0 + u.face + (6 * u.eye);
 		imageFile->face = u.face;
 		imageFile->eye = u.eye;
 
@@ -314,8 +316,18 @@ void ImageHandler::BindTextures(Shader &shader, int eye)
 		return;
 	}
 
+	//for (int i = 0; i < 6; i++) {
+	//	shader.BindTexture(m_txUniforms[i], i, m_textures[eye][i]);
+	//}
+	GLuint program = shader.GetProgram();
 	for (int i = 0; i < 6; i++) {
-		shader.BindTexture(m_txUniforms[i], i, m_textures[eye][i]);
+		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
+		if (TxUniform == -1) {
+			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
+		}
+		else {
+			glUniform1i(TxUniform, i + (6 * eye));
+		}
 	}
 }
 
@@ -355,11 +367,16 @@ void ImageHandler::Screenshot(int width, int height)
 /* ---------------- Private Functions ---------------- */
 
 
-void ImageHandler::initFaceAtlas(int face, int depth, int eye)
+void ImageHandler::initFaceAtlas(int face, int depth, int eye, Shader &shader)
 {
 	// TODO: Probably shouldn't hardcode image resolution like this
 	int maxWidth = 512 * (int)pow(2, depth);
 	int maxHeight = 512 * (int)pow(2, depth);
+
+	GLuint program = shader.GetProgram();
+
+	const char *uniform = m_txUniforms[face];
+	glActiveTexture(GL_TEXTURE0 + face + (eye * 6));
 
 	glBindTexture(GL_TEXTURE_2D, m_textures[eye][face]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -372,7 +389,13 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	
+	GLuint TxUniform = glGetUniformLocation(program, uniform);
+	if (TxUniform == -1) {
+		fprintf(stderr, "Error getting %s uniform\n", uniform);
+	}
+	else {
+		glUniform1i(TxUniform, face);
+	}
 
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);

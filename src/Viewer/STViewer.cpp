@@ -57,7 +57,7 @@ void STViewer::ToggleStereo()
 {
 	m_stereo = !m_stereo;
 	m_camera.SplitHorizontal();
-	m_images.InitStereo();
+	m_images.InitStereo(m_shader);
 	if (m_stereo) {
 		if (m_RightEye == NULL) {
 			m_RightEye = new CubePoints(m_maxDepth, 1);
@@ -375,7 +375,7 @@ void STViewer::initVR()
 
 void STViewer::initTextures()
 {
-	m_images.InitTextureAtlas(m_stereo, m_LoadedTextures);
+	m_images.InitTextureAtlas(m_stereo, m_LoadedTextures, m_shader);
 
 	// Trigger our logic pattern to init cubes and start loading images
 	resetImages();
