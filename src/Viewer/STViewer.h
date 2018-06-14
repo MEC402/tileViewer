@@ -46,10 +46,14 @@ public:
 	void Screenshot(void);
 	void FlipDebug(void);
 
-	void Update(void);
+	void Update(double globalTime, float deltaTime);
 	void Cleanup(void);
 
 	std::vector<PanoInfo> GetPanos(void);
+
+	GraphicalInterface m_gui;
+	float m_guiPanoSelection;
+	double m_lastUIInteractionTime;
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -112,7 +116,6 @@ private:
 
 	bool m_usingVR;
 	VRDevice m_vr;
-	GraphicalInterface m_gui;
 
 	RemoteClient *m_remote;
 
