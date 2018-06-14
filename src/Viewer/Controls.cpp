@@ -132,11 +132,19 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	float average = 0.0f;
 	switch (key) {
 	case '1':
+		viewer->SwitchEye(0);
+		break;
+
 	case '2':
+		viewer->SwitchEye(1);
+		break;
+
+	case '3':
 		viewer->ReloadShaders();
+		break;
 
 #ifdef DEBUG
-	case '3':
+	case '4':
 		viewer->RebindVAO();
 		break;
 #endif

@@ -188,7 +188,6 @@ void _Display()
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		_images->BindTextures(*_shader, 0);
 		glBindVertexArray(_lefteye->m_PositionVAOID);
 		for (int i = 0; i < _camera->NumCameras; i++) {
 			_camera->SetViewport(_camera->LeftCameras[i]);

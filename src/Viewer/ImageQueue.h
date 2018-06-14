@@ -2,7 +2,7 @@
 #define IMAGEQUEUE_H
 
 #include <mutex>
-#include <queue>
+#include <deque>
 #include "Image.h"
 
 class ImageQueue {
@@ -20,7 +20,7 @@ public:
 
 private:
 	std::mutex mutex_;
-	std::queue<ImageData*> queue_;
+	std::deque<ImageData*> queue_;
 	bool discard; // Discard anything that comes in while we're clearing a queue
 
 };

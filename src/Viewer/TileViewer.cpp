@@ -1,9 +1,7 @@
 #include "TileViewer.h"
-#include "Controls.h"
 
 std::vector<PanoInfo> panolist;
 bool DEBUG_FLAG;
-
 
 int main(int argc, char **argv)
 {

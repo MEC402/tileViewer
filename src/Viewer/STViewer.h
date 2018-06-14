@@ -38,7 +38,9 @@ public:
 	void ReloadPano(void);
 	void SelectPano(int pano);
 
+	void SwitchEye(int eye);
 	void ReloadShaders(void);
+
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void Screenshot(void);

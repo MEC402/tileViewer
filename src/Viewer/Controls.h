@@ -1,13 +1,6 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 
-#include <GL\glew.h>
-#include <GL\freeglut.h>
-#include <stdio.h>
-#include <numeric>
-
-#include "Camera.h"
-#include "ImageHandler.h"
 #include "STViewer.h"
 
 class Controls {

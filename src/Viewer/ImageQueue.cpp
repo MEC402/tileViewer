@@ -2,7 +2,7 @@
 #include "ImageQueue.h"
 
 std::mutex mutex_;
-std::queue<ImageData*> queue_;
+std::deque<ImageData*> queue_;
 bool discard = false;
 
 void ImageQueue::Clear()
@@ -11,15 +11,16 @@ void ImageQueue::Clear()
 	std::lock_guard<std::mutex> lock(mutex_);
 	while (!queue_.empty()) {
 		ImageData *i = queue_.front();
-		queue_.pop();
+		queue_.pop_front();
 		i->Free();
 	}
 }
+
 ImageData* ImageQueue::Dequeue()
 {
 	std::lock_guard<std::mutex> lock(mutex_);
 	ImageData *file = queue_.front();
-	queue_.pop();
+	queue_.pop_front();
 	return file;
 }
 
@@ -30,7 +31,7 @@ void ImageQueue::Enqueue(ImageData *file)
 	}
 	else {
 		std::lock_guard<std::mutex> lock(mutex_);
-		queue_.push(file);
+		queue_.push_back(file);
 	}
 }
 
