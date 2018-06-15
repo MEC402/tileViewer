@@ -339,6 +339,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="RemoteClient.h" />
+    <ClInclude Include="SafeQueue.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Shared.h" />
     <ClInclude Include="Socket.h" />

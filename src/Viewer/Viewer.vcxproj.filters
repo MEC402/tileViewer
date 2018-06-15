@@ -79,6 +79,7 @@
     <ClInclude Include="VR.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="SafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="gui.frag" />
