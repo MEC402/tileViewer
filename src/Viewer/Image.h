@@ -7,6 +7,7 @@ struct ImageData
 	//std::unique_ptr<unsigned char*> data;
 	unsigned char* data;
 	unsigned int dataSize;
+	int colorChannels;
 
 	// Pixel offset info
 	int w_offset;

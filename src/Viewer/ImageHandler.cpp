@@ -173,15 +173,17 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
-			std::memcpy(dst, image->data, WIDTH * HEIGHT * 3); //3 comes from RGB only values, our images don't have alpha channels
+			std::memcpy(dst, image->data, WIDTH * HEIGHT * image->colorChannels);
 		}
 		PRINT_GL_ERRORS
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 
+		GLenum format = (image->colorChannels == 3) ? GL_RGB : GL_RGBA;
+
 		//glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT, 
-			GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+			format, GL_UNSIGNED_BYTE, nullptr);
 		PRINT_GL_ERRORS
 		
 		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -235,6 +237,7 @@ void ImageHandler::Decompress()
 		imageFile->data = d;
 		imageFile->w_offset *= width;
 		imageFile->h_offset *= height;
+		imageFile->colorChannels = nrChannels;
 		Decompressed->Enqueue(imageFile);
 	}
 }
@@ -247,18 +250,8 @@ void ImageHandler::BindTextures(Shader &shader, int eye)
 		return;
 	}
 
-	//for (int i = 0; i < 6; i++) {
-	//	shader.BindTexture(m_txUniforms[i], i, m_textures[eye][i]);
-	//}
-	GLuint program = shader.GetProgram();
 	for (int i = 0; i < 6; i++) {
-		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
-		if (TxUniform == -1) {
-			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
-		}
-		else {
-			glUniform1i(TxUniform, i + (6 * eye));
-		}
+		shader.SetSamplerUniform(m_txUniforms[i], i + (6 * eye));
 	}
 }
 

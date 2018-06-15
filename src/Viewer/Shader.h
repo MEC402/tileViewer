@@ -16,6 +16,7 @@ public:
 	void Bind();
 	void SetFloatUniform(const char* nameInShader, float value);
 	void SetMatrixUniform(const char* nameInShader, glm::mat4x4 matrix);
+	void SetSamplerUniform(const char* nameInShader, int textureSlot);
 	void BindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID);
 
 	GLuint GetProgram();

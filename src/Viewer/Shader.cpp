@@ -65,6 +65,17 @@ void Shader::SetMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
 	}
 }
 
+void Shader::SetSamplerUniform(const char* nameInShader, int textureSlot)
+{
+	GLuint uniform = glGetUniformLocation(m_program, nameInShader);
+	if (uniform == -1) {
+		fprintf(stderr, "Error getting %s uniform\n", nameInShader);
+	}
+	else {
+		glUniform1i(uniform, textureSlot);
+	}
+}
+
 void Shader::BindTexture(const char* samplerNameInShader, int activeTextureSlot, GLuint textureID)
 {
 	GLuint TxUniform = glGetUniformLocation(m_program, samplerNameInShader);
