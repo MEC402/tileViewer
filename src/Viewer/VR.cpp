@@ -369,6 +369,9 @@ void updateVRDevice(VRDevice* vr)
 	vr->controllers.left.thumbstickY = inputState.Thumbstick[ovrHand_Left].y;
 	vr->controllers.left.indexFingerTrigger = inputState.IndexTrigger[ovrHand_Left];
 	vr->controllers.left.middleFingerTrigger = inputState.HandTrigger[ovrHand_Left];
+
+	updateButton(&vr->controllers.left.thumbstickTouch, inputState.Touches & ovrButton_LThumb);
+	updateButton(&vr->controllers.right.thumbstickTouch, inputState.Touches & ovrButton_RThumb);
 }
 
 glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)

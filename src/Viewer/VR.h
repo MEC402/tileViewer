@@ -31,6 +31,7 @@ struct VRControllerStates
 		float thumbstickY;
 		float indexFingerTrigger;
 		float middleFingerTrigger;
+		Button thumbstickTouch;
 	};
 
 	Controller left;
