@@ -135,6 +135,7 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 	m_camera.Pitch += pitchChange;
 	m_camera.Yaw += yawChange;
 
+
 	m_camera.UpdateMVP();
 	m_camera.UpdateCameras();
 }
