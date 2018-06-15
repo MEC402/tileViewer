@@ -3,6 +3,7 @@
 #include "ImageHandler.h"
 #include "InternetDownload.h"
 #include <chrono>
+#include <mutex>
 
 #define STBI_NO_HDR		// Totally optional, but reduces total codebase size
 #define STBI_ONLY_PNG	// Totally optional, but reduces total codebase size
@@ -19,7 +20,6 @@
 #define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()
 #endif
 
-#include <mutex>
 
 // Texture names
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
@@ -37,10 +37,11 @@ ImageHandler::ImageHandler()
 	m_stereoLoaded = false;
 }
 
-void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &shader) 
+void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender, Shader &shader) 
 {
 	Decompressed = toRender;
-	m_compressed = new ImageQueue();
+	m_urls = new SafeQueue<URL>();
+	m_compressed = new SafeQueue<ImageData*>();
 	
 	// 6 for each eye
 	glGenTextures(6, m_textures[0]);
@@ -85,7 +86,7 @@ void ImageHandler::InitStereoURLs()
 				for (int face = 0; face < 6; face++) {
 					URL url(face, 1);
 					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-					m_urls.emplace_back(url);
+					m_urls->Enqueue(url);
 				}
 			}
 		}
@@ -122,8 +123,8 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 		return;
 	m_stereoLoaded = stereo;
 
-	if (!m_urls.empty())
-		m_urls.clear();
+	if (!m_urls->IsEmpty())
+		m_urls->Clear();
 
 	for (int depth = 0; depth <= MAXDEPTH; depth++) {
 		int maxDepth = (int)pow(2, depth);
@@ -132,11 +133,11 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 				for (int face = 0; face < 6; face++) {
 					URL url(face, 0);
 					sprintf_s(url.buf, m_panoList[pano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-					m_urls.emplace_back(url);
+					m_urls->Enqueue(url);
 					if (stereo) {
 						URL url(face, 1);
 						sprintf_s(url.buf, m_panoList[pano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-						m_urls.emplace_back(url);
+						m_urls->Enqueue(url);
 					}
 				}
 			}
@@ -159,7 +160,8 @@ void ImageHandler::ClearQueues()
 	std::lock_guard<std::mutex> lock(m_);
 	m_compressed->Clear();
 	m_compressed->ToggleDiscard();
-	m_urls.clear();
+	m_urls->Clear();
+	m_urls->ToggleDiscard();
 }
 
 void ImageHandler::LoadImageData(ImageData *image)
@@ -194,13 +196,11 @@ void ImageHandler::LoadQuadImage()
 {
 	while (true) {
 		m_.lock();
-		if (m_urls.empty()) {
+		if (m_urls->IsEmpty()) {
 			m_.unlock();
 			return Decompress();
 		}
-
-		URL u = m_urls.front();
-		m_urls.pop_front();
+		URL u = m_urls->Dequeue();
 		m_.unlock();
 
 		ImageData *imageFile = new ImageData{ 0 };
@@ -219,21 +219,13 @@ void ImageHandler::Decompress()
 {
 	ImageData* imageFile = NULL;
 	while (true) {
-		m_.lock();
 
-		if (m_urls.empty() && m_compressed->IsEmpty()) {
-			m_.unlock();
+		if (m_urls->IsEmpty() && m_compressed->IsEmpty())
 			return;
-		}
 
-		if (!m_compressed->IsEmpty()) {
-			imageFile = m_compressed->Dequeue();
-		}
-		else {
-			m_.unlock();
+		if ((imageFile = m_compressed->Dequeue()) == NULL)
 			continue;
-		}
-		m_.unlock();
+		
 		
 		int width, height, nrChannels;
 		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);

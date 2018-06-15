@@ -6,7 +6,6 @@
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
-    <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="TileViewer.cpp" />
@@ -38,9 +37,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="PanoInfo.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageQueue.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="RemoteClient.h">
@@ -79,6 +75,7 @@
     <ClInclude Include="VR.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="SafeQueue.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="gui.frag" />

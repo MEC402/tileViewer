@@ -20,9 +20,9 @@
 
 #include "Image.h"
 #include "ImageHandler.h"
-#include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
+#include "SafeQueue.h"
 #include "Shader.h"
 #include "Shared.h"
 
@@ -33,9 +33,9 @@ class ImageHandler {
 public:
 	std::vector<PanoInfo> m_panoList;
 	int m_currentPano;
-	ImageQueue *Decompressed;
+	SafeQueue<ImageData*> *Decompressed;
 
-	void InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &shader);
+	void InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender, Shader &shader);
 	void InitStereo(Shader &shader);
 	void InitStereoURLs(void);
 	bool InitPanoList(std::string url);
@@ -46,7 +46,6 @@ public:
 	void Screenshot(int width, int height);
 
 	void ClearQueues(void);
-	void LoadFaceImage(int face, int depth, int eye);
 	void LoadQuadImage(void);
 	void Decompress(void);
 
@@ -68,8 +67,10 @@ private:
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 
-	std::deque<URL> m_urls;
-	ImageQueue *m_compressed;
+	//std::deque<URL> m_urls;
+	SafeQueue<URL> *m_urls;
+	SafeQueue<ImageData*> *m_compressed;
+	//ImageQueue *m_compressed;
 
 	int m_tileDepth[6][8][8];
 
