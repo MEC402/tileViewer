@@ -10,7 +10,6 @@
 #include <deque>
 
 #include "Image.h"
-#include "ImageQueue.h"
 
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file);
 void populateImageData(ImageData *out_file, const char *url);

@@ -11,7 +11,6 @@
 #include "Camera.h"
 #include "CubePoints.h"
 #include "ImageHandler.h"
-#include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
@@ -88,7 +87,6 @@ private:
 	void resetCubes(void);
 
 	/*		For queueing texture load requests	*/
-	void loadAllFaceDepths(void);
 	void loadAllQuadDepths(void);
 
 	/*			CURL Download Cleanup Timer		*/
@@ -120,7 +118,7 @@ private:
 	bool m_fivepanel;
 	bool m_fullscreen;
 
-	ImageQueue *m_LoadedTextures;
+	SafeQueue<ImageData*> *m_LoadedTextures;
 
 #ifdef OCULUS
 	bool m_usingVR;

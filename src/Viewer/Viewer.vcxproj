@@ -334,7 +334,6 @@
     <ClInclude Include="GUI.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
-    <ClInclude Include="ImageQueue.h" />
     <ClInclude Include="InternetDownload.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
@@ -361,7 +360,6 @@
     <ClCompile Include="CubePoints.cpp" />
     <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
-    <ClCompile Include="ImageQueue.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="RemoteClient.cpp" />
     <ClCompile Include="Shader.cpp" />

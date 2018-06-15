@@ -20,7 +20,6 @@
 
 #include "Image.h"
 #include "ImageHandler.h"
-#include "ImageQueue.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
 #include "SafeQueue.h"
@@ -34,9 +33,9 @@ class ImageHandler {
 public:
 	std::vector<PanoInfo> m_panoList;
 	int m_currentPano;
-	ImageQueue *Decompressed;
+	SafeQueue<ImageData*> *Decompressed;
 
-	void InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &shader);
+	void InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender, Shader &shader);
 	void InitStereo(Shader &shader);
 	void InitStereoURLs(void);
 	bool InitPanoList(std::string url);

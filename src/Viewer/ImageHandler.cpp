@@ -37,7 +37,7 @@ ImageHandler::ImageHandler()
 	m_stereoLoaded = false;
 }
 
-void ImageHandler::InitTextureAtlas(bool stereo, ImageQueue *toRender, Shader &shader) 
+void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender, Shader &shader) 
 {
 	Decompressed = toRender;
 	m_urls = new SafeQueue<URL>();
@@ -196,9 +196,10 @@ void ImageHandler::LoadQuadImage()
 {
 	while (true) {
 		m_.lock();
-		if (m_urls->IsEmpty())
+		if (m_urls->IsEmpty()) {
+			m_.unlock();
 			return Decompress();
-
+		}
 		URL u = m_urls->Dequeue();
 		m_.unlock();
 

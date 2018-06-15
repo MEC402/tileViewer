@@ -40,7 +40,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	m_maxDepth = 3; // Magic hardcoded number (powers of 2);
 
-	m_LoadedTextures = new ImageQueue();
+	m_LoadedTextures = new SafeQueue<ImageData*>();
 
 	initGL();
 #ifdef OCULUS
