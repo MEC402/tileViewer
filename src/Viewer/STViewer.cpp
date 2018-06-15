@@ -192,6 +192,9 @@ void STViewer::Update()
 			SelectPano(round(m_guiPanoSelection));
 		}
 
+		if (controllers.right.thumbstickTouch.down) {
+			m_lastUIInteractionTime = globalTime;
+		}
 		if (controllers.right.thumbstickX != 0) {
 			m_lastUIInteractionTime = globalTime;
 			float menuSpeed = 20;
