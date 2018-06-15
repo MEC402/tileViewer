@@ -42,7 +42,7 @@ void renderModel(Model model, Shader& shader, GLuint tex, glm::mat4x4 mvp)
 	// Get a handle for our "MVP" uniform
 	shader.Bind();
 	shader.SetMatrixUniform("MVP", mvp);
-	shader.BindTexture("image", 0, tex);
+	shader.BindTexture("image", 13, tex); // The first 12 textures slots are used for panorama cube faces
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
