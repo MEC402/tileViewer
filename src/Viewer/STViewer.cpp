@@ -43,9 +43,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
 	initGL();
-#ifdef OCULUS
 	initVR();
-#endif
 	initTextures();
 
 	Controls::SetViewer(this);
@@ -171,11 +169,7 @@ void STViewer::loadAllQuadDepths()
 	}
 }
 
-#ifdef OCULUS
 void STViewer::Update(double globalTime, float deltaTime)
-#else
-void STViewer::Update()
-#endif
 {
 	if (m_remote != NULL && m_remote->ChangePano()) {
 		if (m_images.InitPanoList(m_remote->GetPano())) {
@@ -185,7 +179,6 @@ void STViewer::Update()
 		}
 	}
 
-#ifdef OCULUS
 	if (m_usingVR)
 	{
 		updateVRDevice(&m_vr);
@@ -226,7 +219,6 @@ void STViewer::Update()
 			m_guiPanoSelection = (1 - t)*m_guiPanoSelection + t*round(m_guiPanoSelection);
 		}
 	}
-#endif
 
 	// 16.67ms per frame, takes us ~0.5ms to send an image to the GPU/Update quad depth (async GL calls)
 	// Queue gets emptied fast enough that we never actually load 32 images sequentially, but we can do
@@ -361,7 +353,6 @@ void STViewer::initGL()
 
 }
 
-#ifdef OCULUS
 void STViewer::initVR()
 {
 	m_usingVR = createVRDevice(&m_vr, m_camera.Width, m_camera.Height);
@@ -374,7 +365,6 @@ void STViewer::initVR()
 		m_guiPanoSelection = 0;
 	}
 }
-#endif
 
 void STViewer::initTextures()
 {
