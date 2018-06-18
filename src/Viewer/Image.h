@@ -1,5 +1,6 @@
 #ifndef IMAGE_H
 #define IMAGE_H
+#include <malloc.h>
 
 struct ImageData
 {
@@ -7,12 +8,13 @@ struct ImageData
 	//std::unique_ptr<unsigned char*> data;
 	unsigned char* data;
 	unsigned int dataSize;
+	int width;
+	int height;
 	int colorChannels;
 
 	// Pixel offset info
 	int w_offset;
 	int h_offset;
-	int activeTexture;
 
 	int depth;
 	int row;
@@ -25,7 +27,7 @@ struct ImageData
 
 	void Free()
 	{
-		if (data != NULL)
+		if (data)
 			free(data);
 		free(this);
 	}

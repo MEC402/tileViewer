@@ -186,7 +186,7 @@ void _Display()
 			double uiDisplayWaitTime = 1.5;
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
 				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
-				float uiRadius = 0.65;
+				float uiRadius = 0.65f;
 				_viewer->m_gui.display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection);
 			}
 
@@ -234,7 +234,7 @@ void _Idle()
 	LARGE_INTEGER ticksPerSecond;
 	QueryPerformanceCounter(&time);
 	QueryPerformanceFrequency(&ticksPerSecond);
-	float deltaTime = float(time.QuadPart - _programStartTime) / float(ticksPerSecond.QuadPart) - _globalTime;
+	float deltaTime = float(double(time.QuadPart - _programStartTime) / double(ticksPerSecond.QuadPart) - _globalTime);
 	_globalTime = (time.QuadPart - _programStartTime) / double(ticksPerSecond.QuadPart);
 
 	_viewer->Update(_globalTime, deltaTime);

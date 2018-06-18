@@ -1,4 +1,5 @@
 #include "GraphicalMenu.h"
+#include "stb_image.h"
 #include "Render.h"
 
 void GraphicalMenu::create(std::vector<PanoInfo> panoList)

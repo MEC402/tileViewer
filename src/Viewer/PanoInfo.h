@@ -12,6 +12,8 @@ struct PanoInfo
 	std::string leftAddress;
 	std::string rightAddress;
 	std::string thumbAddress;
+	std::string leftAnnotations;
+	std::string rightAnnotations;
 };
 
 static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std::string baseImageURL) {
@@ -25,21 +27,26 @@ static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std:
 		for (unsigned int i = 0; i < panosArray.Size(); ++i)
 		{
 			PanoInfo pano;
-			if (panosArray[i].HasMember("id")
-				&& panosArray[i].HasMember("name")
-				&& panosArray[i].HasMember("left")
-				&& panosArray[i].HasMember("right")
-				&& panosArray[i].HasMember("thumb"))
-			{
+			if (panosArray[i].HasMember("id")) {
 				pano.id = panosArray[i]["id"].GetString();
+			}
+			if (panosArray[i].HasMember("name")) {
 				pano.displayName = panosArray[i]["name"].GetString();
+			}
+			if (panosArray[i].HasMember("left")) {
 				pano.leftAddress = baseImageURL + '/' + panosArray[i]["left"].GetString();
+			}
+			if (panosArray[i].HasMember("right")) {
 				pano.rightAddress = baseImageURL + '/' + panosArray[i]["right"].GetString();
+			}
+			if (panosArray[i].HasMember("thumb")) {
 				pano.thumbAddress = baseImageURL + '/' + panosArray[i]["thumb"].GetString();
 			}
-			else
-			{
-				printf("Incomplete data for pano no. %d\n", i);
+			if (panosArray[i].HasMember("annotations-left")) {
+				pano.leftAnnotations = baseImageURL + '/' + panosArray[i]["annotations-left"].GetString();
+			}
+			if (panosArray[i].HasMember("annotations-right")) {
+				pano.leftAnnotations = baseImageURL + '/' + panosArray[i]["annotations-right"].GetString();
 			}
 			panoInfoList.push_back(pano);
 		}

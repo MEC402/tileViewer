@@ -177,7 +177,7 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		GLenum format = (image->colorChannels == 3) ? GL_RGB : GL_RGBA;
 
-		glActiveTexture(image->activeTexture);
+		glActiveTexture(GL_TEXTURE0 + image->face + (6 * image->eye));
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT, 
 			format, GL_UNSIGNED_BYTE, nullptr);
 		PRINT_GL_ERRORS
@@ -204,8 +204,6 @@ void ImageHandler::LoadQuadImage()
 		ImageData *imageFile = new ImageData{ 0 };
 		downloadFile(imageFile, u.buf);
 
-		//imageFile->activeTexture = m_textures[u.eye][u.face];
-		imageFile->activeTexture = GL_TEXTURE0 + u.face + (6 * u.eye);
 		imageFile->face = u.face;
 		imageFile->eye = u.eye;
 
@@ -234,6 +232,8 @@ void ImageHandler::Decompress()
 		imageFile->w_offset *= width;
 		imageFile->h_offset *= height;
 		imageFile->colorChannels = nrChannels;
+		imageFile->width = width;
+		imageFile->height = height;
 		Decompressed->Enqueue(imageFile);
 	}
 }

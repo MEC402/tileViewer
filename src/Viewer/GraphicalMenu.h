@@ -1,6 +1,5 @@
 #pragma once
 #include "InternetDownload.h"
-#include "stb_image.h"
 #include <GL\glew.h>
 #include "PanoInfo.h"
 #include "Shader.h"

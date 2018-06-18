@@ -11,11 +11,13 @@
 #include "Camera.h"
 #include "CubePoints.h"
 #include "ImageHandler.h"
+#include "ImageLoader.h"
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
 #include "RemoteClient.h"
 #include "ThreadPool.hpp"
+#include "Annotations.h"
 
 #include "VR.h"
 #include "GraphicalMenu.h"
@@ -53,6 +55,7 @@ public:
 	GraphicalMenu m_gui;
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
+	Annotations m_annotations;
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -98,6 +101,8 @@ private:
 	Shader m_shader;
 	Camera m_camera;
 	ImageHandler m_images;
+	ImageLoader m_panoLoader;
+	ImageLoader m_annotationLoader;
 
 	// Thread pool data
 	Threads::ThreadPool *downloadPool;

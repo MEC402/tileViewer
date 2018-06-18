@@ -1,3 +1,6 @@
+#ifndef _SAFEQUEUE_H
+#define _SAFEQUEUE_H
+
 #include "Image.h"
 #include <mutex>
 #include <deque>
@@ -92,3 +95,5 @@ void SafeQueue<ImageData*>::Enqueue(ImageData *i)
 		queue_.push_back(i);
 	}
 }
+
+#endif // include guard
