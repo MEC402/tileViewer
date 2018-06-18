@@ -10,9 +10,7 @@ STViewer *_viewer;
 void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
 void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void _InitCallbacks(STViewer *v, bool fullscreen);
-#ifdef OCULUS
 void _EnableVR(VRDevice *vr);
-#endif
 void _InitMenus(std::vector<PanoInfo> &panoList);
 void _MainMenu(int choice);
 void _PanoMenu(int choice);
@@ -24,12 +22,10 @@ void _Resize(int width, int height);
 int _Width = 1280;
 int _Height = 800;
 
-#ifdef OCULUS
 bool _usingVR = false;
 VRDevice *_vr;
 double _globalTime;
 long long _programStartTime;
-#endif
 bool _stereo = false;
 Shader *_shader;
 ImageHandler *_images;
@@ -57,22 +53,18 @@ void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images,
 		_righteye = righteye;
 	_camera = camera;
 
-#ifdef OCULUS
 	// Init time
 	LARGE_INTEGER time;
 	QueryPerformanceCounter(&time);
 	_programStartTime = time.QuadPart;
-#endif
 }
 
-#ifdef OCULUS
 void _EnableVR(VRDevice *vr)
 {
 	_stereo = true;
 	_usingVR = true;
 	_vr = vr;
 }
-#endif
 
 void _InitCallbacks(STViewer *v, bool fullscreen)
 {
@@ -162,7 +154,6 @@ void _Cleanup()
 
 void _Display()
 {
-#ifdef OCULUS
 	if (_usingVR) {
 		glDisable(GL_CULL_FACE);
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
@@ -204,8 +195,8 @@ void _Display()
 		finishVRFrame(_vr);
 		blitHeadsetView(_vr, 0);
 	} 
-	else {
-#endif
+	else
+	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -229,9 +220,7 @@ void _Display()
 		}
 
 		glFlush();
-#ifdef OCULUS
 	}
-#endif
 
 #ifdef DEBUG
 	PRINT_GL_ERRORS
@@ -240,7 +229,6 @@ void _Display()
 
 void _Idle()
 {
-#ifdef OCULUS
 	LARGE_INTEGER time;
 	LARGE_INTEGER ticksPerSecond;
 	QueryPerformanceCounter(&time);
@@ -249,9 +237,6 @@ void _Idle()
 	_globalTime = (time.QuadPart - _programStartTime) / double(ticksPerSecond.QuadPart);
 
 	_viewer->Update(_globalTime, deltaTime);
-#else
-	_viewer->Update();
-#endif
 }
 
 void _Resize(int w, int h)
@@ -265,9 +250,8 @@ void _Resize(int w, int h)
 #endif
 	_camera->UpdateMVP();
 	_camera->UpdateCameras();
-#ifdef OCULUS
+
 	if (_usingVR) {
 		resizeMirrorTexture(_vr, w, h);
 	}
-#endif
 }

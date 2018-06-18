@@ -103,12 +103,19 @@ void displayGUI(GraphicalInterface gui, glm::quat headsetRotation, glm::mat4x4 v
 	float menuRotation = panoSelection*tileSeparation;
 	glDisable(GL_DEPTH_TEST);
 
-	for (unsigned int i = 0; i < gui.thumbnailCount; ++i)
+	// Limit the tiles drawn so that they don't wrap all they way around the ring
+	int peripheralThumbnailCount = 3;
+	int minTile = panoSelection - peripheralThumbnailCount;
+	if (minTile < 0) minTile = 0;
+	int maxTile = panoSelection + peripheralThumbnailCount;
+	if (maxTile >= gui.thumbnailCount) maxTile = gui.thumbnailCount-1;
+
+	for (unsigned int i = minTile; i <= maxTile; ++i)
 	{
 
 		float tileScale = 0.05f;
 		if (abs(i - panoSelection) < 1.0f) {
-			tileScale += (1 - abs(i - panoSelection)) * 0.03f;
+			tileScale += (1 - abs(i - panoSelection)) * 0.04f;
 		}
 		glm::vec3 tilePosition(0, 0, -radius);
 		glm::mat4x4 translation = glm::translate(tilePosition);

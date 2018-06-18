@@ -43,9 +43,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
 	initGL();
-#ifdef OCULUS
 	initVR();
-#endif
 	initTextures();
 
 	Controls::SetViewer(this);
@@ -171,11 +169,7 @@ void STViewer::loadAllQuadDepths()
 	}
 }
 
-#ifdef OCULUS
 void STViewer::Update(double globalTime, float deltaTime)
-#else
-void STViewer::Update()
-#endif
 {
 	if (m_remote != NULL && m_remote->ChangePano()) {
 		if (m_images.InitPanoList(m_remote->GetPano())) {
@@ -185,32 +179,46 @@ void STViewer::Update()
 		}
 	}
 
-#ifdef OCULUS
-	if (m_usingVR) {
+	if (m_usingVR)
+	{
 		updateVRDevice(&m_vr);
 		VRControllerStates controllers = getVRControllerState(&m_vr);
-		if (controllers.right.button1.pressed || controllers.right.button2.pressed) {
+
+		if (controllers.right.button1.pressed
+			|| controllers.right.button2.pressed
+			|| controllers.left.button1.pressed
+			|| controllers.left.button2.pressed)
+		{
 			SelectPano(round(m_guiPanoSelection));
 		}
 
-		if (controllers.right.thumbstickX != 0) {
+		if (controllers.right.thumbstickTouch.down
+			|| controllers.left.thumbstickTouch.down)
+		{
+			m_lastUIInteractionTime = globalTime;
+		}
+
+		if (controllers.right.thumbstickX != 0
+			|| controllers.left.thumbstickX != 0)
+		{
 			m_lastUIInteractionTime = globalTime;
 			float menuSpeed = 20;
 			float analogExponent = 1.5f;
-			float moveAmount = powf(abs(controllers.right.thumbstickX), analogExponent);
-			if (controllers.right.thumbstickX < 0) moveAmount *= -1;
+			float input = controllers.right.thumbstickX + controllers.left.thumbstickX;
+			float moveAmount = powf(abs(input), analogExponent);
+			if (input < 0) moveAmount *= -1;
 			m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
 			if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
 			if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = m_panolist.size() - 1;
 		}
-		else {
+		else
+		{
 			// Lerp selection toward nearest integer
 			float t = 10 * deltaTime;
 			if (t > 1) t = 1;
 			m_guiPanoSelection = (1 - t)*m_guiPanoSelection + t*round(m_guiPanoSelection);
 		}
 	}
-#endif
 
 	// 16.67ms per frame, takes us ~0.5ms to send an image to the GPU/Update quad depth (async GL calls)
 	// Queue gets emptied fast enough that we never actually load 32 images sequentially, but we can do
@@ -345,7 +353,6 @@ void STViewer::initGL()
 
 }
 
-#ifdef OCULUS
 void STViewer::initVR()
 {
 	m_usingVR = createVRDevice(&m_vr, m_camera.Width, m_camera.Height);
@@ -358,7 +365,6 @@ void STViewer::initVR()
 		m_guiPanoSelection = 0;
 	}
 }
-#endif
 
 void STViewer::initTextures()
 {

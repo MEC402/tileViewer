@@ -3,12 +3,15 @@
 
 #include <assert.h>
 #include <GL/glew.h>
+#include "Shared.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/quaternion.hpp"
+
+#ifdef OCULUS
 #include "LibOVRKernel/Kernel/OVR_Types.h"
 #include "LibOVR/OVR_CAPI_GL.h"
 #include "LibOVR/Extras/OVR_Math.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/quaternion.hpp"
-#include "Shared.h"
+#endif // OCULUS
 
 #if defined(_WIN32)
 #include <dxgi.h> // for GetDefaultAdapterLuid
@@ -31,6 +34,7 @@ struct VRControllerStates
 		float thumbstickY;
 		float indexFingerTrigger;
 		float middleFingerTrigger;
+		Button thumbstickTouch;
 	};
 
 	Controller left;
@@ -56,7 +60,7 @@ struct VRDevice
 	int mirrorWindowWidth;
 	int mirrorWindowHeight;
 	VRControllerStates controllers;
-#endif
+#endif // OCULUS
 };
 
 // Call once to initialize
