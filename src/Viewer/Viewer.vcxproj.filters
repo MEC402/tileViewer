@@ -73,25 +73,40 @@
     <ClInclude Include="VR.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="SafeQueue.h" />
     <ClInclude Include="Render.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="GraphicalMenu.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="SafeQueue.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="gui.frag" />
-    <None Include="gui.vert" />
     <None Include="packages.config" />
-    <None Include="Shader.frag" />
-    <None Include="Shader.geom" />
-    <None Include="Shader.vert" />
+    <None Include="Shader.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shader.geom">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shader.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="gui.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="gui.frag">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
       <UniqueIdentifier>{d328b138-8de9-425a-b130-0179e24c6ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{f5225f44-0acb-4e83-af28-05918fb210be}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

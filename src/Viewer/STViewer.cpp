@@ -133,7 +133,6 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 	m_camera.Pitch += pitchChange;
 	m_camera.Yaw += yawChange;
 
-
 	m_camera.UpdateMVP();
 	m_camera.UpdateCameras();
 }
@@ -157,17 +156,7 @@ void STViewer::FlipDebug()
 	m_shader.FlipDebug();
 }
 
-/*---------------- Private Functions ----------------*/
-
-void STViewer::loadAllQuadDepths()
-{
-	ImageHandler& images = m_images;
-	for (int i = 0; i < downloadPool->size(); i++)
-		downloadPool->submit([&images]() { images.LoadQuadImage(); });
-	for (int i = 0; i < texturePool->size(); i++) {
-		texturePool->submit([&images]() { images.Decompress(); });
-	}
-}
+/* ---------------------- Primary Update Loop ---------------------- */
 
 void STViewer::Update(double globalTime, float deltaTime)
 {
@@ -265,6 +254,20 @@ void STViewer::Update(double globalTime, float deltaTime)
 	_Display();
 	glutSwapBuffers();
 }
+
+
+/*---------------- Private Functions ----------------*/
+
+void STViewer::loadAllQuadDepths()
+{
+	ImageHandler& images = m_images;
+	for (int i = 0; i < downloadPool->size(); i++)
+		downloadPool->submit([&images]() { images.LoadQuadImage(); });
+	for (int i = 0; i < texturePool->size(); i++) {
+		texturePool->submit([&images]() { images.Decompress(); });
+	}
+}
+
 
 void STViewer::resetImages()
 {

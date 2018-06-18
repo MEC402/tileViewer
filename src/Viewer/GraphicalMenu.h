@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _GRAPHICALMENU_H
+#define _GRAPHICALMENU_H
+
 #include "InternetDownload.h"
 #include "stb_image.h"
 #include <GL\glew.h>
@@ -23,3 +25,5 @@ private:
 	Model quad;
 	Shader shader;
 };
+
+#endif // _GRAPHICALMENU_H

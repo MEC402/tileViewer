@@ -50,7 +50,7 @@ void renderModel(Model model)
 	glBindBuffer(GL_ARRAY_BUFFER, model.vertexUVBuffer);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
 
-	// Darw
+	// Draw
 	glDrawArrays(GL_TRIANGLES, 0, model.indices);
 	PRINT_GL_ERRORS;
 }
