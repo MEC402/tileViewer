@@ -175,27 +175,27 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 	Pitch = pitch;
 
 
-	//glm::vec3 front;
-	//front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	//front.y = sin(glm::radians(pitch));
-	//front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	//glm::vec3 cameraFront = glm::normalize(front);
-	//
-	//View = glm::lookAt(
-	//	glm::vec3(0, 0, 0),
-	//	cameraFront,
-	//	glm::vec3(0, 1, 0)
-	//);
-
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	glm::vec3 cameraFront = glm::normalize(front);
+	
 	View = glm::lookAt(
 		glm::vec3(0, 0, 0),
-		glm::vec3(0, 0, 1),
+		cameraFront,
 		glm::vec3(0, 1, 0)
 	);
 
-	glm::mat4 rotX = glm::rotate(View, glm::radians(Yaw), glm::vec3(0, 1, 0));
-	glm::mat4 rotY = glm::rotate(View, glm::radians(Pitch), glm::vec3(1, 0, 0));
-	View = rotX * rotY;
+	//View = glm::lookAt(
+	//	glm::vec3(0, 0, 0),
+	//	glm::vec3(0, 0, 1),
+	//	glm::vec3(0, 1, 0)
+	//);
+
+	//glm::mat4 rotX = glm::rotate(View, glm::radians(Yaw), glm::vec3(0, 1, 0));
+	//glm::mat4 rotY = glm::rotate(View, glm::radians(Pitch), glm::vec3(1, 0, 0));
+	//View = rotX * rotY;
 
 	Model = glm::mat4(1.0f);
 

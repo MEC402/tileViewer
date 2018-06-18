@@ -44,6 +44,12 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	initGL();
 	initVR();
+	if (!m_usingVR) {
+		m_displaygui = false;
+		m_gui.create(m_panolist);
+		m_lastUIInteractionTime = 0;
+		m_guiPanoSelection = 0;
+	}
 	initTextures();
 
 	Controls::SetViewer(this);
@@ -95,9 +101,14 @@ void STViewer::NextPano()
 void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
-		m_currentPano = pano;
-		m_images.m_currentPano = m_currentPano;
-		resetImages();
+		if (m_displaygui) {
+			m_guiPanoSelection = pano;
+		}
+		else {
+			m_currentPano = pano;
+			m_images.m_currentPano = m_currentPano;
+			resetImages();
+		}
 	}
 	else {
 		fprintf(stderr, "Invalid Pano Selection\n");
@@ -154,6 +165,11 @@ void STViewer::Screenshot()
 void STViewer::FlipDebug()
 {
 	m_shader.FlipDebug();
+}
+
+void STViewer::DisplayGUI()
+{
+	m_displaygui = !m_displaygui;
 }
 
 /* ---------------------- Primary Update Loop ---------------------- */
@@ -263,9 +279,9 @@ void STViewer::loadAllQuadDepths()
 	ImageHandler& images = m_images;
 	for (int i = 0; i < downloadPool->size(); i++)
 		downloadPool->submit([&images]() { images.LoadQuadImage(); });
-	for (int i = 0; i < texturePool->size(); i++) {
+
+	for (int i = 0; i < texturePool->size(); i++)
 		texturePool->submit([&images]() { images.Decompress(); });
-	}
 }
 
 
@@ -353,7 +369,6 @@ void STViewer::initGL()
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
 	m_shader.Bind();
-
 }
 
 void STViewer::initVR()

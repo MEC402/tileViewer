@@ -89,7 +89,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F4:
-		//Camera::UpdateCameras();
+		viewer->DisplayGUI();
 		break;
 
 	case GLUT_KEY_F5:
@@ -173,6 +173,10 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->MoveCamera(-3.0f, 0, 0);
 		break;
 
+	case ' ':
+		viewer->DisplayGUI();
+		viewer->SelectPano(viewer->m_guiPanoSelection);
+		break;
 
 	case 'f':
 		glutFullScreenToggle();

@@ -42,6 +42,9 @@ public:
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void Screenshot(void);
+
+	void DisplayGUI(void);
+
 	void FlipDebug(void);
 
 	void Update(double globalTime, float deltaTime);
@@ -53,6 +56,8 @@ public:
 	GraphicalMenu m_gui;
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
+
+	bool m_displaygui;
 
 #ifdef DEBUG
 	void PrintAverage(void);

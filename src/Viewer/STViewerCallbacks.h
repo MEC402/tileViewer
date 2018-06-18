@@ -197,7 +197,6 @@ void _Display()
 	} 
 	else
 	{
-		_shader->Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -218,6 +217,19 @@ void _Display()
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
 			}
 			_images->BindTextures(*_shader, 0);
+		}
+
+		if (_viewer->m_displaygui) {
+			_viewer->m_gui.display(glm::quat(glm::inverse(_camera->View)), 
+				_camera->Projection * _camera->View, _viewer->m_guiPanoSelection);
+
+			glDisable(GL_CULL_FACE);
+			_shader->Bind();
+			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
+			_images->BindTextures(*_shader, 0);
+			_lefteye->BindVAO();
+			if (_stereo)
+				_righteye->BindVAO();
 		}
 
 		glFlush();
