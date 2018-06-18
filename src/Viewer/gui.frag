@@ -10,6 +10,6 @@ out vec3 color;
 
 void main()
 {
-	vec2 sampleCoords = vec2(fragmentUV.x, -fragmentUV.y);
+	vec2 sampleCoords = vec2(fragmentUV.x, 1-fragmentUV.y);
 	color = texture(image, sampleCoords).rgb;
 }
