@@ -187,7 +187,7 @@ void _Display()
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
 				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
 				float uiRadius = 0.65;
-				displayGUI(_viewer->m_gui, getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection);
+				_viewer->m_gui.display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection);
 			}
 
 			commitEyeRenderSurface(_vr, eyeIndex);
@@ -197,6 +197,7 @@ void _Display()
 	} 
 	else
 	{
+		_shader->Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();

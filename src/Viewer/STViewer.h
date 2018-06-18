@@ -18,7 +18,7 @@
 #include "ThreadPool.hpp"
 
 #include "VR.h"
-#include "GUI.h"
+#include "GraphicalMenu.h"
 
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
 class STViewer {
@@ -50,7 +50,7 @@ public:
 
 	std::vector<PanoInfo> GetPanos(void);
 
-	GraphicalInterface m_gui;
+	GraphicalMenu m_gui;
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
 

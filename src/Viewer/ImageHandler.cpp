@@ -2,6 +2,7 @@
 
 #include "ImageHandler.h"
 #include "InternetDownload.h"
+#include "Render.h"
 #include <chrono>
 #include <mutex>
 
@@ -37,28 +38,25 @@ ImageHandler::ImageHandler()
 	m_stereoLoaded = false;
 }
 
-void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender, Shader &shader) 
+void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender) 
 {
 	Decompressed = toRender;
 	m_urls = new SafeQueue<URL>();
 	m_compressed = new SafeQueue<ImageData*>();
-	
-	// 6 for each eye
-	glGenTextures(6, m_textures[0]);
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, MAXDEPTH, 0, shader);	
+		initFaceAtlas(i, MAXDEPTH, 0);	
 	}
 
 	if (m_panoList.size() > 0)
 		InitURLs(0, stereo);
 
 	if (stereo) {
-		InitStereo(shader);
+		InitStereo();
 	}
 }
 
-void ImageHandler::InitStereo(Shader &shader)
+void ImageHandler::InitStereo()
 {
 	// Try to populate stereo URLs first
 	InitStereoURLs();
@@ -66,9 +64,8 @@ void ImageHandler::InitStereo(Shader &shader)
 	// If our texture bindings != 0, we've already initialized the second eye textures
 	if (m_textures[1][0] != 0) return;
 
-	glGenTextures(6, m_textures[1]);
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, MAXDEPTH, 1, shader);
+		initFaceAtlas(i, MAXDEPTH, 1);
 	}
 
 }
@@ -180,7 +177,6 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		GLenum format = (image->colorChannels == 3) ? GL_RGB : GL_RGBA;
 
-		//glBindTexture(GL_TEXTURE_2D, image->activeTexture);
 		glActiveTexture(image->activeTexture);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT, 
 			format, GL_UNSIGNED_BYTE, nullptr);
@@ -291,35 +287,13 @@ void ImageHandler::Screenshot(int width, int height)
 /* ---------------- Private Functions ---------------- */
 
 
-void ImageHandler::initFaceAtlas(int face, int depth, int eye, Shader &shader)
+void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 {
 	// TODO: Probably shouldn't hardcode image resolution like this
 	int maxWidth = WIDTH * (int)pow(2, depth);
 	int maxHeight = HEIGHT * (int)pow(2, depth);
 
-	GLuint program = shader.GetProgram();
-
-	const char *uniform = m_txUniforms[face];
-	glActiveTexture(GL_TEXTURE0 + face + (eye * 6));
-
-	glBindTexture(GL_TEXTURE_2D, m_textures[eye][face]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	
-	// Pros to Linear: Looks WAY WAY WAY WAY BETTER
-	// Cons to Linear: Minor border seams are visible during loading, but largely invisible at max depth
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, maxWidth, maxHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	GLuint TxUniform = glGetUniformLocation(program, uniform);
-	if (TxUniform == -1) {
-		fprintf(stderr, "Error getting %s uniform\n", uniform);
-	}
-	else {
-		glUniform1i(TxUniform, face);
-	}
+	m_textures[eye][face] = createTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
 
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);

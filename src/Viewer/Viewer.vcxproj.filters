@@ -4,7 +4,6 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="CubePoints.cpp" />
-    <ClCompile Include="GUI.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="Shader.cpp" />
@@ -13,6 +12,8 @@
     <ClCompile Include="VR.cpp" />
     <ClCompile Include="RemoteClient.cpp" />
     <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="GraphicalMenu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -22,9 +23,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="CubePoints.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="GUI.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Image.h">
@@ -76,6 +74,12 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="SafeQueue.h" />
+    <ClInclude Include="Render.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicalMenu.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="gui.frag" />

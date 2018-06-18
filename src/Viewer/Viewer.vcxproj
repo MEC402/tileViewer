@@ -331,13 +331,14 @@
   <ItemGroup>
     <ClInclude Include="Controls.h" />
     <ClInclude Include="CubePoints.h" />
-    <ClInclude Include="GUI.h" />
+    <ClInclude Include="GraphicalMenu.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageHandler.h" />
     <ClInclude Include="InternetDownload.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="RemoteClient.h" />
+    <ClInclude Include="Render.h" />
     <ClInclude Include="SafeQueue.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Shared.h" />
@@ -358,10 +359,11 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Controls.cpp" />
     <ClCompile Include="CubePoints.cpp" />
-    <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="GraphicalMenu.cpp" />
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="RemoteClient.cpp" />
+    <ClCompile Include="Render.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="TileViewer.cpp" />
