@@ -14,6 +14,8 @@ public:
 		int width;
 		int height;
 		float rotation;
+
+		glm::vec3 direction = glm::vec3(0,0,1);
 	};
 
 	int NumCameras;
