@@ -4,6 +4,7 @@
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <stdio.h>
 
 class Camera {
@@ -16,6 +17,7 @@ public:
 		float rotation;
 
 		glm::vec3 direction = glm::vec3(0,0,1);
+		glm::quat cameraQuat = glm::quat(glm::vec3(0, 0, 0));
 	};
 
 	int NumCameras;
