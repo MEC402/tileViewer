@@ -220,9 +220,13 @@ void _Display()
 		}
 
 		if (_viewer->m_displaygui) {
+			// Center the GUI if we have multiple viewports
+			_camera->SetViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
+			
 			_viewer->m_gui.display(glm::quat(glm::inverse(_camera->View)), 
 				_camera->Projection * _camera->View, _viewer->m_guiPanoSelection);
 
+			// Rebind main program
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
