@@ -49,7 +49,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	m_gui.Create(m_panolist);
 	m_lastUIInteractionTime = 0;
 	m_guiPanoSelection = 0;
-	m_displaygui = !m_usingVR;
+	m_displaygui = false;
 	m_linear = true;
 
 	Controls::SetViewer(this);
