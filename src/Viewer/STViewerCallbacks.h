@@ -7,20 +7,20 @@
 
 STViewer *_viewer;
 
-void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
-void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
-void _InitCallbacks(STViewer *v, bool fullscreen);
-void _EnableVR(VRDevice *vr);
-void _InitMenus(std::vector<PanoInfo> &panoList);
-void _MainMenu(int choice);
-void _PanoMenu(int choice);
+// CB = Callback, meant to indicate "Safe to call directly"
+void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
+void CB_InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
+void CB_Init(STViewer *v, bool fullscreen);
+void CB_EnableVR(VRDevice *vr);
+void CB_InitMenus(std::vector<PanoInfo> &panoList);
+void CB_Display(void);
+
+// Don't preface with CB to indicate "don't call these directly"
+void _MainMenu(int choice); 
+void _PanoMenu(int choice); 
 void _Cleanup(void);
-void _Display(void);
 void _Idle(void);
 void _Resize(int width, int height);
-
-int _Width = 1280;
-int _Height = 800;
 
 bool _usingVR = false;
 VRDevice *_vr;
@@ -35,14 +35,14 @@ Camera *_camera;
 
 
 
-void _UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
+void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 {
 	_lefteye = lefteye;
 	_righteye = righteye;
 	_stereo = stereo;
 }
 
-void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images, 
+void CB_InitReferences(bool &stereo, Shader *shader, ImageHandler *images, 
 	CubePoints *lefteye, CubePoints *righteye, Camera *camera)
 {
 	_stereo = stereo;
@@ -59,19 +59,19 @@ void _InitReferences(bool &stereo, Shader *shader, ImageHandler *images,
 	_programStartTime = time.QuadPart;
 }
 
-void _EnableVR(VRDevice *vr)
+void CB_EnableVR(VRDevice *vr)
 {
 	_stereo = true;
 	_usingVR = true;
 	_vr = vr;
 }
 
-void _InitCallbacks(STViewer *v, bool fullscreen)
+void CB_Init(STViewer *v, bool fullscreen)
 {
 	_viewer = v;
 
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(_Width, _Height); // Defaults to 1280 x 800 windowed
+	glutInitWindowSize(_camera->Width, _camera->Height); // Defaults to 1280 x 800 windowed
 	glutCreateWindow("TileViewer - ST Shader Annihilation Edition");
 	if (fullscreen) {
 		glutFullScreen();
@@ -87,7 +87,7 @@ void _InitCallbacks(STViewer *v, bool fullscreen)
 
 	// Setup callbacks
 	atexit(_Cleanup);
-	glutDisplayFunc(_Display);
+	glutDisplayFunc(CB_Display);
 	glutIdleFunc(_Idle);
 	glutReshapeFunc(_Resize);
 	glutSpecialFunc(Controls::ProcessGLUTKeys);
@@ -97,7 +97,7 @@ void _InitCallbacks(STViewer *v, bool fullscreen)
 	//glutTimerFunc(5000, timerCleanup, 0);
 }
 
-void _InitMenus(std::vector<PanoInfo> &panoList)
+void CB_InitMenus(std::vector<PanoInfo> &panoList)
 {
 	int panomenu = glutCreateMenu(_PanoMenu);
 	for (unsigned int i = 0; i < panoList.size(); i++) {
@@ -116,43 +116,7 @@ void _InitMenus(std::vector<PanoInfo> &panoList)
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-void _MainMenu(int choice)
-{
-	switch (choice) {
-	case 1:
-		DEBUG_FLAG = !DEBUG_FLAG;
-		_viewer->FlipDebug();
-		break;
-
-	case 2:
-		_viewer->NextPano();
-		break;
-
-	case 3:
-		_viewer->PrevPano();
-		break;
-
-	case 4:
-		_viewer->Screenshot();
-		break;
-
-	case 5:
-		glutFullScreenToggle();
-		break;
-	}
-}
-
-void _PanoMenu(int choice)
-{
-	_viewer->SelectPano(--choice);
-}
-
-void _Cleanup()
-{
-	_viewer->Cleanup();
-}
-
-void _Display()
+void CB_Display()
 {
 	if (_usingVR) {
 		glDisable(GL_CULL_FACE);
@@ -187,7 +151,7 @@ void _Display()
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
 				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
 				float uiRadius = 0.65;
-				_viewer->m_gui.display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection, true);
+				_viewer->m_gui.Display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection, true);
 			}
 
 			commitEyeRenderSurface(_vr, eyeIndex);
@@ -230,7 +194,7 @@ void _Display()
 			// Draw a new viewport to cover the whole scene
 			glViewport(0, 0, _camera->Width, _camera->Height);
 
-			_viewer->m_gui.display(glm::quat(glm::inverse(_camera->View)),
+			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _viewer->m_guiPanoSelection);
 
 			// Rebind main program
@@ -251,7 +215,7 @@ void _Display()
 #endif
 }
 
-void _Idle()
+static void _Idle()
 {
 	LARGE_INTEGER time;
 	LARGE_INTEGER ticksPerSecond;
@@ -263,7 +227,7 @@ void _Idle()
 	_viewer->Update(_globalTime, deltaTime);
 }
 
-void _Resize(int w, int h)
+static void _Resize(int w, int h)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -278,4 +242,40 @@ void _Resize(int w, int h)
 	if (_usingVR) {
 		resizeMirrorTexture(_vr, w, h);
 	}
+}
+
+static void _MainMenu(int choice)
+{
+	switch (choice) {
+	case 1:
+		DEBUG_FLAG = !DEBUG_FLAG;
+		_viewer->FlipDebug();
+		break;
+
+	case 2:
+		_viewer->NextPano();
+		break;
+
+	case 3:
+		_viewer->PrevPano();
+		break;
+
+	case 4:
+		_viewer->Screenshot();
+		break;
+
+	case 5:
+		glutFullScreenToggle();
+		break;
+	}
+}
+
+static void _PanoMenu(int choice)
+{
+	_viewer->SelectPano(--choice);
+}
+
+static void _Cleanup()
+{
+	_viewer->Cleanup();
 }

@@ -18,9 +18,9 @@
 class GraphicalMenu
 {
 public:
-	void create(std::vector<PanoInfo> panoList);
-	void display(glm::quat headsetRotation, glm::mat4x4 viewProjection, float radius, float panoSelection, bool tilt);
-	void display(glm::quat cameraRotation, glm::mat4x4 viewProjection, float panoSelection);
+	void Create(std::vector<PanoInfo> panoList);
+	void Display(glm::quat headsetRotation, glm::mat4x4 viewProjection, float radius, float panoSelection, bool tilt);
+	void Display(glm::quat cameraRotation, glm::mat4x4 viewProjection, float panoSelection);
 
 
 private:

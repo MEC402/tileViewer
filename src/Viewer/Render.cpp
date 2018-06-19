@@ -2,7 +2,7 @@
 #include "Shared.h"
 
 
-void createModelFromQuad(Model* model)
+void Render_CreateQuadModel(Model* model)
 {
 	const float positions[] = {
 		// Triangle 1
@@ -37,7 +37,7 @@ void createModelFromQuad(Model* model)
 	model->indices = 2 * 3;
 }
 
-void renderModel(Model model)
+void Render_DrawModel(Model model)
 {
 
 	// 1rst attribute buffer : vertices
@@ -55,7 +55,7 @@ void renderModel(Model model)
 	PRINT_GL_ERRORS;
 }
 
-GLuint createTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels)
+GLuint Render_CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels)
 {
 	GLuint texture;
 
