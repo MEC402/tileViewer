@@ -43,7 +43,8 @@ public:
 	void ResetCamera(void);
 	void Screenshot(void);
 
-	void DisplayGUI(void);
+	void ToggleGUI(void);
+	void ToggleLinear(void);
 
 	void FlipDebug(void);
 
@@ -112,6 +113,7 @@ private:
 	bool m_stereo;
 	bool m_fivepanel;
 	bool m_fullscreen;
+	bool m_linear;
 
 	SafeQueue<ImageData*> *m_LoadedTextures;
 

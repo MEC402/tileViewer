@@ -123,6 +123,7 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 	if (!m_urls->IsEmpty())
 		m_urls->Clear();
 
+	// TODO: This works fine but I'm sure there's a more legible way to write it
 	for (int depth = 0; depth <= MAXDEPTH; depth++) {
 		int maxDepth = (int)pow(2, depth);
 		for (int i = maxDepth - 1; i >= 0; i--) {
@@ -170,7 +171,7 @@ void ImageHandler::LoadImageData(ImageData *image)
 
 		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 		if (dst) {
-			std::memcpy(dst, image->data, WIDTH * HEIGHT * image->colorChannels);
+			std::memcpy(dst, image->data, image->width * image->height * image->colorChannels);
 		}
 		PRINT_GL_ERRORS
 		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
@@ -178,7 +179,7 @@ void ImageHandler::LoadImageData(ImageData *image)
 		GLenum format = (image->colorChannels == 3) ? GL_RGB : GL_RGBA;
 
 		glActiveTexture(image->activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT, 
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, image->width, image->height, 
 			format, GL_UNSIGNED_BYTE, nullptr);
 		PRINT_GL_ERRORS
 		
@@ -226,15 +227,39 @@ void ImageHandler::Decompress()
 		
 		
 		int width, height, nrChannels;
-		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, imageFile->dataSize, &width, &height, &nrChannels, 0);
+		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, 
+			imageFile->dataSize, &width, &height, &nrChannels, 0);
 
 		free(imageFile->data);
 
 		imageFile->data = d;
 		imageFile->w_offset *= width;
 		imageFile->h_offset *= height;
+		imageFile->width = width;
+		imageFile->height = height;
 		imageFile->colorChannels = nrChannels;
 		Decompressed->Enqueue(imageFile);
+	}
+}
+
+void ImageHandler::SetFilter(Shader &shader, int eye, bool linear)
+{
+	if (m_textures[eye][0] == 0) {
+		fprintf(stderr, "No texture loaded for that eye\n");
+		return;
+	}
+
+	for (int i = 0; i < 6; i++) {
+		glBindTexture(GL_TEXTURE_2D, m_textures[eye][i]);
+		if (linear) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+		else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		PRINT_GL_ERRORS
 	}
 }
 

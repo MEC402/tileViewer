@@ -4,9 +4,10 @@
 struct ImageData
 {
 	// Raw image data
-	//std::unique_ptr<unsigned char*> data;
 	unsigned char* data;
 	unsigned int dataSize;
+	int width;
+	int height;
 	int colorChannels;
 
 	// Pixel offset info
@@ -14,6 +15,7 @@ struct ImageData
 	int h_offset;
 	int activeTexture;
 
+	// Tile placement info
 	int depth;
 	int row;
 	int col;
@@ -23,6 +25,7 @@ struct ImageData
 	// Done downloading?
 	bool complete;
 
+	//stbi_free is just a wrapper around free() so this is safe to do
 	void Free()
 	{
 		if (data != NULL)

@@ -50,6 +50,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	m_lastUIInteractionTime = 0;
 	m_guiPanoSelection = 0;
 	m_displaygui = !m_usingVR;
+	m_linear = true;
 
 	Controls::SetViewer(this);
 
@@ -166,9 +167,17 @@ void STViewer::FlipDebug()
 	m_shader.FlipDebug();
 }
 
-void STViewer::DisplayGUI()
+void STViewer::ToggleGUI()
 {
 	m_displaygui = !m_displaygui;
+}
+
+void STViewer::ToggleLinear()
+{
+	m_linear = !m_linear;
+	m_images.SetFilter(m_shader, 0, m_linear);
+	if (m_stereo)
+		m_images.SetFilter(m_shader, 1, m_linear);
 }
 
 /* ---------------------- Primary Update Loop ---------------------- */
@@ -362,8 +371,8 @@ void STViewer::resetCubes()
 
 void STViewer::initGL()
 {
-	CB_Init(this, m_fullscreen);
 	CB_InitReferences(m_stereo, &m_shader, &m_images, m_LeftEye, m_RightEye, &m_camera);
+	CB_Init(this, m_fullscreen);
 	CB_InitMenus(m_panolist);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");

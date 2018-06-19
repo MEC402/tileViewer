@@ -89,7 +89,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F4:
-		viewer->DisplayGUI();
+		viewer->ToggleGUI();
 		break;
 
 	case GLUT_KEY_F5:
@@ -148,6 +148,8 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->RebindVAO();
 		break;
 #endif
+
+		// Camera controls
 	case 'a':
 		viewer->MoveCamera(0, -1.0f, 0);
 		break;
@@ -173,17 +175,23 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->MoveCamera(-3.0f, 0, 0);
 		break;
 
+		// GUI Selection
 	case ' ':
-		viewer->DisplayGUI();
+		viewer->ToggleGUI();
 		viewer->SelectPano(viewer->m_guiPanoSelection);
 		break;
 
+		// Misc Controls
 	case 'f':
 		glutFullScreenToggle();
 		break;
 
 	case 'h':
 		viewer->ToggleStereo();
+		break;
+
+	case 'L':
+		viewer->ToggleLinear();
 		break;
 
 	case 'n':
