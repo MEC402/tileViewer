@@ -59,6 +59,7 @@ public:
 	double m_lastUIInteractionTime;
 
 	bool m_displaygui;
+	float m_selectedPano;
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -100,6 +101,7 @@ private:
 	// Pano data
 	std::vector<PanoInfo> m_panolist;
 	int m_currentPano;
+	
 
 	Shader m_shader;
 	Camera m_camera;

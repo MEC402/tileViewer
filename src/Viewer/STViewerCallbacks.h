@@ -197,6 +197,8 @@ void CB_Display()
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _viewer->m_guiPanoSelection);
 
+			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View, _globalTime);
+
 			// Rebind main program
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();

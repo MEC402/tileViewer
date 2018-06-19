@@ -35,6 +35,7 @@ void Shader::Reload()
 void Shader::Bind()
 {
 	glUseProgram(m_program);
+	PRINT_GL_ERRORS
 }
 
 void Shader::FlipDebug()

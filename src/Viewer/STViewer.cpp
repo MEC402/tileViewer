@@ -102,7 +102,7 @@ void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
 		if (m_displaygui) {
-			m_guiPanoSelection = pano;
+			m_selectedPano = (float)pano;
 		}
 		else {
 			m_currentPano = pano;
@@ -124,7 +124,8 @@ void STViewer::ReloadShaders()
 {
 	m_shader.Reload();
 	m_images.BindTextures(m_shader, 0);
-	m_images.BindTextures(m_shader, 1);
+	if (m_stereo)
+		m_images.BindTextures(m_shader, 1);
 	m_shader.Bind();
 }
 
@@ -170,6 +171,10 @@ void STViewer::FlipDebug()
 void STViewer::ToggleGUI()
 {
 	m_displaygui = !m_displaygui;
+	if (!m_displaygui)
+		m_gui.ResetTimer();
+	else
+		m_gui.StartTimer();
 }
 
 void STViewer::ToggleLinear()
@@ -230,6 +235,25 @@ void STViewer::Update(double globalTime, float deltaTime)
 			float t = 10 * deltaTime;
 			if (t > 1) t = 1;
 			m_guiPanoSelection = (1 - t)*m_guiPanoSelection + t*round(m_guiPanoSelection);
+		}
+	}
+	else {
+		// Animation for non-VR GUI
+		// This is hacky as all getout, but it looks smooth
+		if (abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
+			float menuSpeed = 20;
+			float direction = m_selectedPano - m_guiPanoSelection;
+
+			if (direction < 0)
+				m_guiPanoSelection += -0.2f * deltaTime * menuSpeed * -direction;
+			else
+				m_guiPanoSelection += 0.2f * deltaTime * menuSpeed * direction;
+
+			if (m_guiPanoSelection < 0)
+				m_guiPanoSelection = 0;
+
+			if (m_guiPanoSelection > m_panolist.size() - 1) 
+				m_guiPanoSelection = m_panolist.size() - 1;
 		}
 	}
 
@@ -311,6 +335,9 @@ void STViewer::resetImages()
 	// Wait for any threads that are mid-work to finish
 	while (!texturePool->allstopped());
 	while (!downloadPool->allstopped());
+
+	// Sanity check
+	m_images.ClearQueues();
 
 	/* Turn off queue discarding */
 	m_LoadedTextures->ToggleDiscard();

@@ -5,6 +5,7 @@ void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 {
 	shader.CreateProgram(0, "gui.vert", "gui.frag");
 	Render_CreateQuadModel(&quad);
+	Render_CreateCubeModel(&cube);
 
 	std::vector<ImageData*> thumbnailFiles;
 	std::vector<std::string> urls;
@@ -59,6 +60,11 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 		if (abs(i - panoSelection) < 1.0f)
 			tileScale += (1 - abs(i - panoSelection)) * 0.04f;
 
+		glm::mat4x4 rotation;
+		glm::mat4x4 scale;
+		glm::mat4x4 model;
+		glm::mat4x4 tiltDown;
+
 		glm::vec3 tilePosition(0, 0, -radius);
 		glm::mat4x4 translation = glm::translate(tilePosition);
 
@@ -67,16 +73,21 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 		glm::quat q = headsetRotation;
 		float cameraYaw = -atan2(2.0*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
 
-		glm::mat4x4 rotation = glm::rotate(menuRotation - (i*tileSeparation) + cameraYaw, verticalAxis);
-		glm::mat4x4 scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
-		glm::mat4x4 model;
+		rotation = glm::rotate(menuRotation - (i*tileSeparation) + cameraYaw, verticalAxis);
+		scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
 
 		if (tilt) {
 			glm::mat4x4 tiltDown = glm::rotate(glm::radians(-20.0f), glm::vec3(1, 0, 0));
-			model = rotation * tiltDown*translation*scale;
+			model = rotation * tiltDown * translation * scale;
 		}
 		else {
-			model = rotation * translation * scale;
+			if (tilt_timer < 1.0){
+				glm::mat4 tiltDown = glm::rotate(glm::radians(-20.0f + (float)tilt_timer*20.0f), glm::vec3(1, 0, 0));
+				model = rotation * tiltDown * translation * scale;
+			}
+			else {
+				model = rotation * translation * scale;
+			}
 		}
 		
 		shader.SetMatrixUniform("MVP", viewProjection*model);
@@ -89,5 +100,51 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 void GraphicalMenu::Display(glm::quat cameraRotation, glm::mat4x4 viewProjection, float panoSelection)
 {
 	float radius = 0.65;
+	if (tilt_timer < 1.0)
+		tilt_timer += 0.025;
+		
 	Display(cameraRotation, viewProjection, radius, panoSelection, false);
+}
+
+void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjection, double time)
+{
+	float radius = 0.45;
+	float tileScale = 0.025f;
+	//glDisable(GL_DEPTH_TEST);
+	shader.Bind();
+	glm::vec3 tilePosition(0, 0, -radius);
+	glm::mat4x4 translation = glm::translate(tilePosition);
+	glm::vec3 verticalAxis(0, 1, 0);
+	glm::quat q = cameraRotation;
+	float cameraYaw = -atan2(2.0*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+	glm::mat4x4 rotation = glm::rotate(cameraYaw, verticalAxis);
+	glm::mat4x4 scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
+	glm::mat4x4 model = rotation * translation * scale;
+
+	model = glm::translate(model, -tilePosition);
+	model = glm::rotate(model, (float)time, verticalAxis);
+	model = glm::translate(model, tilePosition);
+	shader.SetMatrixUniform("MVP", viewProjection*model);
+	shader.BindTexture("image", THUMB_TX_SLOT, thumbnails[0]);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, cube.vertexPositionBuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, cube.vertexUVBuffer);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	PRINT_GL_ERRORS
+}
+
+void GraphicalMenu::StartTimer()
+{
+	tilt_timer = 0.1;
+}
+
+void GraphicalMenu::ResetTimer()
+{
+	tilt_timer = 0.0; //Just be anything higher than 1.0 to fail conditionals
 }

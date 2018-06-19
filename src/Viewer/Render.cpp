@@ -1,6 +1,7 @@
 #include "Render.h"
 #include "Shared.h"
-
+#define _USE_MATH_DEFINES
+#include <cmath>
 
 void Render_CreateQuadModel(Model* model)
 {
@@ -26,8 +27,8 @@ void Render_CreateQuadModel(Model* model)
 		0, 0
 	};
 
-	glGenBuffers(1, &model->vertexPositionbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, model->vertexPositionbuffer);
+	glGenBuffers(1, &model->vertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, model->vertexPositionBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
 
 	glGenBuffers(1, &model->vertexUVBuffer);
@@ -37,12 +38,84 @@ void Render_CreateQuadModel(Model* model)
 	model->indices = 2 * 3;
 }
 
+void Render_CreateCubeModel(Model *model)
+{
+	const GLuint indices[] = {
+		0, 1, 2, 0, 2, 3,
+		4, 5, 6, 4, 6, 7,
+		8, 9, 10, 8, 10, 11,
+		12, 13, 14, 12, 14, 15,
+		16, 17, 18, 16, 18, 19,
+		20, 21, 22, 20, 22, 23
+	};
+
+	const GLfloat vertices[] = { 
+		 1, 1, 1,  -1, 1, 1,  -1,-1, 1,   1,-1, 1, 
+		 1, 1, 1,   1,-1, 1,   1,-1,-1,   1, 1,-1, 
+		 1, 1, 1,   1, 1,-1,  -1, 1,-1,  -1, 1, 1, 
+		-1, 1, 1,  -1, 1,-1,  -1,-1,-1,  -1,-1, 1,
+		-1,-1,-1,   1,-1,-1,   1,-1, 1,  -1,-1, 1,
+		 1,-1,-1,  -1,-1,-1,  -1, 1,-1,   1, 1,-1 
+	};
+
+	const GLfloat uvs[] = {
+		0.000059f, 1.0f - 0.000004f,
+		0.000103f, 1.0f - 0.336048f,
+		0.335973f, 1.0f - 0.335903f,
+		1.000023f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.336024f, 1.0f - 0.671877f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000023f, 1.0f - 0.000013f,
+		0.668104f, 1.0f - 0.000013f,
+		0.667979f, 1.0f - 0.335851f,
+		0.000059f, 1.0f - 0.000004f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336098f, 1.0f - 0.000071f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.336024f, 1.0f - 0.671877f,
+		1.000004f, 1.0f - 0.671847f,
+		0.999958f, 1.0f - 0.336064f,
+		0.667979f, 1.0f - 0.335851f,
+		0.668104f, 1.0f - 0.000013f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667979f, 1.0f - 0.335851f,
+		0.335973f, 1.0f - 0.335903f,
+		0.668104f, 1.0f - 0.000013f,
+		0.336098f, 1.0f - 0.000071f,
+		0.000103f, 1.0f - 0.336048f,
+		0.000004f, 1.0f - 0.671870f,
+		0.336024f, 1.0f - 0.671877f,
+		0.000103f, 1.0f - 0.336048f,
+		0.336024f, 1.0f - 0.671877f,
+		0.335973f, 1.0f - 0.335903f,
+		0.667969f, 1.0f - 0.671889f,
+		1.000004f, 1.0f - 0.671847f,
+		0.667979f, 1.0f - 0.335851f
+	};
+
+	glGenBuffers(1, &model->vertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, model->vertexPositionBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &model->vertexUVBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, model->vertexUVBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(uvs), uvs, GL_STATIC_DRAW);
+
+	glGenBuffers(1, &model->vertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model->vertexIndexBuffer);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
+}
+
 void Render_DrawModel(Model model)
 {
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, model.vertexPositionbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, model.vertexPositionBuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
 	// 2nd attribute buffer : UVs
