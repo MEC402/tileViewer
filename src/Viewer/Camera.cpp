@@ -9,7 +9,7 @@ void Camera::Init(int cameracount, int width, int height)
 	Height = height;
 
 	FirstMouse = true;
-	Yaw = -270.0f;
+	Yaw = 0.0f;//-270.0f;
 	Pitch = 0.0f;
 	LastX = Width / 2.0f;
 	LastY = Height / 2.0f;
@@ -54,16 +54,22 @@ void Camera::SetViewport(Viewport *viewport)
 	float tempYaw = Yaw + glm::degrees(viewport->rotation);
 	
 	glm::vec3 front;
-	front.x = cos(glm::radians(tempYaw)) * cos(glm::radians(Pitch));
+	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 	front.y = sin(glm::radians(Pitch));
-	front.z = sin(glm::radians(tempYaw)) * cos(glm::radians(Pitch));
+	front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 	glm::vec3 cameraFront = glm::normalize(front);
 
 	glm::mat4 newView = glm::lookAt(
 		glm::vec3(0, 0, 0),
-		cameraFront,
+		glm::vec3(0, 0, 1),
 		cameraUp
 	);
+	
+	glm::mat4 rotYaw = glm::rotate(newView, glm::radians(tempYaw), cameraUp);
+	glm::vec3 frontVector = glm::normalize(glm::cross(cameraFront, cameraUp));
+	glm::vec3 rightVector = glm::normalize(glm::cross(frontVector, cameraUp));
+	glm::mat4 rotPitch = glm::rotate(newView, glm::radians(Pitch), rightVector);
+	newView = rotYaw * rotPitch;
 
 	MVP = Projection * newView * Model;
 
@@ -125,6 +131,8 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
 
+	// Rotate backwards so our center screen is our "0" rotation camera
+	//rotate_x -= (fovx * (int)(NumCameras / 2));
 	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap and prevents mistakes so w/e
 	if (hsplit) {
 		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
@@ -164,6 +172,8 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
+	Pitch = pitch;
+
 
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -182,6 +192,10 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 	//	glm::vec3(0, 0, 1),
 	//	glm::vec3(0, 1, 0)
 	//);
+
+	//glm::mat4 rotX = glm::rotate(View, glm::radians(Yaw), glm::vec3(0, 1, 0));
+	//glm::mat4 rotY = glm::rotate(View, glm::radians(Pitch), glm::vec3(1, 0, 0));
+	//View = rotX * rotY;
 
 	Model = glm::mat4(1.0f);
 

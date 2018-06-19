@@ -96,4 +96,4 @@ void SafeQueue<ImageData*>::Enqueue(ImageData *i)
 	}
 }
 
-#endif // include guard
+#endif // _SAFEQUEUE_H

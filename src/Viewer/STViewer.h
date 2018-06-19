@@ -44,6 +44,10 @@ public:
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void Screenshot(void);
+
+	void ToggleGUI(void);
+	void ToggleLinear(void);
+
 	void FlipDebug(void);
 
 	void Update(double globalTime, float deltaTime);
@@ -56,6 +60,8 @@ public:
 	float m_guiPanoSelection;
 	double m_lastUIInteractionTime;
 	Annotations m_annotations;
+
+	bool m_displaygui;
 
 #ifdef DEBUG
 	void PrintAverage(void);
@@ -112,6 +118,7 @@ private:
 	bool m_stereo;
 	bool m_fivepanel;
 	bool m_fullscreen;
+	bool m_linear;
 
 	SafeQueue<ImageData*> *m_LoadedTextures;
 

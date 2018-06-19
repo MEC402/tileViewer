@@ -46,6 +46,12 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	initVR();
 	initTextures();
 
+	m_gui.Create(m_panolist);
+	m_lastUIInteractionTime = 0;
+	m_guiPanoSelection = 0;
+	m_displaygui = !m_usingVR;
+	m_linear = true;
+
 	Controls::SetViewer(this);
 
 	glutMainLoop();
@@ -67,7 +73,7 @@ void STViewer::ToggleStereo()
 		m_camera.UpdateCameras();
 		workerPool->submit([](STViewer* v) { v->loadAllQuadDepths(); }, this);
 	}
-	_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
+	CB_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 }
 
 
@@ -95,9 +101,14 @@ void STViewer::NextPano()
 void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
-		m_currentPano = pano;
-		m_images.m_currentPano = m_currentPano;
-		resetImages();
+		if (m_displaygui) {
+			m_guiPanoSelection = pano;
+		}
+		else {
+			m_currentPano = pano;
+			m_images.m_currentPano = m_currentPano;
+			resetImages();
+		}
 	}
 	else {
 		fprintf(stderr, "Invalid Pano Selection\n");
@@ -133,7 +144,6 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 	m_camera.Pitch += pitchChange;
 	m_camera.Yaw += yawChange;
 
-
 	m_camera.UpdateMVP();
 	m_camera.UpdateCameras();
 }
@@ -157,17 +167,20 @@ void STViewer::FlipDebug()
 	m_shader.FlipDebug();
 }
 
-/*---------------- Private Functions ----------------*/
-
-void STViewer::loadAllQuadDepths()
+void STViewer::ToggleGUI()
 {
-	ImageHandler& images = m_images;
-	for (int i = 0; i < downloadPool->size(); i++)
-		downloadPool->submit([&images]() { images.LoadQuadImage(); });
-	for (int i = 0; i < texturePool->size(); i++) {
-		texturePool->submit([&images]() { images.Decompress(); });
-	}
+	m_displaygui = !m_displaygui;
 }
+
+void STViewer::ToggleLinear()
+{
+	m_linear = !m_linear;
+	m_images.SetFilter(0, m_linear);
+	if (m_stereo)
+		m_images.SetFilter(1, m_linear);
+}
+
+/* ---------------------- Primary Update Loop ---------------------- */
 
 void STViewer::Update(double globalTime, float deltaTime)
 {
@@ -263,9 +276,23 @@ void STViewer::Update(double globalTime, float deltaTime)
 		m_RightEye->RebindVAO();
 
 
-	_Display();
+	CB_Display();
 	glutSwapBuffers();
 }
+
+
+/*---------------- Private Functions ----------------*/
+
+void STViewer::loadAllQuadDepths()
+{
+	ImageHandler& images = m_images;
+	for (int i = 0; i < downloadPool->size(); i++)
+		downloadPool->submit([&images]() { images.LoadQuadImage(); });
+
+	for (int i = 0; i < texturePool->size(); i++)
+		texturePool->submit([&images]() { images.Decompress(); });
+}
+
 
 void STViewer::resetImages()
 {
@@ -332,7 +359,7 @@ void STViewer::resetCubes()
 		}
 	}
 	
-	_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
+	CB_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 
 	// Wait for Level 0 to be loaded
 	if (m_panolist.size() > 0)
@@ -345,13 +372,12 @@ void STViewer::resetCubes()
 
 void STViewer::initGL()
 {
-	_InitCallbacks(this, m_fullscreen);
-	_InitReferences(m_stereo, &m_shader, &m_images, m_LeftEye, m_RightEye, &m_camera);
-	_InitMenus(m_panolist);
+	CB_InitReferences(m_stereo, &m_shader, &m_images, m_LeftEye, m_RightEye, &m_camera);
+	CB_Init(this, m_fullscreen);
+	CB_InitMenus(m_panolist);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
 	m_shader.Bind();
-
 }
 
 void STViewer::initVR()
@@ -360,10 +386,7 @@ void STViewer::initVR()
 	if (m_usingVR) {
 		m_stereo = true;
 		updateVRDevice(&m_vr);
-		_EnableVR(&m_vr);
-		m_gui.create(m_panolist);
-		m_lastUIInteractionTime = 0;
-		m_guiPanoSelection = 0;
+		CB_EnableVR(&m_vr);
 	}
 }
 
@@ -375,7 +398,7 @@ void STViewer::initTextures()
 	resetImages();
 
 	// Left eye is default and always exists.
-	// Texture bindings swap in _Display so no need to deal with Stereo mode here
+	// Texture bindings swap in CB_Display so no need to deal with Stereo mode here
 	m_pointCount = m_LeftEye->m_NumVertices;
 	m_images.BindTextures(m_shader, 0);
 

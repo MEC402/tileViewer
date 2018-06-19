@@ -353,7 +353,7 @@
     <ClInclude Include="TileViewer.h" />
     <ClInclude Include="STViewer.h" />
     <ClInclude Include="VR.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR)|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR)|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR) (Size Optimal)|Win32'">true</ExcludedFromBuild>
     </ClInclude>
   </ItemGroup>
@@ -373,7 +373,7 @@
     <ClCompile Include="TileViewer.cpp" />
     <ClCompile Include="STViewer.cpp" />
     <ClCompile Include="VR.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR)|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR)|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR) (Size Optimal)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
   </ItemGroup>
