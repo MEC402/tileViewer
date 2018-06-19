@@ -11,7 +11,9 @@
 #include "stb_image.h"
 #include "VR.h"
 
-#define THUMB_TX_SLOT 13
+// The first 12 active textures are used by CubeMap faces
+// This is set as a macro for ease of refactoring later, should we want to use more slots later
+#define THUMB_TX_SLOT 13 
 
 class GraphicalMenu
 {

@@ -222,9 +222,16 @@ void _Display()
 		if (_viewer->m_displaygui) {
 			// Center the GUI if we have multiple viewports
 			_camera->SetViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
-			
-			_viewer->m_gui.display(glm::quat(glm::inverse(_camera->View)), 
-				_camera->Projection * _camera->View, _viewer->m_guiPanoSelection);
+
+			// Reset projection to "only one screen"
+			glm::mat4 proj = glm::perspective(glm::radians(45.0f), 
+				float(_camera->Width) / float(_camera->Height), 0.1f, 10000.0f);
+
+			// Draw a new viewport to cover the whole scene
+			glViewport(0, 0, _camera->Width, _camera->Height);
+
+			_viewer->m_gui.display(glm::quat(glm::inverse(_camera->View)),
+				proj * _camera->View, _viewer->m_guiPanoSelection);
 
 			// Rebind main program
 			glDisable(GL_CULL_FACE);
