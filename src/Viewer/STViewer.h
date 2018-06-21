@@ -21,11 +21,14 @@
 #include "VR.h"
 #include "GraphicalMenu.h"
 
+#include "KinectControl.h"
+
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
 class STViewer {
 
 public:
-	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote);
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, 
+		int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect);
 
 	/*		Viewer-Driven Stereo Function		*/
 	/*	  Necessary because of Eye geometry		*/
@@ -61,11 +64,10 @@ public:
 	Annotations m_annotations;
 
 	bool m_displaygui;
+	float m_selectedPano;
 
 #ifdef DEBUG
-	void PrintAverage(void);
 	void RebindVAO(void);
-	void WaitingThreads();
 #endif
 
 private:
@@ -102,6 +104,7 @@ private:
 	// Pano data
 	std::vector<PanoInfo> m_panolist;
 	int m_currentPano;
+	
 
 	Shader m_shader;
 	Camera m_camera;
@@ -123,6 +126,7 @@ private:
 	VRDevice m_vr;
 
 	RemoteClient *m_remote;
+	KinectControl *m_kinect;
 
 	// Magic number for maximum depth (0 indexed)
 	int m_maxDepth;

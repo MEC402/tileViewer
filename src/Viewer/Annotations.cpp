@@ -98,7 +98,9 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 
 void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, float distance)
 {
-	glm::mat4x4 rotation = glm::rotate(a.pitch, glm::vec3(1, 0, 0)) * glm::rotate(a.yaw, glm::vec3(0, 1, 0));
+	float pitch = a.pitch / 180.0f * glm::pi<float>();
+	float yaw = a.pitch / 180.0f * glm::pi<float>();
+	glm::mat4x4 rotation = glm::rotate(pitch, glm::vec3(1, 0, 0)) * glm::rotate(yaw, glm::vec3(0, 1, 0));
 	glm::mat4x4 translation = glm::translate(glm::vec3(0,0,-(a.distance+distance)));
 	float height = a.height;
 	float width = float(a.texture.width) / float(a.texture.height) * a.height;

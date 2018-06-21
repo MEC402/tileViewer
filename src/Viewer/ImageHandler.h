@@ -26,8 +26,6 @@
 #include "Shader.h"
 #include "Shared.h"
 
-struct PanoInfo;
-
 class ImageHandler {
 
 public:

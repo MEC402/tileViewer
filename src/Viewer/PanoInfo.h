@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _PANOINFO_H
+#define _PANOINFO_H
 #include <rapidjson/document.h>
 #include <rapidjson/error/en.h>
 #include <string>
@@ -53,3 +54,4 @@ static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std:
 	}
 	return panoInfoList;
 }
+#endif //_PANOINFO_H

@@ -15,11 +15,12 @@
 /*---------------- Public Functions ----------------*/
 
 STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
-	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote) :
+	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
 	m_stereo(stereo),
 	m_fivepanel(fivepanel),
 	m_fullscreen(fullscreen),
-	m_remote(remote)
+	m_remote(remote),
+	m_kinect(kinect)
 {
 	m_images.InitPanoList(panoURI);
 
@@ -32,7 +33,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 		m_camera.SplitHorizontal();
 
 	downloadPool = new Threads::ThreadPool(std::thread::hardware_concurrency());
-	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-1);
+	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-2);
 	workerPool = new Threads::ThreadPool(2);
 
 	m_panolist = m_images.m_panoList;
@@ -50,7 +51,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	m_gui.Create(m_panolist);
 	m_lastUIInteractionTime = 0;
 	m_guiPanoSelection = 0;
-	m_displaygui = !m_usingVR;
+	m_displaygui = false;
 	m_linear = true;
 
 	Controls::SetViewer(this);
@@ -103,10 +104,12 @@ void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
 		if (m_displaygui) {
-			m_guiPanoSelection = pano;
+			m_selectedPano = (float)pano;
 		}
 		else {
 			m_currentPano = pano;
+			m_guiPanoSelection = pano;
+			m_selectedPano = pano;
 			m_images.m_currentPano = m_currentPano;
 			resetImages();
 		}
@@ -125,7 +128,8 @@ void STViewer::ReloadShaders()
 {
 	m_shader.Reload();
 	m_images.BindTextures(m_shader, 0);
-	m_images.BindTextures(m_shader, 1);
+	if (m_stereo)
+		m_images.BindTextures(m_shader, 1);
 	m_shader.Bind();
 }
 
@@ -171,6 +175,10 @@ void STViewer::FlipDebug()
 void STViewer::ToggleGUI()
 {
 	m_displaygui = !m_displaygui;
+	if (!m_displaygui)
+		m_gui.ResetTimer();
+	else
+		m_gui.StartTimer();
 }
 
 void STViewer::ToggleLinear()
@@ -233,6 +241,24 @@ void STViewer::Update(double globalTime, float deltaTime)
 			m_guiPanoSelection = (1 - t)*m_guiPanoSelection + t*round(m_guiPanoSelection);
 		}
 	}
+	else {
+		// Animation for non-VR GUI
+		if (m_displaygui && abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
+			float menuSpeed = 20;
+			float direction = m_selectedPano - m_guiPanoSelection;
+
+			if (direction < 0)
+				m_guiPanoSelection += -0.2f * deltaTime * menuSpeed * -direction;
+			else
+				m_guiPanoSelection += 0.2f * deltaTime * menuSpeed * direction;
+
+			if (m_guiPanoSelection < 0)
+				m_guiPanoSelection = 0;
+
+			if (m_guiPanoSelection > m_panolist.size() - 1) 
+				m_guiPanoSelection = m_panolist.size() - 1;
+		}
+	}
 
 	// 16.67ms per frame, takes us ~0.5ms to send an image to the GPU/Update quad depth (async GL calls)
 	// Queue gets emptied fast enough that we never actually load 32 images sequentially, but we can do
@@ -269,6 +295,10 @@ void STViewer::Update(double globalTime, float deltaTime)
 			}, face, row, col, depth);
 		}
 		m_images.LoadImageData(image);
+	}
+
+	if (m_kinect != NULL) {
+		m_kinect->GetGesture(m_displaygui);
 	}
 
 	// Check to see if any thread has updated cube quad depths, if so rebind VAO/VBO data
@@ -315,6 +345,9 @@ void STViewer::resetImages()
 	while (!downloadPool->allstopped());
 
 	m_annotations.Load(m_panolist[m_currentPano].annotations);
+
+	// Sanity check
+	m_images.ClearQueues();
 
 	/* Turn off queue discarding */
 	m_LoadedTextures->ToggleDiscard();
@@ -394,15 +427,15 @@ void STViewer::initVR()
 void STViewer::initTextures()
 {
 	m_images.InitTextureAtlas(m_stereo, m_LoadedTextures);
-
+	
 	// Trigger our logic pattern to init cubes and start loading images
 	resetImages();
-
+	
 	// Left eye is default and always exists.
 	// Texture bindings swap in CB_Display so no need to deal with Stereo mode here
 	m_pointCount = m_LeftEye->m_NumVertices;
 	m_images.BindTextures(m_shader, 0);
-
+	
 	fprintf(stderr, "ST Viewer Initialized\n");
 }
 
@@ -418,20 +451,6 @@ void STViewer::Cleanup()
 }
 
 #ifdef DEBUG
-
-void STViewer::PrintAverage()
-{
-	float total = 0.0f;
-	for (auto time : m_average)
-		total += time;
-	fprintf(stderr, "Current average time to load a Pano in full: %f\n", total / m_average.size());
-}
-
-void STViewer::WaitingThreads()
-{
-	fprintf(stderr, "Number of download threads: %d\n", downloadPool->running());
-	fprintf(stderr, "Number of texture threads: %d\n", texturePool->running());
-}
 
 void STViewer::RebindVAO()
 {

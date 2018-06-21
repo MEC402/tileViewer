@@ -15,6 +15,7 @@
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="GraphicalMenu.cpp" />
     <ClCompile Include="Annotations.cpp" />
+    <ClCompile Include="KinectControl.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -86,6 +87,7 @@
     <ClInclude Include="SafeQueue.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="KinectControl.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

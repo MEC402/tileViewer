@@ -4,8 +4,9 @@
 
 struct Model
 {
-	GLuint vertexPositionbuffer = 0;
+	GLuint vertexPositionBuffer = 0;
 	GLuint vertexUVBuffer = 0;
+	GLuint vertexIndexBuffer = 0;
 	unsigned int indices = 0;
 };
 
@@ -17,8 +18,10 @@ struct Texture
 };
 
 void Render_CreateQuadModel(Model* model);
-void Render_CreateCurvedQuadModel(Model* model);
+void Render_CreateCubeModel(Model *model);
+
 void Render_DrawModel(Model model);
+
 
 GLuint Render_CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels = 0);
 void Render_CreateTexture(Texture *out_texture, unsigned int textureSlot, unsigned int width, unsigned int height, GLenum format, unsigned char *pixels = 0);

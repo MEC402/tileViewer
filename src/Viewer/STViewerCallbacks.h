@@ -140,13 +140,13 @@ void CB_Display()
 			float horizontalPanoramaSeparation = 0.065f;
 			glm::vec3 eyeDelta = getVREyeDistance(_vr);
 			float interpupillaryDistance = glm::length(eyeDelta);
-			float separationCorrection = horizontalPanoramaSeparation-interpupillaryDistance;
+			float separationCorrection = controllers.left.middleFingerTrigger*0.1f;// horizontalPanoramaSeparation - interpupillaryDistance;
 
 			glm::mat4x4 perspective = buildVRProjectionMatrix(_vr, eyeIndex);
 			glm::mat4x4 view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
-			float eyeRotation = separationCorrection/2;
+			float eyeRotation = eyeIndex * separationCorrection / 2;
 			if (eyeIndex == 0) eyeRotation *= -1;
-			view = view * glm::eulerAngleYXZ(eyeRotation, 0.0f, 0.0f);
+			view = view * glm::eulerAngleYXZ(-eyeRotation, 0.0f, 0.0f);
 
 			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
 			// Todo: report camera yaw and pitch for people making annotations.
@@ -170,13 +170,12 @@ void CB_Display()
 			perspective = buildVRProjectionMatrix(_vr, eyeIndex);
 			view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
 			glm::vec3 eyeDeltaDirection = glm::normalize(eyeDelta);
-			view = view * glm::translate((float(eyeIndex)*2-1)/2*eyeDeltaDirection*horizontalPanoramaSeparation);
-			//view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
-			//view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
+			view = view * glm::translate(-(float(eyeIndex) * 2 - 1) / 2 * eyeDeltaDirection*horizontalPanoramaSeparation);
+			view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
+			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
-			float distance = controllers.left.indexFingerTrigger * 10;
+			float distance = controllers.left.indexFingerTrigger * 100;
 			_viewer->m_annotations.Display(perspective*view, eyeIndex, distance);
-			printf("Distance: %f\n", distance);
 
 			double uiDisplayWaitTime = 1.5;
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
@@ -228,6 +227,8 @@ void CB_Display()
 
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _viewer->m_guiPanoSelection);
+
+			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View, _globalTime);
 
 			// Rebind main program
 			glDisable(GL_CULL_FACE);
