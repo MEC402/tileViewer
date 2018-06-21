@@ -4,6 +4,7 @@
 #include "Controls.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
 STViewer *_viewer;
 
@@ -123,6 +124,7 @@ void CB_Display()
 		for (unsigned int eyeIndex = 0; eyeIndex < 2; ++eyeIndex) {
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
+			VRControllerStates controllers = getVRControllerState(_vr);
 
 			bindEyeRenderSurface(_vr, eyeIndex);
 
@@ -132,12 +134,29 @@ void CB_Display()
 
 			_images->BindTextures(*_shader, eyeIndex);
 
+			// The cameras used when taking the panorama have a different amount of separation
+			// Than the user's eyes. We're testing adjusting the panorama separation to account
+			// for this.
+			float horizontalPanoramaSeparation = 0.065f;
+			glm::vec3 eyeDelta = getVREyeDistance(_vr);
+			float interpupillaryDistance = glm::length(eyeDelta);
+			float separationCorrection = horizontalPanoramaSeparation-interpupillaryDistance;
+
 			glm::mat4x4 perspective = buildVRProjectionMatrix(_vr, eyeIndex);
-			glm::mat4x4 view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
-			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
+			glm::mat4x4 view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
+			float eyeRotation = separationCorrection/2;
+			if (eyeIndex == 0) eyeRotation *= -1;
+			view = view * glm::eulerAngleYXZ(eyeRotation, 0.0f, 0.0f);
+
+			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
+			// Todo: report camera yaw and pitch for people making annotations.
+			float cameraYaw = 0;
+			float cameraPitch = 0;
+			//printf("Yaw: %f,\tPitch:%f\n", cameraYaw, cameraPitch);
+
 			_shader->SetMatrixUniform("MVP", perspective*view);
 
-			if (eyeIndex == 0) {
+			if (eyeIndex==0) {
 				_lefteye->BindVAO();
 				glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
 			}
@@ -146,10 +165,23 @@ void CB_Display()
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
 			}
 
+			// Render objects in 3D space
+
+			perspective = buildVRProjectionMatrix(_vr, eyeIndex);
+			view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
+			glm::vec3 eyeDeltaDirection = glm::normalize(eyeDelta);
+			view = view * glm::translate((float(eyeIndex)*2-1)/2*eyeDeltaDirection*horizontalPanoramaSeparation);
+			//view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
+			//view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
+
+			float distance = controllers.left.indexFingerTrigger * 10;
+			_viewer->m_annotations.Display(perspective*view, eyeIndex, distance);
+			printf("Distance: %f\n", distance);
 
 			double uiDisplayWaitTime = 1.5;
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
-				glm::mat4x4 inverseView = (glm::mat4_cast(getVRHeadsetRotation(_vr)));
+				view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
+				view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 				float uiRadius = 0.65f;
 				_viewer->m_gui.Display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection, true);
 			}

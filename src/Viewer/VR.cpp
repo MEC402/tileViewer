@@ -394,6 +394,14 @@ glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex)
 	return OVRtoGLM(proj);
 }
 
+glm::mat4x4 buildVROrthoMatrix(VRDevice* vr, int eyeIndex, float orthoDistance)
+{
+	OVR::Vector2f orthoScale = OVR::Vector2f(1.0f) / OVR::Vector2f(vr->eyeRenderDesc[eyeIndex].PixelsPerTanAngleAtCenter);
+	orthoScale = OVR::Vector2f(4.0f) / OVR::Vector2f(1.0f);
+	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 1000.0f, ovrProjection_LeftHanded);
+	return OVRtoGLM(ovrMatrix4f_OrthoSubProjection(proj, orthoScale, orthoDistance,	vr->eyeRenderDesc[eyeIndex].HmdToEyePose.Position.x));
+}
+
 glm::vec3 getVRHeadsetPosition(VRDevice* vr)
 {
 	OVR::Vector3f leftEye = vr->eyeRenderPose[0].Position;
@@ -405,6 +413,11 @@ glm::vec3 getVRHeadsetPosition(VRDevice* vr)
 glm::quat getVRHeadsetRotation(VRDevice* vr)
 {
 	return OVRtoGLM(vr->eyeRenderPose[0].Orientation);
+}
+
+glm::vec3 getVREyeDistance(VRDevice* vr)
+{
+	return OVRtoGLM(vr->eyeRenderPose[1].Position) - OVRtoGLM(vr->eyeRenderPose[0].Position);
 }
 
 VRControllerStates getVRControllerState(VRDevice* vr)

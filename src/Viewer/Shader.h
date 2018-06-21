@@ -21,7 +21,7 @@ public:
 
 	GLuint GetProgram();
 	
-	Shader() {}
+	Shader() : m_program(0), m_geomShader(0), m_vertShader(0), m_fragShader(0) {}
 
 private:
 	std::string readFile(const char *filePath);

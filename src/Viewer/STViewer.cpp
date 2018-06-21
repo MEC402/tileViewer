@@ -46,6 +46,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	initVR();
 	initTextures();
 
+	m_annotations.Create();
 	m_gui.Create(m_panolist);
 	m_lastUIInteractionTime = 0;
 	m_guiPanoSelection = 0;
@@ -313,6 +314,8 @@ void STViewer::resetImages()
 	while (!texturePool->allstopped());
 	while (!downloadPool->allstopped());
 
+	m_annotations.Load(m_panolist[m_currentPano].annotations);
+
 	/* Turn off queue discarding */
 	m_LoadedTextures->ToggleDiscard();
 
@@ -322,8 +325,6 @@ void STViewer::resetImages()
 	workerPool->submit([](STViewer* v) {
 		v->loadAllQuadDepths();
 	}, this);
-	
-	
 	
 #ifdef DEBUG
 	// These aren't really important anymore but might be useful for debugging

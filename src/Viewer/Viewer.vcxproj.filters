@@ -15,7 +15,6 @@
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="GraphicalMenu.cpp" />
     <ClCompile Include="Annotations.cpp" />
-    <ClCompile Include="ImageLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -82,9 +81,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Annotations.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageLoader.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="SafeQueue.h">

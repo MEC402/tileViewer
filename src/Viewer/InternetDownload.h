@@ -14,6 +14,6 @@
 size_t downloadFileWriterCallback(void *newBytes, size_t size, size_t nmemb, ImageData *file);
 void populateImageData(ImageData *out_file, const char *url);
 void downloadFile(ImageData *out_file, const std::string url);
-void downloadMultipleFiles(ImageData **out_files, const std::string *urls, unsigned int fileCount);
+std::vector<ImageData> downloadMultipleFiles(const std::string *urls, unsigned int fileCount);
 
 #endif

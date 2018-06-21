@@ -12,8 +12,7 @@ struct PanoInfo
 	std::string leftAddress;
 	std::string rightAddress;
 	std::string thumbAddress;
-	std::string leftAnnotations;
-	std::string rightAnnotations;
+	std::string annotations;
 };
 
 static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std::string baseImageURL) {
@@ -42,11 +41,8 @@ static std::vector<PanoInfo> parsePanoInfoFile(std::string jsonFileRawText, std:
 			if (panosArray[i].HasMember("thumb")) {
 				pano.thumbAddress = baseImageURL + '/' + panosArray[i]["thumb"].GetString();
 			}
-			if (panosArray[i].HasMember("annotations-left")) {
-				pano.leftAnnotations = baseImageURL + '/' + panosArray[i]["annotations-left"].GetString();
-			}
-			if (panosArray[i].HasMember("annotations-right")) {
-				pano.leftAnnotations = baseImageURL + '/' + panosArray[i]["annotations-right"].GetString();
+			if (panosArray[i].HasMember("annotations")) {
+				pano.annotations = baseImageURL + '/' + panosArray[i]["annotations"].GetString();
 			}
 			panoInfoList.push_back(pano);
 		}

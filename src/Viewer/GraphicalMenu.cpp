@@ -7,37 +7,32 @@ void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 	shader.CreateProgram(0, "gui.vert", "gui.frag");
 	Render_CreateQuadModel(&quad);
 
-	std::vector<ImageData*> thumbnailFiles;
 	std::vector<std::string> urls;
-	for (unsigned int i = 0; i < panoList.size(); ++i)
-	{
+	for (unsigned int i = 0; i < panoList.size(); ++i) {
 		urls.push_back(panoList[i].thumbAddress);
-		thumbnailFiles.push_back(new ImageData);
 	}
 
-	downloadMultipleFiles(thumbnailFiles.data(), urls.data(), urls.size());
+	std::vector<ImageData> thumbnailFiles = downloadMultipleFiles(urls.data(), urls.size());
 	thumbnailCount = panoList.size();
 	thumbnails = new GLuint[panoList.size()];
 
 	for (unsigned int i = 0; i < panoList.size(); ++i)
 	{
 		int width, height, nrChannels;
-		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)thumbnailFiles[i]->data, thumbnailFiles[i]->dataSize, &width, &height, &nrChannels, 0));
+		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)thumbnailFiles[i].data, thumbnailFiles[i].dataSize, &width, &height, &nrChannels, 0));
 
 		thumbnails[i] = Render_CreateTexture(THUMB_TX_SLOT, width, height, GL_RGB, d);
 
-		free(thumbnailFiles[i]->data);
+		free(thumbnailFiles[i].data);
 		stbi_image_free(d);
-	}
-
-	for (unsigned int i = 0; i < thumbnailFiles.size(); ++i) {
-		delete thumbnailFiles[i];
 	}
 }
 
 void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjection, 
 	float radius, float panoSelection, bool tilt)
 {
+	if (thumbnailCount == 0) return;
+
 	float tileSeparation = 0.4f;
 	float menuRotation = panoSelection*tileSeparation;
 	glDisable(GL_DEPTH_TEST);

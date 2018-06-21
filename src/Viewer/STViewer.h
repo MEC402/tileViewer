@@ -11,7 +11,6 @@
 #include "Camera.h"
 #include "CubePoints.h"
 #include "ImageHandler.h"
-#include "ImageLoader.h"
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
@@ -107,8 +106,6 @@ private:
 	Shader m_shader;
 	Camera m_camera;
 	ImageHandler m_images;
-	ImageLoader m_panoLoader;
-	ImageLoader m_annotationLoader;
 
 	// Thread pool data
 	Threads::ThreadPool *downloadPool;
