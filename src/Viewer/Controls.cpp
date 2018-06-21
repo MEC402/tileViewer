@@ -1,4 +1,5 @@
 #include "Controls.h"
+#include "KinectControl.h"
 
 STViewer *Controls::viewer;
 
@@ -129,6 +130,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
 {
+	//fprintf(stderr, "Keypress Received: %c\n", key);
 	float average = 0.0f;
 	switch (key) {
 	case '1':

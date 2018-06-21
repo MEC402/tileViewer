@@ -15,11 +15,12 @@
 /*---------------- Public Functions ----------------*/
 
 STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
-	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote) :
+	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
 	m_stereo(stereo),
 	m_fivepanel(fivepanel),
 	m_fullscreen(fullscreen),
-	m_remote(remote)
+	m_remote(remote),
+	m_kinect(kinect)
 {
 	m_images.InitPanoList(panoURI);
 
@@ -32,7 +33,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 		m_camera.SplitHorizontal();
 
 	downloadPool = new Threads::ThreadPool(std::thread::hardware_concurrency());
-	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-1);
+	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-2);
 	workerPool = new Threads::ThreadPool(2);
 
 	m_panolist = m_images.m_panoList;
@@ -106,6 +107,8 @@ void STViewer::SelectPano(int pano)
 		}
 		else {
 			m_currentPano = pano;
+			m_guiPanoSelection = pano;
+			m_selectedPano = pano;
 			m_images.m_currentPano = m_currentPano;
 			resetImages();
 		}
@@ -239,8 +242,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 	}
 	else {
 		// Animation for non-VR GUI
-		// This is hacky as all getout, but it looks smooth
-		if (abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
+		if (m_displaygui && abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
 			float menuSpeed = 20;
 			float direction = m_selectedPano - m_guiPanoSelection;
 
@@ -260,7 +262,8 @@ void STViewer::Update(double globalTime, float deltaTime)
 	// 16.67ms per frame, takes us ~0.5ms to send an image to the GPU/Update quad depth (async GL calls)
 	// Queue gets emptied fast enough that we never actually load 32 images sequentially, but we can do
 	// Up to that many without skipping a frame.
-	for (int i = 0; !m_LoadedTextures->IsEmpty() && i < 32; i++) {
+	//for (int i = 0; !m_LoadedTextures->IsEmpty() && i < 32; i++) {
+	if (!m_LoadedTextures->IsEmpty()) {
 		ImageData *image = m_LoadedTextures->Dequeue();
 
 		// TODO: We can skip storing these on the stack if we convert to using std::share_ptr
@@ -291,6 +294,9 @@ void STViewer::Update(double globalTime, float deltaTime)
 			}, face, row, col, depth);
 		}
 		m_images.LoadImageData(image);
+	}
+	else if (m_kinect != NULL) {
+		m_kinect->GetGesture(m_displaygui);
 	}
 
 	// Check to see if any thread has updated cube quad depths, if so rebind VAO/VBO data
@@ -419,15 +425,15 @@ void STViewer::initVR()
 void STViewer::initTextures()
 {
 	m_images.InitTextureAtlas(m_stereo, m_LoadedTextures);
-
+	
 	// Trigger our logic pattern to init cubes and start loading images
 	resetImages();
-
+	
 	// Left eye is default and always exists.
 	// Texture bindings swap in CB_Display so no need to deal with Stereo mode here
 	m_pointCount = m_LeftEye->m_NumVertices;
 	m_images.BindTextures(m_shader, 0);
-
+	
 	fprintf(stderr, "ST Viewer Initialized\n");
 }
 
