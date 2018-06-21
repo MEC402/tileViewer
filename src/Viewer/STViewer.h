@@ -65,9 +65,7 @@ public:
 	float m_selectedPano;
 
 #ifdef DEBUG
-	static void PrintAverage(void);
-	static void RebindVAO(void);
-	static void WaitingThreads(void);
+	void RebindVAO(void);
 #endif
 
 private:
@@ -109,9 +107,6 @@ private:
 	Shader m_shader;
 	Camera m_camera;
 	ImageHandler m_images;
-
-	// Remote control
-	static RemoteClient *m_remote;
 
 	// Thread pool data
 	Threads::ThreadPool *downloadPool;

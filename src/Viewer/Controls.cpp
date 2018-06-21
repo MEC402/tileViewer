@@ -93,13 +93,6 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		viewer->ToggleGUI();
 		break;
 
-	case GLUT_KEY_F5:
-		//fprintf(stderr, "FOV is at %f\n", Camera::FOV);
-#ifdef DEBUG
-		viewer->WaitingThreads();
-#endif
-		break;
-
 	case GLUT_KEY_F6:
 		DEBUG_camerastep -= 0.1f;
 		fprintf(stderr, "Stepping now at %f\n", DEBUG_camerastep);
@@ -118,11 +111,6 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	case GLUT_KEY_F9:
 		viewer->Screenshot();
 		break;
-#ifdef DEBUG
-	case GLUT_KEY_F10:
-		viewer->PrintAverage();
-		break;
-#endif
 	}
 	
 	viewer->MoveCamera(pitchChange, yawChange, FOVChange);

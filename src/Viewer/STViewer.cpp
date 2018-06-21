@@ -450,20 +450,6 @@ void STViewer::Cleanup()
 
 #ifdef DEBUG
 
-void STViewer::PrintAverage()
-{
-	float total = 0.0f;
-	for (auto time : m_average)
-		total += time;
-	fprintf(stderr, "Current average time to load a Pano in full: %f\n", total / m_average.size());
-}
-
-void STViewer::WaitingThreads()
-{
-	fprintf(stderr, "Number of download threads: %d\n", downloadPool->running());
-	fprintf(stderr, "Number of texture threads: %d\n", texturePool->running());
-}
-
 void STViewer::RebindVAO()
 {
 	m_LeftEye->RebindVAO();
