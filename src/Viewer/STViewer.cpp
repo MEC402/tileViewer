@@ -262,8 +262,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 	// 16.67ms per frame, takes us ~0.5ms to send an image to the GPU/Update quad depth (async GL calls)
 	// Queue gets emptied fast enough that we never actually load 32 images sequentially, but we can do
 	// Up to that many without skipping a frame.
-	//for (int i = 0; !m_LoadedTextures->IsEmpty() && i < 32; i++) {
-	if (!m_LoadedTextures->IsEmpty()) {
+	for (int i = 0; !m_LoadedTextures->IsEmpty() && i < 32; i++) {
 		ImageData *image = m_LoadedTextures->Dequeue();
 
 		// TODO: We can skip storing these on the stack if we convert to using std::share_ptr
@@ -295,7 +294,8 @@ void STViewer::Update(double globalTime, float deltaTime)
 		}
 		m_images.LoadImageData(image);
 	}
-	else if (m_kinect != NULL) {
+
+	if (m_kinect != NULL) {
 		m_kinect->GetGesture(m_displaygui);
 	}
 
