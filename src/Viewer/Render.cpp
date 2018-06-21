@@ -110,6 +110,14 @@ void Render_CreateCubeModel(Model *model)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
 }
 
+void Render_DestroyModel(Model* model)
+{
+	glDeleteBuffers(1, &model->vertexPositionBuffer);
+	glDeleteBuffers(1, &model->vertexUVBuffer);
+	glDeleteBuffers(1, &model->vertexIndexBuffer);
+	*model = { 0 };
+}
+
 void Render_DrawModel(Model model)
 {
 
@@ -156,4 +164,10 @@ void Render_CreateTexture(Texture* out_texture, unsigned int textureSlot, unsign
 	out_texture->id = Render_CreateTexture(textureSlot, width, height, format, pixels);
 	out_texture->width = width;
 	out_texture->height = height;
+}
+
+void Render_DestroyTexture(Texture *texture)
+{
+	glDeleteTextures(1, &texture->id);
+	*texture = { 0 };
 }

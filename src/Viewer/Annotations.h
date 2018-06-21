@@ -9,7 +9,7 @@ public:
 	Annotations();
 	void Create();
 	void Load(std::string annotationsJSONAddress);
-	void Display(glm::mat4x4 viewProjection, unsigned int eye, float distance);
+	void Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int eye, bool showAlignementTool);
 
 private:
 	struct AnnotationData
@@ -27,5 +27,5 @@ private:
 	std::vector<AnnotationData> annotations;
 
 	std::vector<AnnotationData> parseAnnotationJSON(std::string jsonText, std::string baseURL);
-	void renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, float distance);
+	void renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection);
 };

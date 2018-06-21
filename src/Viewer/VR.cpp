@@ -389,7 +389,7 @@ glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float c
 
 glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex)
 {
-	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 1000.0f, ovrProjection_None);
+	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 10000.0f, ovrProjection_None);
 	vr->posTimewarpProjectionDesc = ovrTimewarpProjectionDesc_FromProjection(proj, ovrProjection_None);
 	return OVRtoGLM(proj);
 }

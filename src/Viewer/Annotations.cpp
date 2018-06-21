@@ -18,9 +18,14 @@ void Annotations::Create()
 
 void Annotations::Load(std::string annotationsJSONAddress)
 {
-	if (annotationsJSONAddress.empty()) return;
+	// Destroy any existing annotations
+	for (unsigned int i = 0; i < annotations.size(); ++i) {
+		Render_DestroyTexture(&annotations[i].texture);
+	}
+	annotations.clear();
 
 	// Download JSON file
+	if (annotationsJSONAddress.empty()) return;
 	ImageData jsonFile;
 	downloadFile(&jsonFile, annotationsJSONAddress);
 	if (!jsonFile.data) return;
@@ -96,12 +101,12 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 	return annotationList;
 }
 
-void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, float distance)
+void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection)
 {
 	float pitch = a.pitch / 180.0f * glm::pi<float>();
-	float yaw = a.pitch / 180.0f * glm::pi<float>();
-	glm::mat4x4 rotation = glm::rotate(pitch, glm::vec3(1, 0, 0)) * glm::rotate(yaw, glm::vec3(0, 1, 0));
-	glm::mat4x4 translation = glm::translate(glm::vec3(0,0,-(a.distance+distance)));
+	float yaw = a.yaw / 180.0f * glm::pi<float>();
+	glm::mat4x4 rotation = glm::rotate(yaw, glm::vec3(0, 1, 0)) * glm::rotate(pitch, glm::vec3(1, 0, 0));
+	glm::mat4x4 translation = glm::translate(glm::vec3(0,0,-a.distance));
 	float height = a.height;
 	float width = float(a.texture.width) / float(a.texture.height) * a.height;
 	glm::mat4x4 scale = glm::scale(glm::vec3(width, height, 1));
@@ -111,7 +116,7 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection,
 	Render_DrawModel(quad);
 }
 
-void Annotations::Display(glm::mat4x4 viewProjection, unsigned int eye, float distance)
+void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int eye, bool showAlignementTool)
 {
 	shader.Bind();
 	glDisable(GL_DEPTH_TEST);
@@ -121,7 +126,18 @@ void Annotations::Display(glm::mat4x4 viewProjection, unsigned int eye, float di
 
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
 		if (annotations[i].texture.id) {
-			renderAnnotation(annotations[i], viewProjection, distance);
+			renderAnnotation(annotations[i], projection*view);
 		}
+	}
+
+	if (showAlignementTool)
+	{
+		// Render a small black quad on the screen
+		glm::mat4x4 translation = glm::translate(glm::vec3(0, 0, -1000.0f));
+		float scaleAmount = 10.0f;
+		glm::mat4x4 scale = glm::scale(glm::vec3(scaleAmount, scaleAmount, scaleAmount));
+		shader.SetMatrixUniform("MVP", projection*translation*scale);
+		shader.BindTexture("image", THUMB_TX_SLOT, 0);
+		Render_DrawModel(quad);
 	}
 }

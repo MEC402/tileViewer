@@ -134,19 +134,15 @@ void CB_Display()
 
 			_images->BindTextures(*_shader, eyeIndex);
 
-			// The cameras used when taking the panorama have a different amount of separation
-			// Than the user's eyes. We're testing adjusting the panorama separation to account
-			// for this.
-			float horizontalPanoramaSeparation = 0.065f;
-			glm::vec3 eyeDelta = getVREyeDistance(_vr);
-			float interpupillaryDistance = glm::length(eyeDelta);
-			float separationCorrection = controllers.left.middleFingerTrigger*0.1f;// horizontalPanoramaSeparation - interpupillaryDistance;
-
 			glm::mat4x4 perspective = buildVRProjectionMatrix(_vr, eyeIndex);
 			glm::mat4x4 view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
-			float eyeRotation = eyeIndex * separationCorrection / 2;
-			if (eyeIndex == 0) eyeRotation *= -1;
-			view = view * glm::eulerAngleYXZ(-eyeRotation, 0.0f, 0.0f);
+			// Correct right eye panorama alignment
+			if (eyeIndex == 1)
+			{
+				float eyeRotation = -controllers.left.indexFingerTrigger * 0.2f;
+				view = view * glm::eulerAngleYXZ(eyeRotation, 0.0f, 0.0f);
+				printf("Rotation: %f\n", eyeRotation);
+			}
 
 			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
 			// Todo: report camera yaw and pitch for people making annotations.
@@ -166,21 +162,15 @@ void CB_Display()
 			}
 
 			// Render objects in 3D space
-
-			perspective = buildVRProjectionMatrix(_vr, eyeIndex);
-			view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
-			glm::vec3 eyeDeltaDirection = glm::normalize(eyeDelta);
-			view = view * glm::translate(-(float(eyeIndex) * 2 - 1) / 2 * eyeDeltaDirection*horizontalPanoramaSeparation);
 			view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
-			float distance = controllers.left.indexFingerTrigger * 100;
-			_viewer->m_annotations.Display(perspective*view, eyeIndex, distance);
+			// Annotations
+			_viewer->m_annotations.Display(perspective, view, eyeIndex, true);
 
+			// GUI
 			double uiDisplayWaitTime = 1.5;
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
-				view = buildVRViewMatrix(_vr, eyeIndex, 0, 0, 0);
-				view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 				float uiRadius = 0.65f;
 				_viewer->m_gui.Display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection, true);
 			}
