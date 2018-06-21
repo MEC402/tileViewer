@@ -13,6 +13,10 @@ void killkinect()
 
 int main(int argc, char **argv)
 {
+	//RemoteClient *server = new RemoteClient();
+	//std::thread t(&RemoteClient::Serve, server);
+	//t.detach();
+
 	/* initialize GLUT, using any commandline parameters passed to the program */
 	glutInit(&argc, argv);
 
