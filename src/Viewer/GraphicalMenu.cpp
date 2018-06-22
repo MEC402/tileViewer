@@ -42,13 +42,14 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 	// Limit the tiles drawn so that they don't wrap all they way around the ring
 	int peripheralThumbnailCount = 3;
 
-	int minTile = panoSelection - peripheralThumbnailCount;
-	if (minTile < 0)
-		minTile = 0;
-
-	int maxTile = panoSelection + peripheralThumbnailCount;
-	if (maxTile >= thumbnailCount)
-		maxTile = thumbnailCount-1;
+	unsigned int minTile = 0;
+	if (panoSelection - peripheralThumbnailCount > 0) {
+		minTile = (unsigned int)round(panoSelection - peripheralThumbnailCount);
+	}
+	unsigned int maxTile = thumbnailCount - 1;
+	if (panoSelection + peripheralThumbnailCount < thumbnailCount - 1) {
+		maxTile = (unsigned int)round(panoSelection + peripheralThumbnailCount);
+	}
 
 	for (unsigned int i = minTile; i <= maxTile; ++i)
 	{
@@ -67,7 +68,7 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 		glm::vec3 verticalAxis(0, 1, 0);
 		// Get camera yaw
 		glm::quat q = headsetRotation;
-		float cameraYaw = -atan2(2.0*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+		float cameraYaw = -atan2f(2.0f*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
 
 		rotation = glm::rotate(menuRotation - (i*tileSeparation) + cameraYaw, verticalAxis);
 		scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
@@ -95,7 +96,7 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 // Overload so we can render thumbnail selection UI outside of VR headsets
 void GraphicalMenu::Display(glm::quat cameraRotation, glm::mat4x4 viewProjection, float panoSelection)
 {
-	float radius = 0.65;
+	float radius = 0.65f;
 	if (tilt_timer < 1.0)
 		tilt_timer += 0.025;
 		
@@ -104,7 +105,7 @@ void GraphicalMenu::Display(glm::quat cameraRotation, glm::mat4x4 viewProjection
 
 void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjection, double time)
 {
-	float radius = 0.45;
+	float radius = 0.45f;
 	float tileScale = 0.025f;
 	//glDisable(GL_DEPTH_TEST);
 	shader.Bind();
@@ -112,7 +113,7 @@ void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjectio
 	glm::mat4x4 translation = glm::translate(tilePosition);
 	glm::vec3 verticalAxis(0, 1, 0);
 	glm::quat q = cameraRotation;
-	float cameraYaw = -atan2(2.0*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
+	float cameraYaw = -atan2f(2.0f*(q.x*q.z - q.w*q.y), q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z);
 	glm::mat4x4 rotation = glm::rotate(cameraYaw, verticalAxis);
 	glm::mat4x4 scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
 	glm::mat4x4 model = rotation * translation * scale;

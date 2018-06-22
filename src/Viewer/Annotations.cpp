@@ -16,7 +16,7 @@ void Annotations::Create()
 	shader.CreateProgram(0, "gui.vert", "gui.frag");
 }
 
-void Annotations::Load(std::string annotationsJSONAddress)
+void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
 {
 	// Destroy any existing annotations
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
@@ -43,8 +43,10 @@ void Annotations::Load(std::string annotationsJSONAddress)
 
 	// Download image files
 	std::vector<std::string> urls;
+	char buf[512];
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		urls.push_back(annotations[i].filePath);
+		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
+		urls.push_back(buf);
 	}
 	std::vector<ImageData> files = downloadMultipleFiles(urls.data(), urls.size());
 

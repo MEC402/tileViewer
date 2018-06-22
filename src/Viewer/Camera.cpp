@@ -80,10 +80,10 @@ void Camera::SplitHorizontal()
 {
 	if (hsplit) {
 		hsplit = false;
-		for (int i = 0; i < NumCameras; i++)
+		for (unsigned int i = 0; i < NumCameras; i++)
 			delete RightCameras[i];
 		delete [] RightCameras;
-		for (int i = 0; i < NumCameras; i++) {
+		for (unsigned int i = 0; i < NumCameras; i++) {
 			LeftCameras[i]->height = Height;
 			LeftCameras[i]->heightstart = 0;
 		}
@@ -94,7 +94,7 @@ void Camera::SplitHorizontal()
 	RightCameras = new Viewport*[NumCameras];
 	createCameras(RightCameras, FOV, float(1080) / float(1920), true);
 
-	for (int i = 0; i < NumCameras; i++) {
+	for (unsigned int i = 0; i < NumCameras; i++) {
 		LeftCameras[i]->height = Height / 2;
 		LeftCameras[i]->heightstart = Height / 2;
 
@@ -108,7 +108,7 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 {
 	// Ported from spviewer
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
+	float rotate_x = -(float(NumCameras) - 1) * 0.5f * fovx;
 
 	for (unsigned int i = 0; i < NumCameras; i++) {
 		viewports[i] = new Viewport{ 0 };
@@ -135,7 +135,7 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 	//rotate_x -= (fovx * (int)(NumCameras / 2));
 	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap and prevents mistakes so w/e
 	if (hsplit) {
-		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+		for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
 			LeftCameras[i]->width = (Width / NumCameras);
 			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
 			LeftCameras[i]->height = Height / 2;
@@ -150,7 +150,7 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 		}
 	}
 	else {
-		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+		for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
 			LeftCameras[i]->width = (Width / NumCameras);
 			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
 			LeftCameras[i]->height = Height;

@@ -168,7 +168,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		// GUI Selection
 	case ' ':
 		viewer->ToggleGUI();
-		viewer->SelectPano(viewer->m_selectedPano);
+		viewer->SelectPano((int)round(viewer->m_selectedPano));
 		break;
 
 		// Misc Controls

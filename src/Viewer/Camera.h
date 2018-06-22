@@ -20,7 +20,7 @@ public:
 		glm::quat cameraQuat = glm::quat(glm::vec3(0, 0, 0));
 	};
 
-	int NumCameras;
+	unsigned int NumCameras;
 	Viewport **LeftCameras;
 	Viewport **RightCameras;
 	// Matricies

@@ -8,7 +8,7 @@ class Annotations
 public:
 	Annotations();
 	void Create();
-	void Load(std::string annotationsJSONAddress);
+	void Load(std::string annotationsJSONAddress, std::string languageFolder);
 	void Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int eye, bool showAlignementTool);
 
 private:

@@ -33,6 +33,8 @@ ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
+float horizontalEyeRotation = 0;
+float verticalEyeRotation = 0;
 
 
 
@@ -139,9 +141,9 @@ void CB_Display()
 			// Correct right eye panorama alignment
 			if (eyeIndex == 1)
 			{
-				float eyeRotation = -controllers.left.indexFingerTrigger * 0.2f;
-				view = view * glm::eulerAngleYXZ(eyeRotation, 0.0f, 0.0f);
-				printf("Rotation: %f\n", eyeRotation);
+				// Horizontal
+				PanoInfo& pano = _viewer->GetCurrentPano();
+				view = view * glm::eulerAngleYXZ(horizontalEyeRotation + pano.horizontalCorrection, verticalEyeRotation + pano.verticalCorrection, 0.0f);
 			}
 
 			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
@@ -187,7 +189,7 @@ void CB_Display()
 		glLoadIdentity();
 
 		glBindVertexArray(_lefteye->m_PositionVAOID);
-		for (int i = 0; i < _camera->NumCameras; i++) {
+		for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 			_camera->SetViewport(_camera->LeftCameras[i]);
 			_shader->SetMatrixUniform("MVP", _camera->MVP);
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
@@ -196,7 +198,7 @@ void CB_Display()
 		if (_stereo) {
 			glBindVertexArray(_righteye->m_PositionVAOID);
 			_images->BindTextures(*_shader, 1);
-			for (int i = 0; i < _camera->NumCameras; i++) {
+			for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 				_camera->SetViewport(_camera->RightCameras[i]);
 				_shader->SetMatrixUniform("MVP", _camera->MVP);
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);

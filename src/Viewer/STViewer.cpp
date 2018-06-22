@@ -108,8 +108,8 @@ void STViewer::SelectPano(int pano)
 		}
 		else {
 			m_currentPano = pano;
-			m_guiPanoSelection = pano;
-			m_selectedPano = pano;
+			m_guiPanoSelection = (float)pano;
+			m_selectedPano = (float)pano;
 			m_images.m_currentPano = m_currentPano;
 			resetImages();
 		}
@@ -136,6 +136,11 @@ void STViewer::ReloadShaders()
 std::vector<PanoInfo> STViewer::GetPanos()
 {
 	return m_panolist;
+}
+
+PanoInfo STViewer::GetCurrentPano()
+{
+	return m_panolist[m_currentPano];
 }
 
 /* ---------------------- Camera Controls ---------------------- */
@@ -211,7 +216,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 			|| controllers.left.button1.pressed
 			|| controllers.left.button2.pressed)
 		{
-			SelectPano(round(m_guiPanoSelection));
+			SelectPano((int)round(m_guiPanoSelection));
 		}
 
 		if (controllers.right.thumbstickTouch.down
@@ -231,7 +236,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 			if (input < 0) moveAmount *= -1;
 			m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
 			if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
-			if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = m_panolist.size() - 1;
+			if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = (float)m_panolist.size() - 1;
 		}
 		else
 		{
@@ -256,7 +261,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 				m_guiPanoSelection = 0;
 
 			if (m_guiPanoSelection > m_panolist.size() - 1) 
-				m_guiPanoSelection = m_panolist.size() - 1;
+				m_guiPanoSelection = (float)m_panolist.size() - 1;
 		}
 	}
 
@@ -278,7 +283,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 		if (depth == 3 && m_facecount[eye][face] == 85) {
 			long long now = NOW;
 			fprintf(stderr, "Face %d Eye %d finished in %lld ms!\n", face, eye, now);
-			m_average.push_back(now);
+			m_average.push_back((float)now);
 		}
 #endif
 
@@ -344,7 +349,7 @@ void STViewer::resetImages()
 	while (!texturePool->allstopped());
 	while (!downloadPool->allstopped());
 
-	m_annotations.Load(m_panolist[m_currentPano].annotations);
+	m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
 
 	// Sanity check
 	m_images.ClearQueues();

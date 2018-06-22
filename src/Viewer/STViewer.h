@@ -55,8 +55,9 @@ public:
 	void Update(double globalTime, float deltaTime);
 
 	void Cleanup(void);
-
+	
 	std::vector<PanoInfo> GetPanos(void);
+	PanoInfo GetCurrentPano();
 
 	GraphicalMenu m_gui;
 	float m_guiPanoSelection;
