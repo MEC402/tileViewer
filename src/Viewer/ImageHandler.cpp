@@ -194,8 +194,19 @@ void ImageHandler::LoadImageData(ImageData *image)
 }
 
 // Copies image data from Left eye to Right eye texture bindings
+// Will only work with OpenGL 4.3+
 void ImageHandler::CopyImageData()
 {
+	int major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	if (major < 4 || (major >= 4 && minor < 3)) {
+		fprintf(stderr, "glCopyImageSubData calls only allowed in OpenGL 4.3+\n");
+		fprintf(stderr, "Your hardware is running %d.%d\n", major, minor);
+		fprintf(stderr, "Comparison Mode is not compatible with this system\n");
+		return;
+	}
+
 	for (int i = 0; i < 6; i++) {
 		if (m_textures[RIGHT_EYE][i] == 0)
 			initFaceAtlas(i, MAXDEPTH, RIGHT_EYE);
