@@ -13,7 +13,6 @@ Annotations::Annotations()
 void Annotations::Create()
 {
 	Render_CreateQuadModel(&quad);
-	shader.CreateProgram(0, "gui.vert", "gui.frag");
 }
 
 void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
@@ -103,7 +102,7 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 	return annotationList;
 }
 
-void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection)
+void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, Shader* shader)
 {
 	float pitch = a.pitch / 180.0f * glm::pi<float>();
 	float yaw = a.yaw / 180.0f * glm::pi<float>();
@@ -113,14 +112,14 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection)
 	float width = float(a.texture.width) / float(a.texture.height) * a.height;
 	glm::mat4x4 scale = glm::scale(glm::vec3(width, height, 1));
 
-	shader.SetMatrixUniform("MVP", viewProjection*rotation*translation*scale);
-	shader.BindTexture("image", THUMB_TX_SLOT, a.texture.id);
+	shader->SetMatrixUniform("MVP", viewProjection*rotation*translation*scale);
+	shader->BindTexture("image", THUMB_TX_SLOT, a.texture.id);
 	Render_DrawModel(quad);
 }
 
-void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int eye, bool showAlignementTool)
+void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, unsigned int eye, bool showAlignementTool)
 {
-	shader.Bind();
+	shader->Bind();
 	glDisable(GL_DEPTH_TEST);
 	// Enable alpha blending
 	glEnable(GL_BLEND);
@@ -128,7 +127,7 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int
 
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
 		if (annotations[i].texture.id) {
-			renderAnnotation(annotations[i], projection*view);
+			renderAnnotation(annotations[i], projection*view, shader);
 		}
 	}
 
@@ -138,8 +137,8 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, unsigned int
 		glm::mat4x4 translation = glm::translate(glm::vec3(0, 0, -1000.0f));
 		float scaleAmount = 10.0f;
 		glm::mat4x4 scale = glm::scale(glm::vec3(scaleAmount, scaleAmount, scaleAmount));
-		shader.SetMatrixUniform("MVP", projection*translation*scale);
-		shader.BindTexture("image", THUMB_TX_SLOT, 0);
+		shader->SetMatrixUniform("MVP", projection*translation*scale);
+		shader->BindTexture("image", THUMB_TX_SLOT, 0);
 		Render_DrawModel(quad);
 	}
 }

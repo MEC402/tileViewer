@@ -4,7 +4,6 @@
 
 void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 {
-	shader.CreateProgram(0, "gui.vert", "gui.frag");
 	Render_CreateQuadModel(&quad);
 	Render_CreateCubeModel(&cube);
 
@@ -29,15 +28,14 @@ void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 	}
 }
 
-void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjection, 
-	float radius, float panoSelection, bool tilt)
+void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjection, Shader* shader, float radius, float panoSelection, bool tilt)
 {
 	if (thumbnailCount == 0) return;
 
 	float tileSeparation = 0.4f;
 	float menuRotation = panoSelection*tileSeparation;
 	glDisable(GL_DEPTH_TEST);
-	shader.Bind();
+	shader->Bind();
 
 	// Limit the tiles drawn so that they don't wrap all they way around the ring
 	int peripheralThumbnailCount = 3;
@@ -87,28 +85,28 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 			}
 		}
 		
-		shader.SetMatrixUniform("MVP", viewProjection*model);
-		shader.BindTexture("image", THUMB_TX_SLOT, thumbnails[i]);
+		shader->SetMatrixUniform("MVP", viewProjection*model);
+		shader->BindTexture("image", THUMB_TX_SLOT, thumbnails[i]);
 		Render_DrawModel(quad);
 	}
 }
 
 // Overload so we can render thumbnail selection UI outside of VR headsets
-void GraphicalMenu::Display(glm::quat cameraRotation, glm::mat4x4 viewProjection, float panoSelection)
+void GraphicalMenu::Display(glm::quat cameraRotation, glm::mat4x4 viewProjection, Shader* shader, float panoSelection)
 {
 	float radius = 0.65f;
 	if (tilt_timer < 1.0)
 		tilt_timer += 0.025;
 		
-	Display(cameraRotation, viewProjection, radius, panoSelection, false);
+	Display(cameraRotation, viewProjection, shader, radius, panoSelection, false);
 }
 
-void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjection, double time)
+void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjection, Shader* shader, double time)
 {
 	float radius = 0.45f;
 	float tileScale = 0.025f;
 	//glDisable(GL_DEPTH_TEST);
-	shader.Bind();
+	shader->Bind();
 	glm::vec3 tilePosition(0, 0, -radius);
 	glm::mat4x4 translation = glm::translate(tilePosition);
 	glm::vec3 verticalAxis(0, 1, 0);
@@ -121,8 +119,8 @@ void GraphicalMenu::ShowCube(glm::quat cameraRotation, glm::mat4x4 viewProjectio
 	model = glm::translate(model, -tilePosition);
 	model = glm::rotate(model, (float)time, verticalAxis);
 	model = glm::translate(model, tilePosition);
-	shader.SetMatrixUniform("MVP", viewProjection*model);
-	shader.BindTexture("image", THUMB_TX_SLOT, thumbnails[0]);
+	shader->SetMatrixUniform("MVP", viewProjection*model);
+	shader->BindTexture("image", THUMB_TX_SLOT, thumbnails[0]);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, cube.vertexPositionBuffer);

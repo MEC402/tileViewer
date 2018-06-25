@@ -228,15 +228,32 @@ void STViewer::Update(double globalTime, float deltaTime)
 		if (controllers.right.thumbstickX != 0
 			|| controllers.left.thumbstickX != 0)
 		{
-			m_lastUIInteractionTime = globalTime;
-			float menuSpeed = 20;
-			float analogExponent = 1.5f;
-			float input = controllers.right.thumbstickX + controllers.left.thumbstickX;
-			float moveAmount = powf(abs(input), analogExponent);
-			if (input < 0) moveAmount *= -1;
-			m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
-			if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
-			if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = (float)m_panolist.size() - 1;
+			if (controllers.right.indexFingerTrigger > 0.05f)
+			{
+				// Adjust panorama alignment
+				float analogExponent = 2.0f;
+				float moveSpeed = deltaTime * 1.0f;
+				float hChange = moveSpeed * powf(controllers.right.thumbstickX, analogExponent);
+				if (controllers.right.thumbstickX < 0) hChange *= -1;
+				_horizontalEyeRotation += hChange;
+				float vChange = moveSpeed * powf(controllers.right.thumbstickY, analogExponent);
+				if (controllers.right.thumbstickY < 0) vChange *= -1;
+				_verticalEyeRotation += vChange;
+
+			}
+			else
+			{
+				// Change GUI menu selection
+				m_lastUIInteractionTime = globalTime;
+				float menuSpeed = 20;
+				float analogExponent = 1.5f;
+				float input = controllers.right.thumbstickX + controllers.left.thumbstickX;
+				float moveAmount = powf(abs(input), analogExponent);
+				if (input < 0) moveAmount *= -1;
+				m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
+				if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
+				if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = (float)m_panolist.size() - 1;
+			}
 		}
 		else
 		{
@@ -411,11 +428,12 @@ void STViewer::resetCubes()
 
 void STViewer::initGL()
 {
-	CB_InitReferences(m_stereo, &m_shader, &m_images, m_LeftEye, m_RightEye, &m_camera);
+	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images, m_LeftEye, m_RightEye, &m_camera);
 	CB_Init(this, m_fullscreen);
 	CB_InitMenus(m_panolist);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
+	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
 	m_shader.Bind();
 }
 

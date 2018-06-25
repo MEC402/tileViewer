@@ -108,6 +108,7 @@ private:
 	
 
 	Shader m_shader;
+	Shader m_objectShader;
 	Camera m_camera;
 	ImageHandler m_images;
 
