@@ -56,8 +56,6 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	Controls::SetViewer(this);
 
-
-
 	glutMainLoop();
 }
 
@@ -323,7 +321,8 @@ void STViewer::resetImages()
 	m_LoadedTextures->Clear();
 	m_images.ClearQueues();
 
-	//m_annotations.Load(m_panolist[m_currentPano].annotations);
+	if (m_panolist[m_currentPano].annotations != "")
+		m_annotations.Load(m_panolist[m_currentPano].annotations);
 
 	// Sanity check
 	m_images.ClearQueues();
