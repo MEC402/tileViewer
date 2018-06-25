@@ -274,3 +274,7 @@ __pycache__/
 *.ipdb
 *.iobj
 /Release (No VR)
+/Debug (Kinect)
+/Release (No VR) (Kinect)
+/Release (No VR) (Size Optimal)
+/src/Viewer/Debug (Kinect)
