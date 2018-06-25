@@ -2,17 +2,17 @@
 #include "RemoteClient.h"
 #include <chrono>
 
-RemoteClient::RemoteClient(const char *IP, int port, const char *name) : 
-	m_IP(IP), 
-	m_port(port), 
-	m_name(name) 
+RemoteClient::RemoteClient(const char *IP, int port, const char *name) :
+	m_IP(IP),
+	m_port(port),
+	m_name(name)
 {
-	m_thread = std::thread([=]() { 
+	m_thread = std::thread([=]() {
 		if (!connect()) {
 			fprintf(stderr, "Encountered error when connecting to %s:%d\n", m_IP, m_port);
 			return;
 		}
-		recvMessage(); 
+		recvMessage();
 	});
 	//recvMessage();
 }
@@ -45,13 +45,13 @@ void RemoteClient::Serve()
 
 	Socket* s = in.Accept();
 
-	
+
 	std::string r = s->ReceiveEOF();
 	if (r.empty()) {
 		delete s;
 		return;
 	}
-	
+
 	rapidjson::Document d;
 	d.Parse(r.c_str());
 
@@ -62,7 +62,7 @@ void RemoteClient::Serve()
 			fprintf(stderr, "%s\n", name);
 		}
 	}
-	
+
 	d["command"] = rapidjson::StringRef(m_cmd[SET_IMAGE].c_str());
 	d["body"].RemoveAllMembers();
 	d["body"].AddMember("uri", "File:U:\\scratch\\CAtiles\\bridgeonly.json", d.GetAllocator());
@@ -73,7 +73,7 @@ void RemoteClient::Serve()
 	d.Accept(w);
 
 	s->SendEOF(b.GetString());
-	
+
 	d["command"] = rapidjson::StringRef(m_cmd[CLOSE].c_str());
 	b.Clear();
 	rapidjson::Writer<rapidjson::StringBuffer> w2(b);
@@ -107,6 +107,11 @@ bool RemoteClient::connect()
 	return true;
 }
 
+bool RemoteClient::ChangePano()
+{
+	return m_changepano;
+}
+
 void RemoteClient::GetMedia()
 {
 	fprintf(stderr, "RemoteClient::GetMedia not implemented\n");
@@ -122,7 +127,7 @@ void RemoteClient::setImage(const char *path)
 {
 	std::lock_guard<std::mutex> lock(m_);
 	m_panoURI = std::string(path);
-	changepano = true;
+	m_changepano = true;
 }
 
 void RemoteClient::execute(int toExecute, rapidjson::Value &body)
@@ -155,7 +160,7 @@ void RemoteClient::recvMessage()
 		d.Parse(inMsg.c_str());
 
 		bool match = false;
-		for (int i = 0; i < m_cmd->length(); i++) {
+		for (unsigned int i = 0; i < m_cmd->length(); i++) {
 			if (d["command"].GetString() == m_cmd[i]) {
 				execute(i, d["body"]);
 				match = true;

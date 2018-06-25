@@ -1,7 +1,7 @@
-/*
+ï»¿/*
 Socket.cpp
 
-Copyright (C) 2002-2004 René Nyffenegger
+Copyright (C) 2002-2004 Renï¿½ Nyffenegger
 
 This source code is provided 'as-is', without any express or implied
 warranty. In no event will the author be held liable for any damages
@@ -21,7 +21,7 @@ misrepresented as being the original source code.
 
 3. This notice may not be removed or altered from any source distribution.
 
-René Nyffenegger rene.nyffenegger@adp-gmbh.ch
+Renï¿½ Nyffenegger rene.nyffenegger@adp-gmbh.ch
 */
 
 #ifdef WIN32 // Macros are not part of original source
@@ -108,10 +108,10 @@ std::string Socket::ReceiveBytes() {
 		u_long arg = 0;
 		if (ioctlsocket(s_, FIONREAD, &arg) != 0)
 			break;
-		
+
 		if (arg == 0)
 			break;
-		
+
 		if (arg > 1024) arg = 1024;
 
 		int rv = recv(s_, buf, arg, 0);
@@ -150,7 +150,7 @@ std::string Socket::ReceiveEOF() {
 		}
 
 		if (r == '\x04')	return ret;
-			
+
 		// Reverse append logic so we never actually append \x04
 		ret += r;
 	}

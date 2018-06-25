@@ -4,9 +4,8 @@
 #include <GL\glew.h>
 #include <GL\freeglut.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <stdio.h>
-
-#include "GLhandles.h"
 
 class Camera {
 public:
@@ -16,43 +15,49 @@ public:
 		int width;
 		int height;
 		float rotation;
+
+		glm::vec3 direction = glm::vec3(0,0,1);
+		glm::quat cameraQuat = glm::quat(glm::vec3(0, 0, 0));
 	};
 
-	static int NumCameras;
-	static Viewport **LeftCameras;
-	static Viewport **RightCameras;
+	unsigned int NumCameras;
+	Viewport **LeftCameras;
+	Viewport **RightCameras;
 	// Matricies
-	static glm::mat4 Projection;
-	static glm::mat4 View;
-	static glm::mat4 Model;
+	glm::mat4 Projection;
+	glm::mat4 View;
+	glm::mat4 Model;
+	glm::mat4 MVP;
 
 	// Defaults for window height/width
-	static int Width;
-	static int Height;
+	int Width;
+	int Height;
 
 	// Camera rotation stuff
-	static bool FirstMouse;
-	static float Yaw;
-	static float Pitch;
-	static float LastX;
-	static float LastY;
-	static float Zoom;
-	static float FOV;
+	bool FirstMouse;
+	float Yaw;
+	float Pitch;
+	float LastX;
+	float LastY;
+	float Zoom;
+	float FOV;
+	float ResetFOV;
 
-	static void Init(int cameracount);
-	static void CreateCameras();
-	static void SetViewport(Viewport *viewport);
-	static void SplitHorizontal();
-	static void UpdateCameras();
-	static void UpdateMVP();
+	void Init(int cameracount, int width, int height);
+	void CreateCameras();
+	void SetViewport(Viewport *viewport);
+	void SplitHorizontal();
+	void UpdateCameras();
+	void UpdateMVP();
 
+	Camera() {}
 
 private:
-	static bool hsplit;
+	bool hsplit;
 
-	static void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
-	static void updateCameras(float fovy, float aRatio, bool hsplit);
-	static void updateMVP(float pitch, float yaw, float fov, int height, int width);
+	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
+	void updateCameras(float fovy, float aRatio, bool hsplit);
+	void updateMVP(float pitch, float yaw, float fov, int height, int width);
 };
 
 #endif

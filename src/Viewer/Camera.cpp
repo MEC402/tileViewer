@@ -1,33 +1,20 @@
 #include "Camera.h"
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
-
-int Camera::Width = 1280;
-int Camera::Height = 800;
-
-int Camera::NumCameras;
-Camera::Viewport **Camera::LeftCameras;
-Camera::Viewport **Camera::RightCameras;
-
-bool Camera::hsplit = false;
-
-glm::mat4 Camera::Projection;
-glm::mat4 Camera::View;
-glm::mat4 Camera::Model;
-
-// Camera rotation stuff
-bool Camera::FirstMouse = true;
-float Camera::Yaw = -270.0f;
-float Camera::Pitch = 0.0f;
-float Camera::LastX = Width / 2.0f;
-float Camera::LastY = Height / 2.0f;
-float Camera::FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
-//float Camera::FOV = 73.74f;
-//float Camera::FOV = 25.854f;
-//float Camera::FOV = 129.27f;
-//float Camera::FOV = 45.0f;
-
-void Camera::Init(int cameracount)
+void Camera::Init(int cameracount, int width, int height)
 {
+	Width = width;
+	Height = height;
+
+	FirstMouse = true;
+	Yaw = 0.0f;//-270.0f;
+	Pitch = 0.0f;
+	LastX = Width / 2.0f;
+	LastY = Height / 2.0f;
+	FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
+
 	if (cameracount < 2) {
 		NumCameras = 1;
 		FOV = 45.0f;
@@ -35,6 +22,8 @@ void Camera::Init(int cameracount)
 	else {
 		NumCameras = cameracount;
 	}
+
+	ResetFOV = FOV;
 	LeftCameras = new Viewport*[NumCameras]();
 	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();
@@ -43,10 +32,6 @@ void Camera::Init(int cameracount)
 
 void Camera::CreateCameras()
 {
-	//createCameras(LeftCameras, FOV, float(Height) / float(Width), true);
-	//createCameras(LeftCameras, FOV, float(Width) / float(Height), true);
-	//createCameras(LeftCameras, FOV, float(Width / NumCameras) / float(Height), true);
-	//createCameras(LeftCameras, FOV, float(Height) / float(Width / NumCameras), true);
 	createCameras(LeftCameras, FOV, float(1080) / float(1920), true);
 }
 
@@ -57,10 +42,6 @@ void Camera::UpdateMVP()
 
 void Camera::UpdateCameras()
 {
-	//updateCameras(FOV, float(Height) / float(Width), hsplit);
-	//updateCameras(FOV, float(Width) / float(Height), hsplit);
-	//updateCameras(FOV, float(Width / NumCameras) / float(Height), hsplit);
-	//updateCameras(FOV, float(Height) / float(Width / NumCameras), hsplit);
 	updateCameras(FOV, float(1080) / float(1920), hsplit);
 }
 
@@ -68,42 +49,41 @@ void Camera::SetViewport(Viewport *viewport)
 {
 	if (viewport == NULL)
 		return;
-	// rotation in degrees or radians?
+
+	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
+	float tempYaw = Yaw + glm::degrees(viewport->rotation);
+	
 	glm::vec3 front;
-	front.x = cos(glm::radians(Yaw + glm::degrees(viewport->rotation))) * cos(glm::radians(Pitch));
+	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 	front.y = sin(glm::radians(Pitch));
-	front.z = sin(glm::radians(Yaw + glm::degrees(viewport->rotation))) * cos(glm::radians(Pitch));
+	front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
 	glm::vec3 cameraFront = glm::normalize(front);
 	
 	glm::mat4 newView = glm::lookAt(
 		glm::vec3(0, 0, 0),
-		cameraFront,
-		glm::vec3(0, 1, 0)
+		glm::vec3(0, 0, 1),
+		cameraUp
 	);
 	
-	//glm::mat4 newView = glm::rotate(newView, viewport->rotation, glm::vec3(0, 1, 0));
-	glm::mat4 mvp = Projection * newView * Model;
+	glm::mat4 rotYaw = glm::rotate(newView, glm::radians(tempYaw), cameraUp);
+	glm::vec3 frontVector = glm::normalize(glm::cross(cameraFront, cameraUp));
+	glm::vec3 rightVector = glm::normalize(glm::cross(frontVector, cameraUp));
+	glm::mat4 rotPitch = glm::rotate(newView, glm::radians(Pitch), rightVector);
+	newView = rotYaw * rotPitch;
 
-	GLuint MatrixID = glGetUniformLocation(program, "MVP");
-	if (MatrixID != -1) {
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-	}
-	else {
-		fprintf(stderr, "Error occured trying to update MVP uniform!\n%s\n", gluErrorString(glGetError()));
-	}
+	MVP = Projection * newView * Model;
 
 	glViewport(viewport->widthstart, viewport->heightstart, viewport->width, viewport->height);
-	glDrawArrays(GL_POINTS, 0, pointCount);
 }
 
 void Camera::SplitHorizontal()
 {
 	if (hsplit) {
 		hsplit = false;
-		for (int i = 0; i < NumCameras; i++)
+		for (unsigned int i = 0; i < NumCameras; i++)
 			delete RightCameras[i];
 		delete [] RightCameras;
-		for (int i = 0; i < NumCameras; i++) {
+		for (unsigned int i = 0; i < NumCameras; i++) {
 			LeftCameras[i]->height = Height;
 			LeftCameras[i]->heightstart = 0;
 		}
@@ -114,7 +94,7 @@ void Camera::SplitHorizontal()
 	RightCameras = new Viewport*[NumCameras];
 	createCameras(RightCameras, FOV, float(1080) / float(1920), true);
 
-	for (int i = 0; i < NumCameras; i++) {
+	for (unsigned int i = 0; i < NumCameras; i++) {
 		LeftCameras[i]->height = Height / 2;
 		LeftCameras[i]->heightstart = Height / 2;
 
@@ -128,8 +108,8 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 {
 	// Ported from spviewer
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
+	float rotate_x = -(float(NumCameras) - 1) * 0.5f * fovx;
 
-	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
 	for (unsigned int i = 0; i < NumCameras; i++) {
 		viewports[i] = new Viewport{ 0 };
 	}
@@ -149,11 +129,13 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 {
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	float rotate_x = -(fovx * (int)(NumCameras / 2));
+	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
 
-	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap so w/e
+	// Rotate backwards so our center screen is our "0" rotation camera
+	//rotate_x -= (fovx * (int)(NumCameras / 2));
+	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap and prevents mistakes so w/e
 	if (hsplit) {
-		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+		for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
 			LeftCameras[i]->width = (Width / NumCameras);
 			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
 			LeftCameras[i]->height = Height / 2;
@@ -168,7 +150,7 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 		}
 	}
 	else {
-		for (int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
+		for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
 			LeftCameras[i]->width = (Width / NumCameras);
 			LeftCameras[i]->widthstart = (Width / NumCameras) * i;
 			LeftCameras[i]->height = Height;
@@ -181,41 +163,41 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 {
-	if (NumCameras < 2) {
+	if (NumCameras < 2)
 		Projection = glm::perspective(glm::radians(fov), float(width) / float(height), 0.1f, 10000.0f);
-	}
-	else {
-		//Projection = glm::perspective(glm::radians(fov), float(height) / (float(width) / float(NumCameras)), 0.1f, 10000.0f);
-		//Projection = glm::perspective(glm::radians(fov), float(height) / float(width), 0.1f, 10000.0f);
+	else
 		Projection = glm::perspective(glm::radians(fov), float(1080)/float(1920), 0.1f, 10000.0f);
-	}
+
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
+	Pitch = pitch;
+
 
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	glm::vec3 cameraFront = glm::normalize(front);
-
+	
 	View = glm::lookAt(
 		glm::vec3(0, 0, 0),
 		cameraFront,
 		glm::vec3(0, 1, 0)
 	);
 
+	//View = glm::lookAt(
+	//	glm::vec3(0, 0, 0),
+	//	glm::vec3(0, 0, 1),
+	//	glm::vec3(0, 1, 0)
+	//);
+
+	//glm::mat4 rotX = glm::rotate(View, glm::radians(Yaw), glm::vec3(0, 1, 0));
+	//glm::mat4 rotY = glm::rotate(View, glm::radians(Pitch), glm::vec3(1, 0, 0));
+	//View = rotX * rotY;
+
 	Model = glm::mat4(1.0f);
 
-	glm::mat4 mvp = Projection * View * Model;
-
-	GLuint MatrixID = glGetUniformLocation(program, "MVP");
-	if (MatrixID != -1) {
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-	}
-	else {
-		GLenum error = glGetError();
-		fprintf(stderr, "Error occured trying to set MVP uniform!\n%s\n", gluErrorString(error));
-	}
+	MVP = Projection * View * Model;
 }

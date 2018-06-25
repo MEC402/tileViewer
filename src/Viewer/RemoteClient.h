@@ -36,6 +36,7 @@ public:
 	~RemoteClient(void);
 	void Close(void);
 	void Serve(void);
+	bool ChangePano(void);
 	void GetMedia(void);
 	std::string GetPano();
 
@@ -52,6 +53,8 @@ private:
 
 	std::string m_panoURI;
 	std::mutex m_;
+
+	bool m_changepano;
 
 	bool connect(void);
 	void recvMessage(void);
