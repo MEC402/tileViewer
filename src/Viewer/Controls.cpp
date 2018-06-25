@@ -122,11 +122,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	float average = 0.0f;
 	switch (key) {
 	case '1':
-		viewer->SwitchEye(0);
+		viewer->ToggleEye(0);
 		break;
 
 	case '2':
-		viewer->SwitchEye(1);
+		viewer->ToggleEye(1);
 		break;
 
 	case '3':
@@ -171,15 +171,22 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->SelectPano(viewer->m_selectedPano);
 		break;
 
-		// Misc Controls
+		// Comparison mode
+	case 'C':
+		viewer->ToggleComparison();
+		break;
+
+		// Fullscreen
 	case 'f':
 		glutFullScreenToggle();
 		break;
 
+		// Horizontal Stereo Split
 	case 'h':
 		viewer->ToggleStereo();
 		break;
 
+		// Linear/Nearest AA Filtering
 	case 'L':
 		viewer->ToggleLinear();
 		break;
@@ -192,15 +199,17 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->PrevPano();
 		break;
 
+		// Reset FOV and Pitch for Camera(s)
 	case 'r':
 		viewer->ResetCamera();
 		break;
 
+		// Reload current pano
 	case 'R':
 		viewer->ReloadPano();
 		break;
 
-
+		// ESC key
 	case 27:
 		glutLeaveFullScreen();
 		exit(0);

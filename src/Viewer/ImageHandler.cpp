@@ -45,7 +45,7 @@ void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender
 	m_compressed = new SafeQueue<ImageData*>();
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, MAXDEPTH, 0);	
+		initFaceAtlas(i, MAXDEPTH, LEFT_EYE);	
 	}
 
 	if (m_panoList.size() > 0)
@@ -85,10 +85,10 @@ void ImageHandler::InitStereo()
 	InitStereoURLs();
 
 	// If our texture bindings != 0, we've already initialized the second eye textures
-	if (m_textures[1][0] != 0) return;
+	if (m_textures[RIGHT_EYE][0] != 0) return;
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, MAXDEPTH, 1);
+		initFaceAtlas(i, MAXDEPTH, RIGHT_EYE);
 	}
 
 }
@@ -191,6 +191,28 @@ void ImageHandler::LoadImageData(ImageData *image)
 		fprintf(stderr, "Error loading image file! No pixel data found\n");
 	}
 	image->Free();
+}
+
+// Copies image data from Left eye to Right eye texture bindings
+void ImageHandler::CopyImageData()
+{
+	for (int i = 0; i < 6; i++) {
+		if (m_textures[RIGHT_EYE][i] == 0)
+			initFaceAtlas(i, MAXDEPTH, RIGHT_EYE);
+
+		//srcName, 
+		//srcTarget, srcLevel, srcX, srcY, srcZ,
+		//dstName,
+		//dstTarget, dstLevel, dstX, dstY, dstZ,
+		//srcWidth, srcHeight, srcDepth
+		glCopyImageSubData(
+			m_textures[LEFT_EYE][i],
+			GL_TEXTURE_2D, 0, 0, 0, 0,
+			m_textures[RIGHT_EYE][i],
+			GL_TEXTURE_2D, 0, 0, 0, 0,
+			4096, 4096, 1);
+		PRINT_GL_ERRORS
+	}
 }
 
 void ImageHandler::LoadQuadImage()

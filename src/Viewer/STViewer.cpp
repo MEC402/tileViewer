@@ -37,9 +37,6 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	workerPool = new Threads::ThreadPool(2);
 
 	m_panolist = m_images.m_panoList;
-	m_currentPano = 0;
-
-	m_maxDepth = 3; // Magic hardcoded number (powers of 2);
 
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
@@ -49,10 +46,6 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	m_annotations.Create();
 	m_gui.Create(m_panolist);
-	m_lastUIInteractionTime = 0;
-	m_guiPanoSelection = 0;
-	m_displaygui = false;
-	m_linear = true;
 
 	Controls::SetViewer(this);
 
@@ -118,7 +111,18 @@ void STViewer::SelectPano(int pano)
 	}
 }
 
-void STViewer::SwitchEye(int eye)
+void STViewer::ToggleComparison()
+{
+	m_comparisonMode = !m_comparisonMode;
+	if (!m_comparisonMode) {
+		ToggleEye(0); // Set back to Left Eye textures
+		return;
+	}
+	m_images.CopyImageData();
+	ToggleGUI();
+}
+
+void STViewer::ToggleEye(int eye)
 {
 	m_images.BindTextures(m_shader, eye);
 }

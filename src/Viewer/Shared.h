@@ -11,6 +11,8 @@
 // The first 12 active textures are used by CubeMap faces
 // This is set as a macro for ease of refactoring later, should we want to use more slots later
 #define THUMB_TX_SLOT 13 
+#define LEFT_EYE 0
+#define RIGHT_EYE 1
 
 #define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__);
 
