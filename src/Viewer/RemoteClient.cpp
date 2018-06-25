@@ -160,7 +160,7 @@ void RemoteClient::recvMessage()
 		d.Parse(inMsg.c_str());
 
 		bool match = false;
-		for (int i = 0; i < m_cmd->length(); i++) {
+		for (unsigned int i = 0; i < m_cmd->length(); i++) {
 			if (d["command"].GetString() == m_cmd[i]) {
 				execute(i, d["body"]);
 				match = true;

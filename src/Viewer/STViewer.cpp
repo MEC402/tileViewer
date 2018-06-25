@@ -100,8 +100,8 @@ void STViewer::SelectPano(int pano)
 		}
 		else {
 			m_currentPano = pano;
-			m_guiPanoSelection = pano;
-			m_selectedPano = pano;
+			m_guiPanoSelection = (float)pano;
+			m_selectedPano = (float)pano;
 			m_images.m_currentPano = m_currentPano;
 			resetImages();
 		}
@@ -139,6 +139,11 @@ void STViewer::ReloadShaders()
 std::vector<PanoInfo> STViewer::GetPanos()
 {
 	return m_panolist;
+}
+
+PanoInfo STViewer::GetCurrentPano()
+{
+	return m_panolist[m_currentPano];
 }
 
 /* ---------------------- Camera Controls ---------------------- */
@@ -214,7 +219,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 			|| controllers.left.button1.pressed
 			|| controllers.left.button2.pressed)
 		{
-			SelectPano(round(m_guiPanoSelection));
+			SelectPano((int)round(m_guiPanoSelection));
 		}
 
 		if (controllers.right.thumbstickTouch.down
@@ -226,15 +231,32 @@ void STViewer::Update(double globalTime, float deltaTime)
 		if (controllers.right.thumbstickX != 0
 			|| controllers.left.thumbstickX != 0)
 		{
-			m_lastUIInteractionTime = globalTime;
-			float menuSpeed = 20;
-			float analogExponent = 1.5f;
-			float input = controllers.right.thumbstickX + controllers.left.thumbstickX;
-			float moveAmount = powf(abs(input), analogExponent);
-			if (input < 0) moveAmount *= -1;
-			m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
-			if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
-			if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = m_panolist.size() - 1;
+			if (controllers.right.indexFingerTrigger > 0.05f)
+			{
+				// Adjust panorama alignment
+				float analogExponent = 2.0f;
+				float moveSpeed = deltaTime * 1.0f;
+				float hChange = moveSpeed * powf(controllers.right.thumbstickX, analogExponent);
+				if (controllers.right.thumbstickX < 0) hChange *= -1;
+				_horizontalEyeRotation += hChange;
+				float vChange = moveSpeed * powf(controllers.right.thumbstickY, analogExponent);
+				if (controllers.right.thumbstickY < 0) vChange *= -1;
+				_verticalEyeRotation += vChange;
+
+			}
+			else
+			{
+				// Change GUI menu selection
+				m_lastUIInteractionTime = globalTime;
+				float menuSpeed = 20;
+				float analogExponent = 1.5f;
+				float input = controllers.right.thumbstickX + controllers.left.thumbstickX;
+				float moveAmount = powf(abs(input), analogExponent);
+				if (input < 0) moveAmount *= -1;
+				m_guiPanoSelection += moveAmount * deltaTime * menuSpeed;
+				if (m_guiPanoSelection < 0) m_guiPanoSelection = 0;
+				if (m_guiPanoSelection > m_panolist.size() - 1) m_guiPanoSelection = (float)m_panolist.size() - 1;
+			}
 		}
 		else
 		{
@@ -259,7 +281,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 				m_guiPanoSelection = 0;
 
 			if (m_guiPanoSelection > m_panolist.size() - 1) 
-				m_guiPanoSelection = m_panolist.size() - 1;
+				m_guiPanoSelection = (float)m_panolist.size() - 1;
 		}
 	}
 
@@ -281,7 +303,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 		if (depth == 3 && m_facecount[eye][face] == 85) {
 			long long now = NOW;
 			fprintf(stderr, "Face %d Eye %d finished in %lld ms!\n", face, eye, now);
-			m_average.push_back(now);
+			m_average.push_back((float)now);
 		}
 #endif
 
@@ -326,7 +348,7 @@ void STViewer::resetImages()
 	m_images.ClearQueues();
 
 	if (m_panolist[m_currentPano].annotations != "")
-		m_annotations.Load(m_panolist[m_currentPano].annotations);
+		m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
 
 	// Sanity check
 	m_images.ClearQueues();
@@ -383,11 +405,12 @@ void STViewer::resetCubes()
 
 void STViewer::initGL()
 {
-	CB_InitReferences(m_stereo, &m_shader, &m_images, m_LeftEye, m_RightEye, &m_camera);
+	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images, m_LeftEye, m_RightEye, &m_camera);
 	CB_Init(this, m_fullscreen);
 	CB_InitMenus(m_panolist);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
+	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
 	m_shader.Bind();
 }
 

@@ -29,10 +29,13 @@ double _globalTime;
 long long _programStartTime;
 bool _stereo = false;
 Shader *_shader;
+Shader *_objectShader;
 ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
 Camera *_camera;
+float _horizontalEyeRotation = 0;
+float _verticalEyeRotation = 0;
 
 
 
@@ -43,11 +46,12 @@ void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 	_stereo = stereo;
 }
 
-void CB_InitReferences(bool &stereo, Shader *shader, ImageHandler *images, 
+void CB_InitReferences(bool &stereo, Shader *shader, Shader* objectShader, ImageHandler *images, 
 	CubePoints *lefteye, CubePoints *righteye, Camera *camera)
 {
 	_stereo = stereo;
 	_shader = shader;
+	_objectShader = objectShader;
 	_images = images;
 	_lefteye = lefteye;
 	if (_stereo)
@@ -139,9 +143,21 @@ void CB_Display()
 			// Correct right eye panorama alignment
 			if (eyeIndex == 1)
 			{
-				float eyeRotation = -controllers.left.indexFingerTrigger * 0.2f;
-				view = view * glm::eulerAngleYXZ(eyeRotation, 0.0f, 0.0f);
-				printf("Rotation: %f\n", eyeRotation);
+				PanoInfo& pano = _viewer->GetCurrentPano();
+				view = glm::eulerAngleYXZ(_horizontalEyeRotation + pano.horizontalCorrection, 0.0f, 0.0f)
+					//* view
+					* glm::eulerAngleYXZ(0.0f, _verticalEyeRotation + pano.verticalCorrection, 0.0f);
+
+				/*view = glm::mat4_cast(
+					//glm::inverse(getVRHeadsetRotation(_vr))
+					 glm::angleAxis(_horizontalEyeRotation + pano.horizontalCorrection, glm::vec3(0, 1, 0))
+					* glm::angleAxis(_verticalEyeRotation + pano.verticalCorrection, glm::vec3(1, 0, 0))
+				);*/
+
+				// Maybe add each axis of the headset transform one component at a time?
+				view =
+					glm::rotate(_verticalEyeRotation + pano.verticalCorrection, glm::vec3(1, 0, 0))
+					* glm::rotate(_horizontalEyeRotation + pano.horizontalCorrection, glm::vec3(0, 1, 0));
 			}
 
 			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
@@ -166,13 +182,13 @@ void CB_Display()
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
 			// Annotations
-			_viewer->m_annotations.Display(perspective, view, eyeIndex, true);
+			_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, false);
 
 			// GUI
 			double uiDisplayWaitTime = 1.5;
 			if (_globalTime - _viewer->m_lastUIInteractionTime < uiDisplayWaitTime) {
 				float uiRadius = 0.65f;
-				_viewer->m_gui.Display(getVRHeadsetRotation(_vr), perspective*view, uiRadius, _viewer->m_guiPanoSelection, true);
+				_viewer->m_gui.Display(getVRHeadsetRotation(_vr), perspective*view, _objectShader, uiRadius, _viewer->m_guiPanoSelection, true);
 			}
 
 			commitEyeRenderSurface(_vr, eyeIndex);
@@ -187,7 +203,7 @@ void CB_Display()
 		glLoadIdentity();
 
 		glBindVertexArray(_lefteye->m_PositionVAOID);
-		for (int i = 0; i < _camera->NumCameras; i++) {
+		for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 			_camera->SetViewport(_camera->LeftCameras[i]);
 			_shader->SetMatrixUniform("MVP", _camera->MVP);
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
@@ -196,7 +212,7 @@ void CB_Display()
 		if (_stereo) {
 			glBindVertexArray(_righteye->m_PositionVAOID);
 			_images->BindTextures(*_shader, 1);
-			for (int i = 0; i < _camera->NumCameras; i++) {
+			for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 				_camera->SetViewport(_camera->RightCameras[i]);
 				_shader->SetMatrixUniform("MVP", _camera->MVP);
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
@@ -216,7 +232,7 @@ void CB_Display()
 			glViewport(0, 0, _camera->Width, _camera->Height);
 
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
-				proj * _camera->View, _viewer->m_guiPanoSelection);
+				proj * _camera->View, _objectShader, _viewer->m_guiPanoSelection);
 
 			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View, _globalTime);
 

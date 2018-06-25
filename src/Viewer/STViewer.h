@@ -59,8 +59,9 @@ public:
 
 	// atexit() call
 	void Cleanup(void);
-
+	
 	std::vector<PanoInfo> GetPanos(void);
+	PanoInfo GetCurrentPano();
 
 	GraphicalMenu m_gui;
 	float m_guiPanoSelection{ 0 };
@@ -105,6 +106,7 @@ private:
 	
 
 	Shader m_shader;
+	Shader m_objectShader;
 	Camera m_camera;
 	ImageHandler m_images;
 
