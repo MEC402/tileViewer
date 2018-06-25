@@ -5,6 +5,7 @@
 #include <GL\freeglut.h>
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <deque>
 #include <fstream>
 #include <string>
@@ -19,34 +20,40 @@
 #endif
 
 #include "Image.h"
-#include "ImageQueue.h"
+#include "ImageHandler.h"
 #include "PanoInfo.h"
 #include "ThreadPool.hpp"
+#include "SafeQueue.h"
+#include "Shader.h"
+#include "Shared.h"
 
 class ImageHandler {
 
 public:
-	static std::vector<PanoInfo> m_panoList;
-	static int m_currentPano;
-	static ImageQueue *Decompressed;
+	std::vector<PanoInfo> m_panoList;
+	int m_currentPano;
+	SafeQueue<ImageData*> *Decompressed;
 
-	static void InitTextureAtlas(GLuint program, bool stereo, ImageQueue *toRender);
-	static void InitStereo(GLuint program);
-	static void InitStereoURLs(void);
-	static bool InitPanoList(std::string url);
-	static void InitURLs(int pano, bool stereo);
+	void InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender);
+	void InitStereo();
+	void InitStereoURLs(void);
+	bool InitPanoList(std::string url);
+	void InitURLs(int pano, bool stereo);
 
-	static void LoadImageData(ImageData *image);
-	static void RebindTextures(GLuint program, int eye);
-	static void WindowDump(int width, int height);
+	void LoadImageData(ImageData *image);
+	void CopyImageData(void);
+	void SetFilter(int eye, bool linear);
+	void BindTextures(Shader &shader, int eye);
+	void Screenshot(int width, int height);
 
-	static void ClearQueues(void);
-	static void LoadFaceImage(int face, int depth, int eye);
-	static void LoadQuadImage(void);
-	static void Decompress(void);
+	void ClearQueues(void);
+	void LoadQuadImage(void);
+	void Decompress(void);
+
+	ImageHandler();
 
 private:
-	static void initFaceAtlas(int face, int depth, int eye, GLuint program);
+	void initFaceAtlas(int face, int depth, int eye);
 
 	struct URL {
 		char buf[256];
@@ -55,25 +62,26 @@ private:
 		URL(int f = 0, int e = 0) :face(f), eye(e) {}
 	};
 
-	// WIN32 API calls for traversing a directory (no longer necessary?)
-#ifdef _USE_WIN_H
-	static int maxResDepth(const char *path);
-#endif
-	static std::mutex m_;
-	static GLuint m_textures[2][6];
-	static GLuint m_pbos[2][6];
+	std::mutex m_;
+	std::condition_variable m_ReadyURL;
+	std::condition_variable m_ReadyCompressedImage;
+
+	GLuint m_textures[2][6];
+	GLuint m_pbos[2][6];
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 
-	static std::deque<URL> m_urls;
-	static ImageQueue *m_compressed;
+	//std::deque<URL> m_urls;
+	SafeQueue<URL> *m_urls;
+	SafeQueue<ImageData*> *m_compressed;
+	//ImageQueue *m_compressed;
 
-	static int m_tileDepth[6][8][8];
-	//static std::vector<ImageData> m_imageData;
-	static int m_dumpcount;
-	static bool m_stereoLoaded;
+	int m_tileDepth[6][8][8];
 
-	static std::chrono::high_resolution_clock::time_point t1;
+	int m_dumpcount;
+	bool m_stereoLoaded;
+
+	std::chrono::high_resolution_clock::time_point t1;
 };
 
 #endif

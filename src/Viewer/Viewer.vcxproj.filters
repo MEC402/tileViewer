@@ -1,135 +1,120 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{34b75f6f-053e-447e-bb72-4b0bb0c87dd8}</UniqueIdentifier>
-    </Filter>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Controls.cpp" />
+    <ClCompile Include="CubePoints.cpp" />
+    <ClCompile Include="ImageHandler.cpp" />
+    <ClCompile Include="InternetDownload.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="TileViewer.cpp" />
+    <ClCompile Include="STViewer.cpp" />
+    <ClCompile Include="VR.cpp" />
+    <ClCompile Include="RemoteClient.cpp" />
+    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="Render.cpp" />
+    <ClCompile Include="GraphicalMenu.cpp" />
+    <ClCompile Include="Annotations.cpp" />
+    <ClCompile Include="KinectControl.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CubePoints.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ShaderHelper.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PanoInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InternetDownload.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadSafeQueue.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadPool.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Controls.h">
-      <Filter>Header Files</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="CubePoints.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="GLhandles.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Image.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="stb_image_write.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="ImageHandler.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="TileViewer.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="InternetDownload.h">
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Shared.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="STViewer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VR.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="PanoInfo.h">
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="RemoteClient.h">
-      <Filter>Header Files</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="NetServices.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Shader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Shared.h">
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Socket.h">
-      <Filter>Header Files</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="CubePoints.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ShaderHelper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="InternetDownload.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ImageQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Controls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TileViewer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="STViewer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VR.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RemoteClient.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Socket.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="stb_image.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image_write.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="STViewer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="STViewerCallbacks.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TileViewer.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadSafeQueue.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.hpp">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VR.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Render.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicalMenu.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Annotations.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SafeQueue.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KinectControl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shader.vert">
+    <None Include="Shader.frag">
       <Filter>Shaders</Filter>
     </None>
     <None Include="Shader.geom">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shader.frag">
+    <None Include="Shader.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="gui.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="gui.frag">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{d328b138-8de9-425a-b130-0179e24c6ddf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{f5225f44-0acb-4e83-af28-05918fb210be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

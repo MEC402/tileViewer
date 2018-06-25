@@ -1,21 +1,22 @@
 #include "Controls.h"
+#include "KinectControl.h"
+
+STViewer *Controls::viewer;
 
 // A great deal of this is just wrappers around Camera:: class calls
 
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
 float Controls::DEBUG_camerastep = 1.0f;
-float Controls::DEBUG_fov = Camera::FOV; // So we can reset to our default FOV
 
-void Controls::FlipDebug()
+void Controls::SetViewer(STViewer *v)
 {
-	GLuint uDebug = glGetUniformLocation(program, "Debug");
-	glUniform1f(uDebug, DEBUG_FLAG);
+	viewer = v;
 }
 
 void Controls::MouseMove(int posx, int posy)
 {
-	if (Camera::FirstMouse)
+	/*if (Camera::FirstMouse)
 	{
 		Camera::LastX = (float)posx;
 		Camera::LastY = (float)posy;
@@ -35,77 +36,61 @@ void Controls::MouseMove(int posx, int posy)
 	Camera::Pitch += yoffset;
 	Camera::UpdateMVP();
 	Camera::LastX = Camera::Width / 2.0f;
-	Camera::LastY = Camera::Height / 2.0f;
+	Camera::LastY = Camera::Height / 2.0f;*/
 }
 
 void Controls::MouseWheel(int button, int direction, int x, int y)
 {
+	float FOVChange = 0;
 	// Zoom in/out by manipulating fov and updating MVP matrix
-	if (direction > 0)
-	{
-		Camera::FOV -= 2.0f;
-		if (Camera::FOV < 0) {
-			Camera::FOV = 1.0f;
-		}
+	if (direction > 0) {
+		FOVChange -= 2.0f;
 	}
-	else
-	{
-		Camera::FOV += 2.0f;
+	else {
+		FOVChange += 2.0f;
 	}
-	Camera::UpdateMVP();
-	Camera::UpdateCameras();
+	viewer->MoveCamera(0, 0, FOVChange);
 }
 
 // Aside from up/down/right/left these functions are all for debugging
 void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 {
+	float pitchChange = 0;
+	float yawChange = 0;
+	float FOVChange = 0;
 	switch (key) {
 	case GLUT_KEY_UP:
-		Camera::Pitch += 1.0f;
+		pitchChange += 1.0f;
 		break;
 
 	case GLUT_KEY_DOWN:
-		Camera::Pitch -= 1.0f;
+		pitchChange -= 1.0f;
 		break;
 
 	case GLUT_KEY_RIGHT:
-		Camera::Yaw += 1.0f;
+		yawChange += 1.0f;
 		break;
 
 	case GLUT_KEY_LEFT:
-		Camera::Yaw -= 1.0f;
+		yawChange -= 1.0f;
 		break;
 
 	case GLUT_KEY_PAGE_UP:
-		Camera::FOV += 0.1f;
+		FOVChange += 0.1f;
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
-		Camera::FOV -= 0.1f;
+		FOVChange -= 0.1f;
 		break;
 
 	case GLUT_KEY_F1:
-		program = ShaderHelper::ReloadShader(GL_VERTEX_SHADER);
-		ImageHandler::RebindTextures(program, 0);
-		break;
 	case GLUT_KEY_F2:
-		program = ShaderHelper::ReloadShader(GL_GEOMETRY_SHADER);
-		ImageHandler::RebindTextures(program, 0);
-		break;
 	case GLUT_KEY_F3:
-		program = ShaderHelper::ReloadShader(GL_FRAGMENT_SHADER);
-		ImageHandler::RebindTextures(program, 0);
+		viewer->ReloadShaders();
 		break;
 
 	case GLUT_KEY_F4:
-		Camera::UpdateCameras();
-		break;
-
-	case GLUT_KEY_F5:
-		fprintf(stderr, "FOV is at %f\n", Camera::FOV);
-#ifdef DEBUG
-		STViewer::WaitingThreads();
-#endif
+		viewer->ToggleGUI();
 		break;
 
 	case GLUT_KEY_F6:
@@ -120,125 +105,114 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F8:
 		DEBUG_FLAG = !DEBUG_FLAG;
-		FlipDebug();
+		viewer->FlipDebug();
 		break;
 
 	case GLUT_KEY_F9:
-		ImageHandler::WindowDump(Camera::Width, Camera::Height);
+		viewer->Screenshot();
 		break;
-#ifdef DEBUG
-	case GLUT_KEY_F10:
-		STViewer::PrintAverage();
-		break;
-#endif
 	}
-	Camera::UpdateMVP();
-	//Camera::SetCameras();
+	
+	viewer->MoveCamera(pitchChange, yawChange, FOVChange);
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)
 {
+	//fprintf(stderr, "Keypress Received: %c\n", key);
 	float average = 0.0f;
 	switch (key) {
 	case '1':
-		ImageHandler::RebindTextures(program, 0);
+		viewer->ToggleEye(0);
 		break;
+
 	case '2':
-		ImageHandler::RebindTextures(program, 1);
+		viewer->ToggleEye(1);
+		break;
+
+	case '3':
+		viewer->ReloadShaders();
 		break;
 
 #ifdef DEBUG
-	case '3':
-		STViewer::RebindVAO();
+	case '4':
+		viewer->RebindVAO();
 		break;
 #endif
-	case 'w':
-		break;
+
+		// Camera controls
 	case 'a':
-		Camera::Yaw -= 1.0f;
-		Camera::UpdateMVP();
-		break;
-	case 's':
-		break;
-	case 'd':
-		Camera::Yaw += 1.0f;
-		Camera::UpdateMVP();
-		break;
-	case 'W':
+		viewer->MoveCamera(0, -1.0f, 0);
 		break;
 	case 'A':
-		Camera::Yaw -= 2.0f;
-		Camera::UpdateMVP();
+		viewer->MoveCamera(0, -3.0f, 0);
 		break;
-	case 'S':
+	case 'd':
+		viewer->MoveCamera(0, 1.0f, 0);
 		break;
 	case 'D':
-		Camera::Yaw += 2.0f;
-		Camera::UpdateMVP();
+		viewer->MoveCamera(0, 3.0f, 0);
+		break;
+	case 'w':
+		viewer->MoveCamera(1.0f, 0, 0);
+		break;
+	case 'W':
+		viewer->MoveCamera(3.0f, 0, 0);
+		break;
+	case 's':
+		viewer->MoveCamera(-1.0f, 0, 0);
+		break;
+	case 'S':
+		viewer->MoveCamera(-3.0f, 0, 0);
 		break;
 
+		// GUI Selection
+	case ' ':
+		viewer->ToggleGUI();
+		viewer->SelectPano((int)round(viewer->m_selectedPano));
+		break;
+
+		// Comparison mode
+	case 'C':
+		viewer->ToggleComparison();
+		break;
+
+		// Fullscreen
 	case 'f':
 		glutFullScreenToggle();
 		break;
 
+		// Horizontal Stereo Split
 	case 'h':
-		STViewer::ToggleStereo();
+		viewer->ToggleStereo();
+		break;
+
+		// Linear/Nearest AA Filtering
+	case 'L':
+		viewer->ToggleLinear();
 		break;
 
 	case 'n':
-		STViewer::NextPano();
+		viewer->NextPano();
 		break;
 
 	case 'p':
-		STViewer::PrevPano();
+		viewer->PrevPano();
 		break;
 
+		// Reset FOV and Pitch for Camera(s)
 	case 'r':
-		Camera::FOV = DEBUG_fov;
-		Camera::Pitch = 0.0f;
-		Camera::UpdateMVP();
-		Camera::UpdateCameras();
+		viewer->ResetCamera();
 		break;
 
+		// Reload current pano
 	case 'R':
-		STViewer::ReloadPano();
+		viewer->ReloadPano();
 		break;
 
-
+		// ESC key
 	case 27:
 		glutLeaveFullScreen();
 		exit(0);
 		break;
 	}
-}
-
-void Controls::MainMenu(int choice)
-{
-	switch (choice) {
-	case 1:
-		DEBUG_FLAG = !DEBUG_FLAG;
-		Controls::FlipDebug();
-		break;
-
-	case 2:
-		STViewer::NextPano();
-		break;
-
-	case 3:
-		STViewer::PrevPano();
-		break;
-
-	case 4:
-		ImageHandler::WindowDump(Camera::Width, Camera::Height);
-		break;
-
-	case 5:
-		glutFullScreenToggle();
-		break;
-	}
-}
-
-void Controls::PanoMenu(int choice)
-{
-	STViewer::SelectPano(--choice);
 }

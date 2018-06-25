@@ -8,47 +8,71 @@
 #include <thread>
 #include <vector>
 
+#include "Camera.h"
 #include "CubePoints.h"
-#include "ImageQueue.h"
+#include "ImageHandler.h"
 #include "PanoInfo.h"
-#include "RemoteClient.h"
+#include "Shader.h"
 #include "Shared.h"
+#include "RemoteClient.h"
 #include "ThreadPool.hpp"
+#include "Annotations.h"
 
-#ifdef USE_VR
 #include "VR.h"
-#endif
+#include "GraphicalMenu.h"
 
-
-// I really didn't want to make this static, but GL callbacks require non-member functions
-// Which left us two choices, have the main object class be non-static and have some secondary, static h file
-// with all the callback routines
-// Or just make the whole thing static
+#include "KinectControl.h"
 
 // A driver class object for use when rendering with ST coordinate modifications as opposed to blitting
 class STViewer {
 
 public:
-#ifdef USE_VR
-	static void Init(VRDevice &vrRef);
-#else
-	static void Init(void);
-#endif
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, 
+		int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect);
 
-	/*		Viewer-Driven Stereo Function		*/
-	/*	  Necessary because of Eye geometry		*/
-	static void ToggleStereo(void);
+	// Does what it says
+	void ToggleStereo(void);
 
-	/*			Panorama Handlers				*/
-	static void NextPano(void);
-	static void PrevPano(void);
-	static void ReloadPano(void);
-	static void SelectPano(int pano);
+	// Pano Controls
+	void NextPano(void);
+	void PrevPano(void);
+	void ReloadPano(void);
+	void SelectPano(int pano);
+
+	// Control which texture set to display (useless in stereo mode)
+	void ToggleComparison(void);
+	void ToggleEye(int eye);
+	void ReloadShaders(void);
+
+	// Camera Controls
+	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
+	void ResetCamera(void);
+	void Screenshot(void);
+
+	// Toggle controls
+	void ToggleGUI(void);
+	void ToggleLinear(void);
+	void FlipDebug(void);
+
+	// Main program loop
+	void Update(double globalTime, float deltaTime);
+
+	// atexit() call
+	void Cleanup(void);
+	
+	std::vector<PanoInfo> GetPanos(void);
+	PanoInfo GetCurrentPano();
+
+	GraphicalMenu m_gui;
+	float m_guiPanoSelection{ 0 };
+	double m_lastUIInteractionTime{ 0.0 };
+	Annotations m_annotations;
+
+	bool m_displaygui{ false };
+	float m_selectedPano;
 
 #ifdef DEBUG
-	static void PrintAverage(void);
-	static void RebindVAO(void);
-	static void WaitingThreads(void);
+	void RebindVAO(void);
 #endif
 
 private:
@@ -56,73 +80,64 @@ private:
 	//				Private Functions				//
 	//----------------------------------------------//
 
-	/*			GLUT Callback Functions			*/
-	static void display(void);
-	static void idleFunc(void);
-	static void resizeFunc(int w, int h);
-	static void timerFunc(int value);
-
 	/*					Builders				*/
-	static void initWindowAndGL(void);
-	static void initTextures(void);
-	static void initCallbacks(void);
-	static void initMenus(void);
+	void initGL(void);
+	void initVR(void);
+	void initTextures(void);
 
 
 	/*		For resetting Cube Depths and		*/
 	/*		loading the next panorama in		*/
-	static void resetImages(void);
-	static void resetCubes(void);
-
-	/*		For queueing texture load requests	*/
-	static void loadAllFaceDepths(void);
-	static void loadAllQuadDepths(void);
-
-	/*				Cleanup function			*/
-	static void cleanup(void);
-
-	/*			CURL Download Cleanup Timer		*/
-	static void timerCleanup(int value);
+	void resetImages(void);
+	void resetCubes(void);
 
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//
+
 	// Geometry data
-	static CubePoints *m_LeftEye;
-	static CubePoints *m_RightEye;
+	CubePoints *m_LeftEye;
+	CubePoints *m_RightEye;
+	GLsizei m_pointCount;
 
 	// Pano data
-	static std::vector<PanoInfo> m_panolist;
-	static unsigned int m_currentPano;
+	std::vector<PanoInfo> m_panolist;
+	int m_currentPano{ 0 };
+	
 
-	// Remote control
-	static RemoteClient *m_remote;
+	Shader m_shader;
+	Shader m_objectShader;
+	Camera m_camera;
+	ImageHandler m_images;
 
 	// Thread pool data
-	static Threads::ThreadPool *downloadPool;
-	static Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
-	static Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
+	Threads::ThreadPool *downloadPool;
+	Threads::ThreadPool *texturePool;	// Pool for dumping texture load requests into
+	Threads::ThreadPool *workerPool;	// Helper thread that we use for menial tasks so main thread doesn't leave GL context too much
 	
-	// State flags so we don't spawn multiple threads to collect ThreadPool promises
-	static bool textureHandling;
-	static bool workerHandling;
+	bool m_stereo{ false };
+	bool m_fivepanel{ false };
+	bool m_fullscreen{ false };
+	bool m_linear{ true };
+	bool m_comparisonMode{ false };
 
-	// ImageQueue is no longer static, so keep a reference to one we can instantiate
-	static ImageQueue *m_LoadedTextures;
+	SafeQueue<ImageData*> *m_LoadedTextures;
 
-#ifdef USE_VR
-	static bool m_usingVR;
-#endif
+	bool m_usingVR{ false };
+	VRDevice m_vr;
+
+	RemoteClient *m_remote;
+	KinectControl *m_kinect;
 
 	// Magic number for maximum depth (0 indexed)
-	static int m_maxDepth;
+	int m_maxDepth{ 3 };
 
 #ifdef DEBUG
 	// Local face date
-	static int m_facecount[2][6];
-	static std::vector<float> m_average;
+	int m_facecount[2][6];
+	std::vector<float> m_average;
 	// Timer values (declared ahead of time so we can reference it in other functions with macro NOW defines
-	static std::chrono::high_resolution_clock::time_point t1;
+	std::chrono::high_resolution_clock::time_point t1;
 #endif // DEBUG
 };
 

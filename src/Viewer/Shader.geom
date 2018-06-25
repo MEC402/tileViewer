@@ -71,7 +71,7 @@ void main()
 		// Translate against MVP matrix
 		gl_Position = MVP * position;
 
-		// Set our ST coords (x/y just refer to vector position 0/1, not literally x/y coords)
+		// Set our ST coords
 		txCoord = getST(position, face);
 
 		// Tell the frag shader what face we are (and what texture to use)

@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "Camera.h"
-#include "GLhandles.h"
 #include "ImageHandler.h"
 #include "Shared.h"
 #include "STViewer.h"
