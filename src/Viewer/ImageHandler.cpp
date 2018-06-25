@@ -56,6 +56,29 @@ void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender
 	}
 }
 
+bool ImageHandler::InitPanoList(std::string url)
+{
+	ImageData jsonFile;
+	downloadFile(&jsonFile, url);
+	try {
+		if (jsonFile.data) {
+			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
+			// Base URL is the substring before the last backslash or forward slash
+			size_t lastSlashPosition = url.find_last_of("/\\");
+			std::string baseURL = url.substr(0, lastSlashPosition);
+			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+			return true;
+		}
+		else {
+			fprintf(stderr, "Could not open provided pano list URI\n");
+		}
+	}
+	catch (const std::exception &exc) {
+		fprintf(stderr, "%s\n", exc.what());
+	}
+	return false;
+}
+
 void ImageHandler::InitStereo()
 {
 	// Try to populate stereo URLs first
@@ -88,30 +111,9 @@ void ImageHandler::InitStereoURLs()
 			}
 		}
 	}
+	m_ReadyURL.notify_all();
 }
 
-bool ImageHandler::InitPanoList(std::string url)
-{
-	ImageData jsonFile;
-	downloadFile(&jsonFile, url);
-	try {
-		if (jsonFile.data) {
-			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
-			// Base URL is the substring before the last backslash or forward slash
-			size_t lastSlashPosition = url.find_last_of("/\\");
-			std::string baseURL = url.substr(0, lastSlashPosition);
-			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
-			return true;
-		}
-		else {
-			fprintf(stderr, "Could not open provided pano list URI\n");
-		}
-	}
-	catch (const std::exception &exc) {
-		fprintf(stderr, "%s\n", exc.what());
-	}
-	return false;
-}
 
 void ImageHandler::InitURLs(int pano, bool stereo)
 {
