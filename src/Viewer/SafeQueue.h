@@ -15,17 +15,11 @@ public:
 
 	~SafeQueue() = default;
 
-	//template<>
-	//~SafeQueue<ImageData>() = default;
-
 	void Clear()
 	{
 		ToggleDiscard();
 		std::lock_guard<std::mutex> lock(mutex_);
-		while (!queue_.empty()) {
-			T t = queue_.front();
-			queue_.pop_front();
-		}
+		queue_.clear();
 	}
 
 	T Dequeue()
