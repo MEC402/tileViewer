@@ -201,7 +201,8 @@ void CB_Display()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-
+		
+		// Left Eye
 		glBindVertexArray(_lefteye->m_PositionVAOID);
 		for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 			_camera->SetViewport(_camera->LeftCameras[i]);
@@ -209,24 +210,28 @@ void CB_Display()
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
 		}
 
-
-
-
+		// Right Eye
 		if (_stereo) {
 			glBindVertexArray(_righteye->m_PositionVAOID);
-			_images->BindTextures(*_shader, 1);
+			_images->BindTextures(*_shader, RIGHT_EYE);
 			for (unsigned int i = 0; i < _camera->NumCameras; i++) {
 				_camera->SetViewport(_camera->RightCameras[i]);
 				_shader->SetMatrixUniform("MVP", _camera->MVP);
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
 			}
-			_images->BindTextures(*_shader, 0);
+			_images->BindTextures(*_shader, LEFT_EYE);
 		}
 
-		if (_viewer->m_displayAnnotation)
+		// Annotations
+		if (_viewer->m_displayAnnotation) {
 			_viewer->m_annotations.Display(_camera->Projection, _camera->View,
 				_objectShader, LEFT_EYE, false);
+			if (_stereo)
+				_viewer->m_annotations.Display(_camera->Projection, _camera->View,
+					_objectShader, RIGHT_EYE, false);
+		}
 
+		// GUI Pano Selection
 		if (_viewer->m_displaygui) {
 			// Center the GUI if we have multiple viewports
 			_camera->SetViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
@@ -245,12 +250,12 @@ void CB_Display()
 			//	_objectShader, _globalTime);
 		}
 		
+		// Rebind main program
 		if (_viewer->m_displaygui || _viewer->m_displayAnnotation) {
-			// Rebind main program
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
-			_images->BindTextures(*_shader, 0);
+			_images->BindTextures(*_shader, LEFT_EYE); // Right eye rebinds on draw, only rebind left
 			_lefteye->BindVAO();
 			if (_stereo)
 				_righteye->BindVAO();
