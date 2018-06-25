@@ -81,7 +81,7 @@ void CB_Init(STViewer *v, bool fullscreen)
 	if (fullscreen) {
 		glutFullScreen();
 	}
-
+	
 	GLenum initErr = glewInit();
 	if (GLEW_OK != initErr) {
 		fprintf(stderr, "Error %s\n", glewGetErrorString(initErr));

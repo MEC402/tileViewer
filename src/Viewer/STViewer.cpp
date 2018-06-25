@@ -406,8 +406,8 @@ void STViewer::resetCubes()
 void STViewer::initGL()
 {
 	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images, m_LeftEye, m_RightEye, &m_camera);
-	CB_Init(this, m_fullscreen);
 	CB_InitMenus(m_panolist);
+	CB_Init(this, m_fullscreen);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
