@@ -143,7 +143,7 @@ void CB_Display()
 			// Correct right eye panorama alignment
 			if (eyeIndex == 1)
 			{
-				PanoInfo& pano = _viewer->GetCurrentPano();
+				PanoInfo pano = _viewer->GetCurrentPano();
 				view = glm::eulerAngleYXZ(_horizontalEyeRotation + pano.horizontalCorrection, 0.0f, 0.0f)
 					//* view
 					* glm::eulerAngleYXZ(0.0f, _verticalEyeRotation + pano.verticalCorrection, 0.0f);
