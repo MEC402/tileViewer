@@ -75,7 +75,6 @@ void STViewer::ToggleStereo()
 			m_RightEye->RebindVAO();
 		}
 		m_camera.UpdateCameras();
-		workerPool->submit([](STViewer* v) { v->loadAllQuadDepths(); }, this);
 	}
 	CB_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 }
