@@ -10,7 +10,7 @@ STViewer *_viewer;
 
 // CB = Callback, meant to indicate "Safe to call directly"
 void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
-void CB_InitReferences(bool &stereo, Shader *shader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
+void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectshader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
 void CB_Init(STViewer *v, bool fullscreen);
 void CB_EnableVR(VRDevice *vr);
 void CB_InitMenus(std::vector<PanoInfo> &panoList);
@@ -209,6 +209,9 @@ void CB_Display()
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
 		}
 
+
+
+
 		if (_stereo) {
 			glBindVertexArray(_righteye->m_PositionVAOID);
 			_images->BindTextures(*_shader, 1);
@@ -219,6 +222,10 @@ void CB_Display()
 			}
 			_images->BindTextures(*_shader, 0);
 		}
+
+		if (_viewer->m_displayAnnotation)
+			_viewer->m_annotations.Display(_camera->Projection, _camera->View,
+				_objectShader, LEFT_EYE, false);
 
 		if (_viewer->m_displaygui) {
 			// Center the GUI if we have multiple viewports
@@ -234,8 +241,11 @@ void CB_Display()
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _objectShader, _viewer->m_guiPanoSelection);
 
-			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View, _globalTime);
-
+			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View,
+			//	_objectShader, _globalTime);
+		}
+		
+		if (_viewer->m_displaygui || _viewer->m_displayAnnotation) {
 			// Rebind main program
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();

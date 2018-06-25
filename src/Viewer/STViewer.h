@@ -69,6 +69,7 @@ public:
 	Annotations m_annotations;
 
 	bool m_displaygui{ false };
+	bool m_displayAnnotation{ false };
 	float m_selectedPano;
 
 #ifdef DEBUG

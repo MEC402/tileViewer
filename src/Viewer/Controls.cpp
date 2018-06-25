@@ -93,6 +93,10 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		viewer->ToggleGUI();
 		break;
 
+	case GLUT_KEY_F5:
+		viewer->m_displayAnnotation = !viewer->m_displayAnnotation;
+		break;
+
 	case GLUT_KEY_F6:
 		DEBUG_camerastep -= 0.1f;
 		fprintf(stderr, "Stepping now at %f\n", DEBUG_camerastep);

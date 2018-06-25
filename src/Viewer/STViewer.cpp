@@ -29,6 +29,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 		m_camera.Init(5, viewWidth, viewHeight);
 	else
 		m_camera.Init(1, viewWidth, viewHeight);
+
 	if (m_stereo)
 		m_camera.SplitHorizontal();
 
@@ -199,6 +200,7 @@ void STViewer::ToggleLinear()
 
 /* ---------------------- Primary Update Loop ---------------------- */
 
+// TODO: This is getting quite lengthy, possibly break up and refactor for readability/maintainability?
 void STViewer::Update(double globalTime, float deltaTime)
 {
 	if (m_remote != NULL && m_remote->ChangePano()) {
@@ -405,7 +407,8 @@ void STViewer::resetCubes()
 
 void STViewer::initGL()
 {
-	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images, m_LeftEye, m_RightEye, &m_camera);
+	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images,
+		m_LeftEye, m_RightEye, &m_camera);
 	CB_InitMenus(m_panolist);
 	CB_Init(this, m_fullscreen);
 
