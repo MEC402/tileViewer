@@ -56,6 +56,29 @@ void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender
 	}
 }
 
+bool ImageHandler::InitPanoList(std::string url)
+{
+	ImageData jsonFile;
+	downloadFile(&jsonFile, url);
+	try {
+		if (jsonFile.data) {
+			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
+			// Base URL is the substring before the last backslash or forward slash
+			size_t lastSlashPosition = url.find_last_of("/\\");
+			std::string baseURL = url.substr(0, lastSlashPosition);
+			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+			return true;
+		}
+		else {
+			fprintf(stderr, "Could not open provided pano list URI\n");
+		}
+	}
+	catch (const std::exception &exc) {
+		fprintf(stderr, "%s\n", exc.what());
+	}
+	return false;
+}
+
 void ImageHandler::InitStereo()
 {
 	// Try to populate stereo URLs first
@@ -88,30 +111,9 @@ void ImageHandler::InitStereoURLs()
 			}
 		}
 	}
+	m_ReadyURL.notify_all();
 }
 
-bool ImageHandler::InitPanoList(std::string url)
-{
-	ImageData jsonFile;
-	downloadFile(&jsonFile, url);
-	try {
-		if (jsonFile.data) {
-			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
-			// Base URL is the substring before the last backslash or forward slash
-			size_t lastSlashPosition = url.find_last_of("/\\");
-			std::string baseURL = url.substr(0, lastSlashPosition);
-			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
-			return true;
-		}
-		else {
-			fprintf(stderr, "Could not open provided pano list URI\n");
-		}
-	}
-	catch (const std::exception &exc) {
-		fprintf(stderr, "%s\n", exc.what());
-	}
-	return false;
-}
 
 void ImageHandler::InitURLs(int pano, bool stereo)
 {
@@ -141,7 +143,7 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 			}
 		}
 	}
-
+	m_ReadyURL.notify_all();
 	// m_tileDepth is useful for discarding image files for which we already have a better texture
 	// Due to logic flow I'm not convinced there's a good place to put such a check, but maybe?
 	//for (int face = 0; face < 6; face++) {
@@ -194,14 +196,16 @@ void ImageHandler::LoadImageData(ImageData *image)
 void ImageHandler::LoadQuadImage()
 {
 	while (true) {
-		m_.lock();
-		if (m_urls->IsEmpty()) {
-			m_.unlock();
-			return Decompress();
+		while (m_urls->IsEmpty()) {
+			std::unique_lock<std::mutex> lock(m_);
+			m_ReadyURL.wait(lock);
 		}
-		URL u = m_urls->Dequeue();
-		m_.unlock();
+		
+		if (m_urls->IsEmpty())
+			continue;
 
+		URL u = m_urls->Dequeue();
+		
 		ImageData *imageFile = new ImageData{ 0 };
 		downloadFile(imageFile, u.buf);
 
@@ -209,6 +213,8 @@ void ImageHandler::LoadQuadImage()
 		imageFile->eye = u.eye;
 
 		m_compressed->Enqueue(imageFile);
+
+		m_ReadyCompressedImage.notify_one();
 	}
 }
 
@@ -217,8 +223,10 @@ void ImageHandler::Decompress()
 	ImageData* imageFile = NULL;
 	while (true) {
 
-		if (m_urls->IsEmpty() && m_compressed->IsEmpty())
-			return;
+		while (m_compressed->IsEmpty()) {
+			std::unique_lock<std::mutex> lock(m_);
+			m_ReadyCompressedImage.wait(lock);
+		}
 
 		if ((imageFile = m_compressed->Dequeue()) == NULL)
 			continue;
@@ -238,6 +246,7 @@ void ImageHandler::Decompress()
 		imageFile->colorChannels = nrChannels;
 		imageFile->width = width;
 		imageFile->height = height;
+
 		Decompressed->Enqueue(imageFile);
 	}
 }

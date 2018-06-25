@@ -142,7 +142,7 @@ void KinectControl::GetGesture(bool guishown)
 	if (lastgesturetime-- != 0)
 		return;
 	lastgesturetime = 120;
-	Ready = !guishown;
+	Ready = guishown;
 
 	IMultiSourceFrame *pFrame = NULL;
 	HRESULT hr;
@@ -241,9 +241,9 @@ void KinectControl::bodyData(IMultiSourceFrame *pFrame)
 			m_input.ki.time = 0;
 			m_input.ki.dwExtraInfo = 0;
 
-
+			// Ready is whether or not the GUI is already up
 			if (m_righthand == HandState_Lasso) {
-				if (!Ready)
+				if (Ready)
 					break;
 				// Press the "F4" key
 				m_input.ki.wVk = 0x73;
@@ -256,7 +256,7 @@ void KinectControl::bodyData(IMultiSourceFrame *pFrame)
 			}
 
 			if (m_righthand == HandState_Closed) {
-				if (Ready)
+				if (!Ready)
 					break;
 
 				fprintf(stderr, "Sending 'n'\n");
@@ -272,7 +272,7 @@ void KinectControl::bodyData(IMultiSourceFrame *pFrame)
 
 			if (m_lefthand == HandState_Closed) {
 				fprintf(stderr, "Lefthand Closed\n");
-				if (Ready)
+				if (!Ready)
 					break;
 
 				fprintf(stderr, "Sending 'p'\n");
@@ -288,7 +288,7 @@ void KinectControl::bodyData(IMultiSourceFrame *pFrame)
 
 			if (m_lefthand == HandState_Lasso) {
 				fprintf(stderr, "Lefthand Lasso\n");
-				if (Ready)
+				if (!Ready)
 					break;
 
 				// Press the ' ' key

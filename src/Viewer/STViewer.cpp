@@ -33,7 +33,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 		m_camera.SplitHorizontal();
 
 	downloadPool = new Threads::ThreadPool(std::thread::hardware_concurrency());
-	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-2);
+	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-1);
 	workerPool = new Threads::ThreadPool(2);
 
 	m_panolist = m_images.m_panoList;
@@ -73,7 +73,6 @@ void STViewer::ToggleStereo()
 			m_RightEye->RebindVAO();
 		}
 		m_camera.UpdateCameras();
-		workerPool->submit([](STViewer* v) { v->loadAllQuadDepths(); }, this);
 	}
 	CB_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 }
@@ -336,37 +335,16 @@ void STViewer::Update(double globalTime, float deltaTime)
 
 /*---------------- Private Functions ----------------*/
 
-void STViewer::loadAllQuadDepths()
-{
-	ImageHandler& images = m_images;
-	for (int i = 0; i < downloadPool->size(); i++)
-		downloadPool->submit([&images]() { images.LoadQuadImage(); });
-
-	for (int i = 0; i < texturePool->size(); i++)
-		texturePool->submit([&images]() { images.Decompress(); });
-}
-
-
 void STViewer::resetImages()
 {
-	/* 
-		The ordering of this is important, if we reset our quad depths and render even a single frame
-		before we've loaded in the next panoramas Level 0 textures, we get this huge zoom effect on one
-		tile from the last panorama, and it looks terrible.
-	*/
-	downloadPool->stopall();
-	texturePool->stopall();
 	workerPool->stopall();
 
 	// Clear out everything that's still sitting in our queue and enable discarding of new items
 	m_LoadedTextures->Clear();
 	m_images.ClearQueues();
 
-	// Wait for any threads that are mid-work to finish
-	while (!texturePool->allstopped());
-	while (!downloadPool->allstopped());
-
-	m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
+	if (m_panolist[m_currentPano].annotations != "")
+		m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
 
 	// Sanity check
 	m_images.ClearQueues();
@@ -375,11 +353,6 @@ void STViewer::resetImages()
 	m_LoadedTextures->ToggleDiscard();
 
 	m_images.InitURLs(m_currentPano, m_stereo);
-
-	/* _NOW_ queue up all the requests for the new panorama */
-	workerPool->submit([](STViewer* v) {
-		v->loadAllQuadDepths();
-	}, this);
 	
 #ifdef DEBUG
 	// These aren't really important anymore but might be useful for debugging
@@ -451,9 +424,19 @@ void STViewer::initTextures()
 {
 	m_images.InitTextureAtlas(m_stereo, m_LoadedTextures);
 	
+	// Initialize our threadpools to wait on blocking cond_var mutex calls
+	// This way we don't have to requeue the calls over and over or worry about
+	// threadpools doubling up and causing system slowdowns
+	ImageHandler& images = m_images;
+	for (int i = 0; i < downloadPool->size(); i++)
+		downloadPool->submit([&images]() { images.LoadQuadImage(); });
+	for (int i = 0; i < texturePool->size(); i++)
+		texturePool->submit([&images]() { images.Decompress(); });
+
 	// Trigger our logic pattern to init cubes and start loading images
 	resetImages();
 	
+
 	// Left eye is default and always exists.
 	// Texture bindings swap in CB_Display so no need to deal with Stereo mode here
 	m_pointCount = m_LeftEye->m_NumVertices;
@@ -469,8 +452,6 @@ void STViewer::Cleanup()
 	workerPool->stopall();
 	m_LoadedTextures->Clear();
 	m_images.ClearQueues();
-	while (!texturePool->allstopped());
-	m_images.ClearQueues(); // Sanity check
 }
 
 #ifdef DEBUG

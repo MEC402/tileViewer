@@ -87,12 +87,6 @@ private:
 	void resetImages(void);
 	void resetCubes(void);
 
-	/*		For queueing texture load requests	*/
-	void loadAllQuadDepths(void);
-
-	/*			CURL Download Cleanup Timer		*/
-	void timerCleanup(int value);
-
 	//----------------------------------------------//
 	//				Private Variables				//
 	//----------------------------------------------//

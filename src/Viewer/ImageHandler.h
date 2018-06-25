@@ -5,6 +5,7 @@
 #include <GL\freeglut.h>
 #include <algorithm>
 #include <chrono>
+#include <condition_variable>
 #include <deque>
 #include <fstream>
 #include <string>
@@ -61,6 +62,9 @@ private:
 	};
 
 	std::mutex m_;
+	std::condition_variable m_ReadyURL;
+	std::condition_variable m_ReadyCompressedImage;
+
 	GLuint m_textures[2][6];
 	GLuint m_pbos[2][6];
 	static const char *m_txUniforms[6];
