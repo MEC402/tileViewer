@@ -7,7 +7,7 @@ STViewer *Controls::viewer;
 
 int Controls::DEBUG_row = 0;
 int Controls::DEBUG_col = 0;
-float Controls::DEBUG_camerastep = 1.0f;
+float Controls::DEBUG_stepping = 0.1f;
 
 void Controls::SetViewer(STViewer *v)
 {
@@ -58,6 +58,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	float pitchChange = 0;
 	float yawChange = 0;
 	float FOVChange = 0;
+
 	switch (key) {
 	case GLUT_KEY_UP:
 		pitchChange += 1.0f;
@@ -76,11 +77,11 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_PAGE_UP:
-		FOVChange += 0.1f;
+		FOVChange += DEBUG_stepping;
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
-		FOVChange -= 0.1f;
+		FOVChange -= DEBUG_stepping;
 		break;
 
 	case GLUT_KEY_F1:
@@ -98,13 +99,13 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F6:
-		DEBUG_camerastep -= 0.1f;
-		fprintf(stderr, "Stepping now at %f\n", DEBUG_camerastep);
+		DEBUG_stepping -= 0.01f;
+		fprintf(stderr, "Stepping now at %f\n", DEBUG_stepping);
 		break;
 
 	case GLUT_KEY_F7:
-		DEBUG_camerastep += 0.1f;
-		fprintf(stderr, "Stepping now at %f\n", DEBUG_camerastep);
+		DEBUG_stepping += 0.01f;
+		fprintf(stderr, "Stepping now at %f\n", DEBUG_stepping);
 		break;
 
 	case GLUT_KEY_F8:
@@ -173,6 +174,10 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	case ' ':
 		viewer->ToggleGUI();
 		viewer->SelectPano((int)round(viewer->m_selectedPano));
+		break;
+
+	case 'e':
+		viewer->ToggleExactPixels();
 		break;
 
 		// Comparison mode

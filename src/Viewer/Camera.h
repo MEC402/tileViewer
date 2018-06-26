@@ -33,27 +33,32 @@ public:
 	int Width;
 	int Height;
 
-	// Camera rotation stuff
+	// Mouse rotation variables
 	bool FirstMouse;
-	float Yaw;
-	float Pitch;
 	float LastX;
 	float LastY;
-	float Zoom;
+
+	// Camera rotation/zoom variables
+	float Yaw;
+	float Pitch;
 	float FOV;
 	float ResetFOV;
 
 	void Init(int cameracount, int width, int height);
-	void CreateCameras();
+	void Create(void);
 	void SetViewport(Viewport *viewport);
-	void SplitHorizontal();
-	void UpdateCameras();
-	void UpdateMVP();
+	void SplitHorizontal(void);
+	void UpdateCameras(void);
+	void UpdateMVP(void);
 
 	Camera() {}
 
 private:
 	bool hsplit;
+
+	glm::vec3 cameraUp;
+	glm::vec3 cameraFront;
+	glm::vec3 cameraCenter;
 
 	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	void updateCameras(float fovy, float aRatio, bool hsplit);

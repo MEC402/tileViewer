@@ -5,34 +5,39 @@
 
 void Camera::Init(int cameracount, int width, int height)
 {
-	Width = width;
-	Height = height;
-
 	FirstMouse = true;
 	Yaw = 0.0f;//-270.0f;
 	Pitch = 0.0f;
 	LastX = Width / 2.0f;
 	LastY = Height / 2.0f;
-	FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
 
 	if (cameracount < 2) {
 		NumCameras = 1;
 		FOV = 45.0f;
+		Width = width;
+		Height = height;
 	}
 	else {
 		NumCameras = cameracount;
+		FOV = 34.8093072f; //Magic voodoo number pulled from spviewer codebase
+		Width = 1920; // Hardcoded 5-panel width
+		Height = 1080; // Hardcode 5-panel height
 	}
 
+	cameraUp = glm::vec3(0, 1, 0);
+	cameraCenter = glm::vec3(0, 0, 0);
+
 	ResetFOV = FOV;
+
 	LeftCameras = new Viewport*[NumCameras]();
 	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();
-	CreateCameras();
+	Create();
 }
 
-void Camera::CreateCameras()
+void Camera::Create()
 {
-	createCameras(LeftCameras, FOV, float(1080) / float(1920), true);
+	createCameras(LeftCameras, FOV, float(Height) / float(Width), true);
 }
 
 void Camera::UpdateMVP()
@@ -42,7 +47,7 @@ void Camera::UpdateMVP()
 
 void Camera::UpdateCameras()
 {
-	updateCameras(FOV, float(1080) / float(1920), hsplit);
+	updateCameras(FOV, float(Height) / float(Width), hsplit);
 }
 
 void Camera::SetViewport(Viewport *viewport)
@@ -50,17 +55,10 @@ void Camera::SetViewport(Viewport *viewport)
 	if (viewport == NULL)
 		return;
 
-	glm::vec3 cameraUp = glm::vec3(0, 1, 0);
 	float tempYaw = Yaw + glm::degrees(viewport->rotation);
-	
-	glm::vec3 front;
-	front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	front.y = sin(glm::radians(Pitch));
-	front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
-	glm::vec3 cameraFront = glm::normalize(front);
-	
+		
 	glm::mat4 newView = glm::lookAt(
-		glm::vec3(0, 0, 0),
+		cameraCenter,
 		glm::vec3(0, 0, 1),
 		cameraUp
 	);
@@ -164,40 +162,28 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 {
 	if (NumCameras < 2)
-		Projection = glm::perspective(glm::radians(fov), float(width) / float(height), 0.1f, 10000.0f);
+		Projection = glm::perspective(glm::radians(fov), float(width) / float(height), 0.1f, float(height * 2.0f));//10000.0f);
 	else
-		Projection = glm::perspective(glm::radians(fov), float(1080)/float(1920), 0.1f, 10000.0f);
-
+		Projection = glm::perspective(glm::radians(fov), float(1080) / float(1920), 0.1f, float(height * 2.0f));//10000.0f);
+	
 	if (pitch > 89.0f)
 		pitch = 89.0f;
 	if (pitch < -89.0f)
 		pitch = -89.0f;
 	Pitch = pitch;
 
-
 	glm::vec3 front;
 	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	glm::vec3 cameraFront = glm::normalize(front);
-	
+	cameraFront = glm::normalize(front);
+
 	View = glm::lookAt(
-		glm::vec3(0, 0, 0),
-		cameraFront,
-		glm::vec3(0, 1, 0)
+		cameraCenter,
+		cameraCenter + cameraFront,
+		cameraUp
 	);
 
-	//View = glm::lookAt(
-	//	glm::vec3(0, 0, 0),
-	//	glm::vec3(0, 0, 1),
-	//	glm::vec3(0, 1, 0)
-	//);
-
-	//glm::mat4 rotX = glm::rotate(View, glm::radians(Yaw), glm::vec3(0, 1, 0));
-	//glm::mat4 rotY = glm::rotate(View, glm::radians(Pitch), glm::vec3(1, 0, 0));
-	//View = rotX * rotY;
-
 	Model = glm::mat4(1.0f);
-
 	MVP = Projection * View * Model;
 }

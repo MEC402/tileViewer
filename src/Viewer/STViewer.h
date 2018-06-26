@@ -47,6 +47,7 @@ public:
 	// Camera Controls
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
+	void ToggleExactPixels(void);
 	void Screenshot(void);
 
 	// Toggle controls
@@ -121,6 +122,7 @@ private:
 	bool m_fullscreen{ false };
 	bool m_linear{ true };
 	bool m_comparisonMode{ false };
+	bool m_exactpixelmode{ false };
 
 	SafeQueue<ImageData*> *m_LoadedTextures;
 

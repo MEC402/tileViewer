@@ -16,7 +16,7 @@ public:
 private:
 	static int DEBUG_row;
 	static int DEBUG_col;
-	static float DEBUG_camerastep;
+	static float DEBUG_stepping;
 	static float DEBUG_fov;
 };
 

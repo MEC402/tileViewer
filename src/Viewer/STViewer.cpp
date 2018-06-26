@@ -149,6 +149,7 @@ PanoInfo STViewer::GetCurrentPano()
 
 /* ---------------------- Camera Controls ---------------------- */
 
+
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.FOV += FOVChange;
@@ -170,6 +171,20 @@ void STViewer::ResetCamera()
 	m_camera.UpdateCameras();
 }
 
+void STViewer::ToggleExactPixels()
+{
+	static float old_FOV;
+	m_exactpixelmode = !m_exactpixelmode;
+	if (m_exactpixelmode) {
+		old_FOV = m_camera.FOV;
+		m_camera.FOV = m_camera.ResetFOV / 2.0f;
+	}
+	else {
+		m_camera.FOV = old_FOV;
+	}
+	m_camera.UpdateMVP();
+	m_camera.UpdateCameras();
+}
 
 void STViewer::Screenshot()
 {
