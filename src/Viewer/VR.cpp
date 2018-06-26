@@ -65,7 +65,7 @@ OculusTextureBuffer::OculusTextureBuffer(ovrSession session, OVR::Sizei size, in
 	desc.Width = size.w;
 	desc.Height = size.h;
 	desc.MipLevels = 1;
-	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleCount = sampleCount;
 	desc.StaticImage = ovrFalse;
 
@@ -162,7 +162,7 @@ void OculusTextureBuffer::SetRenderSurface()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, curDepthTexId, 0);
 
 	glViewport(0, 0, texSize.w, texSize.h);
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void OculusTextureBuffer::UnsetRenderSurface()
@@ -279,7 +279,7 @@ void resizeMirrorTexture(VRDevice* vr, int mirrorWindowWidth, int mirrorWindowHe
 	memset(&desc, 0, sizeof(desc));
 	desc.Width = vr->mirrorWindowWidth;
 	desc.Height = vr->mirrorWindowHeight;
-	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 
 	// Create mirror texture and an FBO used to copy mirror texture to back buffer
 	vr->mirrorTexture = nullptr;

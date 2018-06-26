@@ -143,21 +143,9 @@ void CB_Display()
 			// Correct right eye panorama alignment
 			if (eyeIndex == 1)
 			{
+				// This works only for very vertical adjustments
 				PanoInfo pano = _viewer->GetCurrentPano();
-				view = glm::eulerAngleYXZ(_horizontalEyeRotation + pano.horizontalCorrection, 0.0f, 0.0f)
-					//* view
-					* glm::eulerAngleYXZ(0.0f, _verticalEyeRotation + pano.verticalCorrection, 0.0f);
-
-				/*view = glm::mat4_cast(
-					//glm::inverse(getVRHeadsetRotation(_vr))
-					 glm::angleAxis(_horizontalEyeRotation + pano.horizontalCorrection, glm::vec3(0, 1, 0))
-					* glm::angleAxis(_verticalEyeRotation + pano.verticalCorrection, glm::vec3(1, 0, 0))
-				);*/
-
-				// Maybe add each axis of the headset transform one component at a time?
-				view =
-					glm::rotate(_verticalEyeRotation + pano.verticalCorrection, glm::vec3(1, 0, 0))
-					* glm::rotate(_horizontalEyeRotation + pano.horizontalCorrection, glm::vec3(0, 1, 0));
+				view = view * glm::eulerAngleYXZ(0.0f, -_verticalEyeRotation + pano.verticalCorrection, 0.0f);
 			}
 
 			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
@@ -182,7 +170,8 @@ void CB_Display()
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
 			// Annotations
-			_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, false);
+			bool drawAlignmentDotTool = controllers.right.indexFingerTrigger > 0.5f;
+			_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, drawAlignmentDotTool);
 
 			// GUI
 			double uiDisplayWaitTime = 1.5;
