@@ -60,7 +60,7 @@ void STViewer::ToggleStereo()
 	m_images.InitStereo();
 	if (m_stereo) {
 		if (m_RightEye == NULL) {
-			m_RightEye = new CubePoints(m_maxDepth, 1);
+			m_RightEye = new CubePoints(m_maxDepth, RIGHT_EYE);
 		}
 		else {
 			m_RightEye->ResetDepth();
@@ -116,7 +116,7 @@ void STViewer::ToggleComparison()
 {
 	m_comparisonMode = !m_comparisonMode;
 	if (!m_comparisonMode) {
-		ToggleEye(0); // Set back to Left Eye textures
+		ToggleEye(LEFT_EYE); // Set back to Left Eye textures
 		return;
 	}
 	m_images.CopyImageData();
@@ -131,9 +131,9 @@ void STViewer::ToggleEye(int eye)
 void STViewer::ReloadShaders()
 {
 	m_shader.Reload();
-	m_images.BindTextures(m_shader, 0);
+	m_images.BindTextures(m_shader, LEFT_EYE);
 	if (m_stereo)
-		m_images.BindTextures(m_shader, 1);
+		m_images.BindTextures(m_shader, RIGHT_EYE);
 	m_shader.Bind();
 }
 
@@ -193,9 +193,9 @@ void STViewer::ToggleGUI()
 void STViewer::ToggleLinear()
 {
 	m_linear = !m_linear;
-	m_images.SetFilter(0, m_linear);
+	m_images.SetFilter(LEFT_EYE, m_linear);
 	if (m_stereo)
-		m_images.SetFilter(1, m_linear);
+		m_images.SetFilter(RIGHT_EYE, m_linear);
 }
 
 /* ---------------------- Primary Update Loop ---------------------- */
@@ -309,7 +309,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 		}
 #endif
 
-		if (eye == 0) {
+		if (eye == LEFT_EYE) {
 			workerPool->submit([&](int face, int row, int col, int depth)
 			{
 				m_LeftEye->QuadSetDepth(face, row, col, depth);
@@ -370,7 +370,6 @@ void STViewer::resetImages()
 	}
 #endif
 
-	// Finally, reset our quad depths on our cube, as we have a new pano to display
 	resetCubes();
 }
 
@@ -378,11 +377,11 @@ void STViewer::resetCubes()
 {
 	// Out of order logic so we can toggle Stereo on during runtime and properly generate the RightEye
 	if (m_stereo && m_RightEye == NULL)
-		m_RightEye = new CubePoints(m_maxDepth, 1);
+		m_RightEye = new CubePoints(m_maxDepth, RIGHT_EYE);
 
 	// LeftEye is default
 	if (m_LeftEye == NULL) {
-		m_LeftEye = new CubePoints(m_maxDepth, 0);
+		m_LeftEye = new CubePoints(m_maxDepth, LEFT_EYE);
 		m_shader.SetFloatUniform("TileWidth", m_LeftEye->m_TILEWIDTH);
 	}
 	else {
@@ -396,7 +395,7 @@ void STViewer::resetCubes()
 	
 	CB_UpdateEyes(m_LeftEye, m_RightEye, m_stereo);
 
-	// Wait for Level 0 to be loaded
+	// Wait for Level 0 to be loaded so we don't get huge, zoomed in textures
 	if (m_panolist.size() > 0)
 		while (m_LoadedTextures->Size() < 6);
 
