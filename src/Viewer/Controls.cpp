@@ -126,11 +126,11 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 	float average = 0.0f;
 	switch (key) {
 	case '1':
-		viewer->ToggleEye(0);
+		viewer->ToggleEye(LEFT_EYE);
 		break;
 
 	case '2':
-		viewer->ToggleEye(1);
+		viewer->ToggleEye(RIGHT_EYE);
 		break;
 
 	case '3':
