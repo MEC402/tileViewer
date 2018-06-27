@@ -104,7 +104,7 @@ void Camera::SplitHorizontal()
 			delete RightCameras[i];
 		delete [] RightCameras;
 		for (unsigned int i = 0; i < NumCameras; i++) {
-			LeftCameras[i]->height = ViewHeight;
+			LeftCameras[i]->height = ScreenHeight;
 			LeftCameras[i]->heightstart = 0;
 		}
 		return;
@@ -115,10 +115,10 @@ void Camera::SplitHorizontal()
 	createCameras(RightCameras, m_yFOV, float(ViewHeight) / float(ViewWidth), true);
 
 	for (unsigned int i = 0; i < NumCameras; i++) {
-		LeftCameras[i]->height = ViewHeight / 2;
-		LeftCameras[i]->heightstart = ViewHeight / 2;
+		LeftCameras[i]->height = ScreenHeight / 2;
+		LeftCameras[i]->heightstart = ScreenHeight / 2;
 
-		RightCameras[i]->height = ViewHeight / 2;
+		RightCameras[i]->height = ScreenHeight / 2;
 	}
 }
 
