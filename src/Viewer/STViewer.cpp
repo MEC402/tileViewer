@@ -171,7 +171,7 @@ void STViewer::ToggleExactPixels()
 
 void STViewer::Screenshot()
 {
-	m_images.Screenshot(m_camera.Width, m_camera.Height);
+	m_images.Screenshot(m_camera.ScreenWidth, m_camera.ScreenHeight);
 }
 
 void STViewer::FlipDebug()
@@ -416,7 +416,7 @@ void STViewer::initGL()
 
 void STViewer::initVR()
 {
-	m_usingVR = createVRDevice(&m_vr, m_camera.Width, m_camera.Height);
+	m_usingVR = createVRDevice(&m_vr, m_camera.ScreenWidth, m_camera.ScreenHeight);
 	if (m_usingVR) {
 		m_stereo = true;
 		updateVRDevice(&m_vr);

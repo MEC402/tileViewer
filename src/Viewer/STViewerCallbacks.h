@@ -76,7 +76,7 @@ void CB_Init(STViewer *v, bool fullscreen)
 	_viewer = v;
 
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
-	glutInitWindowSize(_camera->Width, _camera->Height); // Defaults to 1280 x 800 windowed
+	glutInitWindowSize(_camera->ScreenWidth, _camera->ScreenHeight); // Defaults to 1280 x 800 windowed
 	glutCreateWindow("TileViewer - ST Shader Annihilation Edition");
 	if (fullscreen) {
 		glutFullScreen();
@@ -194,7 +194,7 @@ void CB_Display()
 		// Left Eye
 		glBindVertexArray(_lefteye->m_PositionVAOID);
 		for (unsigned int i = 0; i < _camera->NumCameras; i++) {
-			_camera->SetViewport(_camera->LeftCameras[i]);
+			_camera->DrawViewport(_camera->LeftCameras[i]);
 			_shader->SetMatrixUniform("MVP", _camera->MVP);
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
 		}
@@ -204,7 +204,7 @@ void CB_Display()
 			glBindVertexArray(_righteye->m_PositionVAOID);
 			_images->BindTextures(*_shader, RIGHT_EYE);
 			for (unsigned int i = 0; i < _camera->NumCameras; i++) {
-				_camera->SetViewport(_camera->RightCameras[i]);
+				_camera->DrawViewport(_camera->RightCameras[i]);
 				_shader->SetMatrixUniform("MVP", _camera->MVP);
 				glDrawArrays(GL_POINTS, 0, _righteye->m_NumVertices);
 			}
@@ -223,14 +223,14 @@ void CB_Display()
 		// GUI Pano Selection
 		if (_viewer->m_displaygui) {
 			// Center the GUI if we have multiple viewports
-			_camera->SetViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
+			_camera->DrawViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
 
 			// Reset projection to "only one screen"
 			glm::mat4 proj = glm::perspective(glm::radians(45.0f), 
-				float(_camera->Width) / float(_camera->Height), 0.1f, 10000.0f);
+				float(_camera->ScreenWidth) / float(_camera->ScreenHeight), 0.1f, 10000.0f);
 
 			// Draw a new viewport to cover the whole scene
-			glViewport(0, 0, _camera->Width, _camera->Height);
+			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
 
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _objectShader, _viewer->m_guiPanoSelection);
@@ -274,13 +274,10 @@ static void _Resize(int w, int h)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-	_camera->Width = w;
-	_camera->Height = h;
+	_camera->UpdateResolution(w, h);
 #ifdef DEBUG
-	fprintf(stderr, "%d %d\n", _camera->Width, _camera->Height);
+	fprintf(stderr, "%d %d\n", _camera->ScreenWidth, _camera->ScreenHeight);
 #endif
-	_camera->UpdateMVP();
-	_camera->UpdateCameras();
 
 	if (_usingVR) {
 		resizeMirrorTexture(_vr, w, h);

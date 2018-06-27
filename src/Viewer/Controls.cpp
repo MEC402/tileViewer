@@ -35,8 +35,8 @@ void Controls::MouseMove(int posx, int posy)
 	Camera::Yaw += xoffset;
 	Camera::Pitch += yoffset;
 	Camera::UpdateMVP();
-	Camera::LastX = Camera::Width / 2.0f;
-	Camera::LastY = Camera::Height / 2.0f;*/
+	Camera::LastX = Camera::ViewWidth / 2.0f;
+	Camera::LastY = Camera::ViewHeight / 2.0f;*/
 }
 
 void Controls::MouseWheel(int button, int direction, int x, int y)

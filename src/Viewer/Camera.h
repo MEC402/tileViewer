@@ -29,9 +29,13 @@ public:
 	glm::mat4 Model;
 	glm::mat4 MVP;
 
-	// Defaults for window height/width
-	int Width;
-	int Height;
+	// Viewport height/width
+	int ViewWidth;
+	int ViewHeight;
+
+	// Resolution height/width
+	int ScreenWidth;
+	int ScreenHeight;
 
 	// Mouse rotation variables
 	bool FirstMouse;
@@ -46,9 +50,11 @@ public:
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void SetPixelPerfect(void);
-	void SetViewport(Viewport *viewport);
 	void SplitHorizontal(void);
 
+	void DrawViewport(Viewport *viewport);
+
+	void UpdateResolution(int newWidth, int newHeight);
 	void UpdateCameras(void);
 	void UpdateMVP(void);
 
