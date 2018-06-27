@@ -38,28 +38,45 @@ public:
 	float LastX;
 	float LastY;
 
-	// Camera rotation/zoom variables
-	float Yaw;
-	float Pitch;
-	float FOV;
-	float ResetFOV;
-
 	void Init(int cameracount, int width, int height);
+
+	void ChangeFOV(float delta);
 	void Create(void);
+
+	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
+	void ResetCamera(void);
+	void SetPixelPerfect(void);
 	void SetViewport(Viewport *viewport);
 	void SplitHorizontal(void);
+
 	void UpdateCameras(void);
 	void UpdateMVP(void);
 
 	Camera() {}
 
 private:
+	const float FivePanelFOV{ 32.8093072f }; //Magic voodoo number pulled from spviewer codebase
+	const int FivePanelWidth{ 1920 };
+	const int FivePanelHeight{ 1080 };
+
+	const float tileRes{ 512.0f };
+	const float tileWidth{ 0.125f };
+	const float tileDistance{ 0.5f };
+
+	float m_yFOV;
+	float m_xFOV;
+	float m_yaw;
+	float m_pitch;
+	float m_resetFOV;
+
+
 	bool hsplit;
 
 	glm::vec3 cameraUp;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraCenter;
 
+	void setFOV(void);
 	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	void updateCameras(float fovy, float aRatio, bool hsplit);
 	void updateMVP(float pitch, float yaw, float fov, int height, int width);

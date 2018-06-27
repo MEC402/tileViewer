@@ -152,38 +152,21 @@ PanoInfo STViewer::GetCurrentPano()
 
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
-	m_camera.FOV += FOVChange;
-	if (m_camera.FOV < 0) {
-		m_camera.FOV = 1.0f;
-	}
-	m_camera.Pitch += pitchChange;
-	m_camera.Yaw += yawChange;
-
-	m_camera.UpdateMVP();
-	m_camera.UpdateCameras();
+	m_camera.MoveCamera(pitchChange, yawChange, FOVChange);
 }
 
 void STViewer::ResetCamera()
 {
-	m_camera.FOV = m_camera.ResetFOV;
-	m_camera.Pitch = 0.0f;
-	m_camera.UpdateMVP();
-	m_camera.UpdateCameras();
+	m_camera.ResetCamera();
 }
 
 void STViewer::ToggleExactPixels()
 {
-	static float old_FOV;
 	m_exactpixelmode = !m_exactpixelmode;
-	if (m_exactpixelmode) {
-		old_FOV = m_camera.FOV;
-		m_camera.FOV = m_camera.ResetFOV / 2.0f;
-	}
-	else {
-		m_camera.FOV = old_FOV;
-	}
-	m_camera.UpdateMVP();
-	m_camera.UpdateCameras();
+	if (m_exactpixelmode)
+		m_camera.SetPixelPerfect();
+	else
+		ResetCamera();
 }
 
 void STViewer::Screenshot()
