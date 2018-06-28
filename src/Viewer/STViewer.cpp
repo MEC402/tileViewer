@@ -96,7 +96,7 @@ void STViewer::NextPano()
 void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
-		if (m_guistate) {
+		if (m_guistate == PANO) {
 			m_selectedPano = (float)pano;
 		}
 		else {
@@ -326,7 +326,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 	}
 
 	if (m_kinect != NULL) {
-		m_kinect->GetGesture(m_guistate);
+		m_kinect->GetGesture(m_guistate == PANO);
 	}
 
 	// Check to see if any thread has updated cube quad depths, if so rebind VAO/VBO data

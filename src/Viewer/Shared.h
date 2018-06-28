@@ -6,7 +6,7 @@
 
 #define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
 //#define KINECT
-#define OCULUS
+//#define OCULUS
 
 // The first 12 active textures are used by CubeMap faces
 // This is set as a macro for ease of refactoring later, should we want to use more slots later

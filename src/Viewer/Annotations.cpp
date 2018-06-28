@@ -146,7 +146,8 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shad
 	}
 }
 
-// TODO: Don't blank out the entire screen, show some kind of nice overlay
+// TODO: Don't blank out the entire screen, show some kind of nice overlay (i.e. An Annotation)
+// TODO: Doesn't work on 5-panel displays
 void Annotations::DisplayHelp(float aspect)
 {
 	// Disable shader program temporarily, it's just way way easier to call glutBitmap
