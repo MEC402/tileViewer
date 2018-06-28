@@ -22,6 +22,7 @@ void _PanoMenu(int choice);
 void _Cleanup(void);
 void _Idle(void);
 void _Resize(int width, int height);
+void _SplashScreen(void);
 
 bool _usingVR = false;
 VRDevice *_vr;
@@ -100,6 +101,7 @@ void CB_Init(STViewer *v, bool fullscreen)
 	//glutMotionFunc(Controls::MouseMove); // This is super broken with 5-panel displays, just disable it.
 	glutMouseWheelFunc(Controls::MouseWheel);
 	//glutTimerFunc(5000, timerCleanup, 0);
+	_SplashScreen();
 }
 
 void CB_InitMenus(std::vector<PanoInfo> &panoList)
@@ -258,7 +260,7 @@ void CB_Display()
 #endif
 }
 
-static void _Idle()
+void _Idle()
 {
 	LARGE_INTEGER time;
 	LARGE_INTEGER ticksPerSecond;
@@ -270,7 +272,7 @@ static void _Idle()
 	_viewer->Update(_globalTime, deltaTime);
 }
 
-static void _Resize(int w, int h)
+void _Resize(int w, int h)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
@@ -284,7 +286,7 @@ static void _Resize(int w, int h)
 	}
 }
 
-static void _MainMenu(int choice)
+void _MainMenu(int choice)
 {
 	switch (choice) {
 	case 1:
@@ -310,12 +312,191 @@ static void _MainMenu(int choice)
 	}
 }
 
-static void _PanoMenu(int choice)
+void _PanoMenu(int choice)
 {
 	_viewer->SelectPano(--choice);
 }
 
-static void _Cleanup()
+void _Cleanup()
 {
 	_viewer->Cleanup();
+}
+
+void _SplashScreen()
+{
+	glClearColor(0, 0, 0, 0);
+	glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f,
+		(float)_camera->ScreenWidth / _camera->ScreenHeight,
+		0.1f,
+		1000.0f);
+
+	gluLookAt(0, 0, 0,
+		0, 0, 1,
+		0, 1, 0);
+
+	//for (int i = 0; i < 1000; i++) {
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glScalef(0.025, 0.025, 1.0);
+
+	glLineWidth(1.5);
+	glColor3f(0.0, 1.0, 0.0);
+	glPushMatrix();
+
+	glTranslatef(14.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	// V
+	glVertex3f(0.0, 0.0, 1.0);
+	glVertex3f(1, 3, 1);
+	glVertex3f(1, 3, 1);
+	glVertex3f(3, 3, 1);
+	glVertex3f(3, 3, 1);
+	glVertex3f(1, -2, 1);
+	glVertex3f(1, -2, 1);
+	glVertex3f(-1, -2, 1);
+	glVertex3f(-1, -2, 1);
+	glVertex3f(-3, 3, 1);
+	glVertex3f(-3, 3, 1);
+	glVertex3f(-1, 3, 1);
+	glVertex3f(-1, 3, 1);
+	glVertex3f(0.0, 0.0, 1.0);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(9.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	// I
+	glVertex3f(1, -2, 1);
+	glVertex3f(-0.5, -2, 1);
+	glVertex3f(-0.5, -2, 1);
+	glVertex3f(-0.5, 3, 1);
+	glVertex3f(-0.5, 3, 1);
+	glVertex3f(1, 3, 1);
+	glVertex3f(1, 3, 1);
+	glVertex3f(1, -2, 1);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(5.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	// S
+	glVertex3f(2.5, 3, 1);
+	glVertex3f(2.5, 1.5, 1);
+	glVertex3f(2.5, 1.5, 1);
+	glVertex3f(-0.5, -0.5, 1);
+	glVertex3f(-0.5, -0.5, 1);
+	glVertex3f(2.5, -0.5, 1);
+	glVertex3f(2.5, -0.5, 1);
+	glVertex3f(2.5, -2, 1);
+	glVertex3f(2.5, -2, 1);
+	glVertex3f(-2.5, -2, 1);
+	glVertex3f(-2.5, -2, 1);
+	glVertex3f(-2.5, -0.5, 1);
+	glVertex3f(-2.5, -0.5, 1);
+	glVertex3f(0.5, 1.5, 1);
+	glVertex3f(0.5, 1.5, 1);
+	glVertex3f(-2.5, 1.5, 1);
+	glVertex3f(-2.5, 1.5, 1);
+	glVertex3f(-2.5, 3, 1);
+	glVertex3f(-2.5, 3, 1);
+	glVertex3f(2.5, 3, 1);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, 0.0f);
+	// - 
+	glBegin(GL_LINES);
+	glVertex3f(-1, 0, 1);
+	glVertex3f(-1, 1, 1);
+	glVertex3f(-1, 1, 1);
+	glVertex3f(1, 1, 1);
+	glVertex3f(1, 1, 1);
+	glVertex3f(1, 0, 1);
+	glVertex3f(1, 0, 1);
+	glVertex3f(-1, 0, 1);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-4.0f, 0.0f, 0.0f);
+	// L
+	glBegin(GL_LINES);
+	glVertex3f(2, -2, 1);
+	glVertex3f(-1.5, -2, 1);
+	glVertex3f(-1.5, -2, 1);
+	glVertex3f(-1.5, -0.5, 1);
+	glVertex3f(-1.5, -0.5, 1);
+	glVertex3f(0.5, -0.5, 1);
+	glVertex3f(0.5, -0.5, 1);
+	glVertex3f(0.5, 3.0, 1);
+	glVertex3f(0.5, 3.0, 1);
+	glVertex3f(2, 3.0, 1);
+	glVertex3f(2, 3.0, 1);
+	glVertex3f(2, -2, 1);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-9.0f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	// A
+	glVertex3f(0, 0, 1);
+	glVertex3f(1, -2, 1);
+	glVertex3f(1, -2, 1);
+	glVertex3f(3, -2, 1);
+	glVertex3f(3, -2, 1);
+	glVertex3f(0, 3, 1);
+	glVertex3f(0, 3, 1);
+	glVertex3f(-3, -2, 1);
+	glVertex3f(-3, -2, 1);
+	glVertex3f(-1, -2, 1);
+	glVertex3f(-1, -2, 1);
+	glVertex3f(0, 0, 1);
+	glEnd();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-14.5f, 0.0f, 0.0f);
+	glBegin(GL_LINES);
+	// B
+	glVertex3f(-0.125, 3, 1);
+	glVertex3f(2, 3, 1);
+	glVertex3f(2, 3, 1);
+	glVertex3f(2, -2, 1);
+	glVertex3f(2, -2, 1);
+	glVertex3f(-0.125, -2, 1);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	float PI = 3.14;
+	float step = 0.25f;
+	float radius = 1.25f;
+	float centerX = -0.125f;
+	float centerY = -0.75f;
+	for (float angle = 270.0f; angle >= 90.0f; angle -= step)
+	{
+		float rad = PI * angle / 180;
+		float x = centerX + radius * cos(rad);
+		float y = centerY + radius * sin(rad);
+		glVertex3f(x, y, 1.0f);
+	}
+	centerY = 1.75f;
+	for (float angle = 270.0f; angle >= 90.0f; angle -= step)
+	{
+		float rad = PI * angle / 180;
+		float x = centerX + radius * cos(rad);
+		float y = centerY + radius * sin(rad);
+		glVertex3f(x, y, 1.0f);
+	}
+	glEnd();
+	glPopMatrix();
+	glutSwapBuffers();
 }
