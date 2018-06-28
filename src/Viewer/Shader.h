@@ -11,7 +11,7 @@
 class Shader {
 public:
 	void CreateProgram(const char* geometryFile, const char* vertexFile, const char* fragmentFile);
-	void FlipDebug();
+	void ToggleDebug();
 	void Reload();
 	void Bind();
 	void SetFloatUniform(const char* nameInShader, float value);

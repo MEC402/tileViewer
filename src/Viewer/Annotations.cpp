@@ -1,3 +1,6 @@
+#include <GL\glew.h>
+#include <GL\freeglut.h> // Used to draw text
+
 #include "Annotations.h"
 #include "InternetDownload.h"
 #include "stb_image.h"
@@ -140,5 +143,56 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shad
 		shader->SetMatrixUniform("MVP", projection*translation*scale);
 		shader->BindTexture("image", THUMB_TX_SLOT, 0);
 		Render_DrawModel(quad);
+	}
+}
+
+// TODO: Don't blank out the entire screen, show some kind of nice overlay
+void Annotations::DisplayHelp(float aspect)
+{
+	// Disable shader program temporarily, it's just way way easier to call glutBitmap
+	// than rendering everything as textures onto quads for text
+	glUseProgram(0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(45.0f, aspect, 0.1f, 1000.0f);
+
+	gluLookAt(0, 0, 0,
+		0, 0, 1,
+		0, 1, 0);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	const char *help[] = { "COMMANDS", 
+		"wasd/Arrow Keys - Rotate Up/Down/Right/Left", "WASD - Rotate faster", 
+		"e - Set FOV to 1:1 Pixel Matching on the screen", 
+		"r - Reset camera Pitch and FOV", "R - Reload current Panorama",
+		"f - Toggle Fullscreen",
+		"C - Toggle Comparison Mode. Select the pano to compare against, then use 1/2 to toggle between them.", 
+		"h - Toggle horizontal split Stereo mode",
+		"n - Next Pano (also applies inside GUI selection)",
+		"p - Previous Pano (also applies inside GUI selection)",
+		"L - Toggle Linear/Nearest Texture Filtering",
+		"F1 - Display this message",
+		"F2/F3 - Reload Shaders",
+		"F4 - Display GUI Pano Selection",
+		"F5 - Display Annotations",
+		"F8 - Toggle \"Texture Debug View\"",
+		"F9 - Take a screenshot",
+		"Scroll Wheel - Zoom in/out",
+		"PG Up/Down - Zoom in/out slowly",
+		"ESC - Exit Program"};
+	int commandCount = sizeof(help)/sizeof(help[0]);
+
+	glScalef(0.025, 0.025, 1.0);
+
+	glLineWidth(1.5);
+	glColor3f(0.0, 1.0, 0.0);
+	for (int i = 0; i < commandCount; i++) {
+		glRasterPos3i(25, 10-i, 0.2);
+		for (int j = 0; j < strlen(help[i]); j++) {
+			glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, help[i][j]);
+		}
 	}
 }

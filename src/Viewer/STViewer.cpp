@@ -96,7 +96,7 @@ void STViewer::NextPano()
 void STViewer::SelectPano(int pano)
 {
 	if (pano > -1 && pano < m_panolist.size()) {
-		if (m_displaygui) {
+		if (m_guistate) {
 			m_selectedPano = (float)pano;
 		}
 		else {
@@ -120,7 +120,7 @@ void STViewer::ToggleComparison()
 		return;
 	}
 	m_images.CopyImageData();
-	ToggleGUI();
+	ToggleGUI(PANO);
 }
 
 void STViewer::ToggleEye(int eye)
@@ -174,18 +174,21 @@ void STViewer::Screenshot()
 	m_images.Screenshot(m_camera.ScreenWidth, m_camera.ScreenHeight);
 }
 
-void STViewer::FlipDebug()
+void STViewer::ToggleDebug()
 {
-	m_shader.FlipDebug();
+	m_shader.ToggleDebug();
 }
 
-void STViewer::ToggleGUI()
+void STViewer::ToggleGUI(GUISTATE state)
 {
-	m_displaygui = !m_displaygui;
-	if (!m_displaygui)
-		m_gui.ResetTimer();
-	else
+	if (m_guistate == OFF) {
+		m_guistate = state;
 		m_gui.StartTimer();
+	}
+	else {
+		m_guistate = OFF;
+		m_gui.ResetTimer();
+	}
 }
 
 void STViewer::ToggleLinear()
@@ -268,7 +271,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 	}
 	else {
 		// Animation for non-VR GUI
-		if (m_displaygui && abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
+		if ((m_guistate == PANO) && abs(m_guiPanoSelection - m_selectedPano) > 0.01) {
 			float menuSpeed = 20;
 			float direction = m_selectedPano - m_guiPanoSelection;
 
@@ -323,7 +326,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 	}
 
 	if (m_kinect != NULL) {
-		m_kinect->GetGesture(m_displaygui);
+		m_kinect->GetGesture(m_guistate);
 	}
 
 	// Check to see if any thread has updated cube quad depths, if so rebind VAO/VBO data

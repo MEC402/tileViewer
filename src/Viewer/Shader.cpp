@@ -38,7 +38,7 @@ void Shader::Bind()
 	PRINT_GL_ERRORS
 }
 
-void Shader::FlipDebug()
+void Shader::ToggleDebug()
 {
 	GLuint uDebug = glGetUniformLocation(m_program, "Debug");
 	glUniform1f(uDebug, DEBUG_FLAG);

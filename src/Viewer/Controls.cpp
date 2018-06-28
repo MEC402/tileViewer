@@ -85,13 +85,16 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 		break;
 
 	case GLUT_KEY_F1:
+		viewer->ToggleGUI(STViewer::GUISTATE::HELP);
+		break;
+
 	case GLUT_KEY_F2:
 	case GLUT_KEY_F3:
 		viewer->ReloadShaders();
 		break;
 
 	case GLUT_KEY_F4:
-		viewer->ToggleGUI();
+		viewer->ToggleGUI(STViewer::GUISTATE::PANO);
 		break;
 
 	case GLUT_KEY_F5:
@@ -110,7 +113,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 
 	case GLUT_KEY_F8:
 		DEBUG_FLAG = !DEBUG_FLAG;
-		viewer->FlipDebug();
+		viewer->ToggleDebug();
 		break;
 
 	case GLUT_KEY_F9:
@@ -172,7 +175,7 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 
 		// GUI Selection
 	case ' ':
-		viewer->ToggleGUI();
+		viewer->ToggleGUI(STViewer::GUISTATE::PANO);
 		viewer->SelectPano((int)round(viewer->m_selectedPano));
 		break;
 

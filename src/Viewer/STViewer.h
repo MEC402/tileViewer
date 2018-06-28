@@ -30,6 +30,9 @@ public:
 	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, 
 		int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect);
 
+	enum GUISTATE { PANO, HELP, OFF };
+
+
 	// Does what it says
 	void ToggleStereo(void);
 
@@ -50,10 +53,11 @@ public:
 	void ToggleExactPixels(void);
 	void Screenshot(void);
 
-	// Toggle controls
-	void ToggleGUI(void);
+	// Misc Toggle controls
+	void ToggleGUI(GUISTATE state);
 	void ToggleLinear(void);
-	void FlipDebug(void);
+	void ToggleDebug(void);
+
 
 	// Main program loop
 	void Update(double globalTime, float deltaTime);
@@ -69,7 +73,7 @@ public:
 	double m_lastUIInteractionTime{ 0.0 };
 	Annotations m_annotations;
 
-	bool m_displaygui{ false };
+	GUISTATE m_guistate{ OFF };
 	bool m_displayAnnotation{ false };
 	float m_selectedPano;
 

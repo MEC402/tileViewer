@@ -101,6 +101,7 @@ void CB_Init(STViewer *v, bool fullscreen)
 	//glutMotionFunc(Controls::MouseMove); // This is super broken with 5-panel displays, just disable it.
 	glutMouseWheelFunc(Controls::MouseWheel);
 	//glutTimerFunc(5000, timerCleanup, 0);
+
 	_SplashScreen();
 }
 
@@ -223,16 +224,13 @@ void CB_Display()
 		}
 
 		// GUI Pano Selection
-		if (_viewer->m_displaygui) {
-			// Center the GUI if we have multiple viewports
-			_camera->DrawViewport(_camera->LeftCameras[_camera->NumCameras / 2]);
+		if (_viewer->m_guistate == STViewer::GUISTATE::PANO) {
+			// Draw a new viewport to cover the whole scene
+			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
 
 			// Reset projection to "only one screen"
 			glm::mat4 proj = glm::perspective(glm::radians(45.0f), 
 				float(_camera->ScreenWidth) / float(_camera->ScreenHeight), 0.1f, 10000.0f);
-
-			// Draw a new viewport to cover the whole scene
-			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
 
 			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
 				proj * _camera->View, _objectShader, _viewer->m_guiPanoSelection);
@@ -240,9 +238,15 @@ void CB_Display()
 			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View,
 			//	_objectShader, _globalTime);
 		}
+		else if (_viewer->m_guistate == STViewer::GUISTATE::HELP) {
+			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
+			_viewer->m_annotations.DisplayHelp(float(_camera->ScreenWidth) / _camera->ScreenHeight);
+		}
 		
+
+
 		// Rebind main program
-		if (_viewer->m_displaygui || _viewer->m_displayAnnotation) {
+		if (_viewer->m_guistate != STViewer::GUISTATE::OFF || _viewer->m_displayAnnotation) {
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);
@@ -291,7 +295,7 @@ void _MainMenu(int choice)
 	switch (choice) {
 	case 1:
 		DEBUG_FLAG = !DEBUG_FLAG;
-		_viewer->FlipDebug();
+		_viewer->ToggleDebug();
 		break;
 
 	case 2:
@@ -322,6 +326,8 @@ void _Cleanup()
 	_viewer->Cleanup();
 }
 
+// TODO: Could replace this with shader+VBO but it's a one-time draw call and that would mean putting together an extra fragment shader, binding it, etc
+// Easier to just use old-school lines for now
 void _SplashScreen()
 {
 	glClearColor(0, 0, 0, 0);
@@ -498,5 +504,6 @@ void _SplashScreen()
 	}
 	glEnd();
 	glPopMatrix();
+
 	glutSwapBuffers();
 }
