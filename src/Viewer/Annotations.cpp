@@ -15,14 +15,14 @@ Annotations::Annotations()
 
 void Annotations::Create()
 {
-	Render_CreateQuadModel(&quad);
+	Render::CreateQuadModel(&quad);
 }
 
 void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
 {
 	// Destroy any existing annotations
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		Render_DestroyTexture(&annotations[i].texture);
+		Render::DestroyTexture(&annotations[i].texture);
 	}
 	annotations.clear();
 
@@ -60,7 +60,7 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
 
 			GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-			Render_CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
+			Render::CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
 
 			free(files[i].data);
 			stbi_image_free(d);
@@ -117,7 +117,7 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection,
 
 	shader->SetMatrixUniform("MVP", viewProjection*rotation*translation*scale);
 	shader->BindTexture("image", THUMB_TX_SLOT, a.texture.id);
-	Render_DrawModel(quad);
+	Render::DrawModel(quad);
 }
 
 void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, unsigned int eye, bool showAlignementTool)
@@ -142,7 +142,7 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shad
 		glm::mat4x4 scale = glm::scale(glm::vec3(scaleAmount, scaleAmount, scaleAmount));
 		shader->SetMatrixUniform("MVP", projection*translation*scale);
 		shader->BindTexture("image", THUMB_TX_SLOT, 0);
-		Render_DrawModel(quad);
+		Render::DrawModel(quad);
 	}
 }
 

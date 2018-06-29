@@ -4,8 +4,8 @@
 
 void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 {
-	Render_CreateQuadModel(&quad);
-	Render_CreateCubeModel(&cube);
+	Render::CreateQuadModel(&quad);
+	Render::CreateCubeModel(&cube);
 
 	std::vector<std::string> urls;
 	for (unsigned int i = 0; i < panoList.size(); ++i) {
@@ -21,7 +21,7 @@ void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 		int width, height, nrChannels;
 		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)thumbnailFiles[i].data, thumbnailFiles[i].dataSize, &width, &height, &nrChannels, 0));
 
-		thumbnails[i] = Render_CreateTexture(THUMB_TX_SLOT, width, height, GL_RGB, d);
+		thumbnails[i] = Render::CreateTexture(THUMB_TX_SLOT, width, height, GL_RGB, d);
 
 		free(thumbnailFiles[i].data);
 		stbi_image_free(d);
@@ -79,7 +79,7 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 		model = rotation * tiltDown * translation * scale;
 		shader->SetMatrixUniform("MVP", viewProjection*model);
 		shader->BindTexture("image", THUMB_TX_SLOT, thumbnails[i]);
-		Render_DrawModel(quad);
+		Render::DrawModel(quad);
 	}
 }
 

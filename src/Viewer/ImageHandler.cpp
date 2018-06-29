@@ -359,7 +359,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 	int maxWidth = WIDTH * (int)pow(2, depth);
 	int maxHeight = HEIGHT * (int)pow(2, depth);
 
-	m_textures[eye][face] = Render_CreateTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
+	m_textures[eye][face] = Render::CreateTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
 
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);
