@@ -293,7 +293,6 @@ void STViewer::Update(double globalTime, float deltaTime)
 	// Up to that many without skipping a frame.
 	for (int i = 0; !m_LoadedTextures->IsEmpty() && i < 32; i++) {
 		ImageData *image = m_LoadedTextures->Dequeue();
-		//ImageData *image = m_
 
 		// TODO: We can skip storing these on the stack if we convert to using std::share_ptr
 		int face = image->face;

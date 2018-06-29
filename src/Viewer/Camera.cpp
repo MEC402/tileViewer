@@ -194,8 +194,8 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap and prevents mistakes so w/e
 	if (hsplit) {
 		for (unsigned int i = 0; i < NumCameras; ++i, rotate_x += fovx) {
-			LeftCameras[i]->width = (ScreenHeight / NumCameras);
-			LeftCameras[i]->widthstart = (ScreenHeight / NumCameras) * i;
+			LeftCameras[i]->width = (ScreenWidth / NumCameras);
+			LeftCameras[i]->widthstart = (ScreenWidth / NumCameras) * i;
 			LeftCameras[i]->height = ScreenHeight / 2;
 			LeftCameras[i]->heightstart = ScreenHeight / 2;
 			LeftCameras[i]->rotation = rotate_x;
