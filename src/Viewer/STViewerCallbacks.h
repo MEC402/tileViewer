@@ -31,7 +31,6 @@ long long _programStartTime;
 bool _stereo = false;
 Shader *_shader;
 Shader *_objectShader;
-Shader *_objShader;
 ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
@@ -48,14 +47,13 @@ void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 	_stereo = stereo;
 }
 
-void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectShader, Shader *objShader,
-	ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera)
+void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectShader, ImageHandler *images,
+	CubePoints *lefteye, CubePoints *righteye, Camera *camera)
 {
 	_stereo = stereo;
 
 	_shader = shader;
 	_objectShader = objectShader;
-	_objShader = objShader;
 
 	_images = images;
 
