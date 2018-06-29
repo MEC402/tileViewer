@@ -71,13 +71,11 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 		rotation = glm::rotate(menuRotation - (i*tileSeparation) + cameraYaw, verticalAxis);
 		scale = glm::scale(glm::vec3(tileScale, tileScale, tileScale));
 
-		if (tilt) {
-			glm::mat4x4 tiltDown = glm::rotate(glm::radians(-20.0f), glm::vec3(1, 0, 0));
-		}
-		else {
-			glm::mat4 tiltDown = glm::rotate(glm::radians(glm::degrees(cameraPitch) + -20.0f + (float)tilt_timer*20.0f), glm::vec3(1, 0, 0));
-		}
-		
+		if (tilt)
+			tiltDown = glm::rotate(glm::radians(-20.0f), glm::vec3(1, 0, 0));
+		else
+			tiltDown = glm::rotate(glm::radians(glm::degrees(cameraPitch) - 20.0f + (float)tilt_timer*20.0f), glm::vec3(1, 0, 0));
+				
 		model = rotation * tiltDown * translation * scale;
 		shader->SetMatrixUniform("MVP", viewProjection*model);
 		shader->BindTexture("image", THUMB_TX_SLOT, thumbnails[i]);
