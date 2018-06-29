@@ -179,6 +179,12 @@ void Controls::ProcessKeys(unsigned char key, int x, int y)
 		viewer->SelectPano((int)round(viewer->m_selectedPano));
 		break;
 
+		// Display .obj files
+	case 'o':
+		viewer->ToggleObj();
+		break;
+
+		// Show 1:1 Pixel Ratio
 	case 'e':
 		viewer->ToggleExactPixels();
 		break;

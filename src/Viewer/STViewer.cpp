@@ -41,10 +41,13 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
+	
+
 	initGL();
 	initVR();
 	initTextures();
 
+	m_objloader.LoadObj("C:\\Users\\W8\\Desktop\\teapot.obj", m_objdata);
 	m_annotations.Create();
 	m_gui.Create(m_panolist);
 
@@ -199,6 +202,23 @@ void STViewer::ToggleLinear()
 		m_images.SetFilter(RIGHT_EYE, m_linear);
 }
 
+void STViewer::ToggleObj()
+{
+	m_displayObj = !m_displayObj;
+}
+
+bool STViewer::SetDisplayStates()
+{
+	if (m_displayObj)
+		displayObjs();
+	if (m_guistate == PANO)
+		displayGUI();
+	if (m_displayAnnotation)
+		displayAnnotations();
+
+	return (m_displayObj || m_guistate == PANO || m_displayAnnotation);
+}
+
 /* ---------------------- Primary Update Loop ---------------------- */
 
 // TODO: This is getting quite lengthy, possibly break up and refactor for readability/maintainability?
@@ -333,7 +353,6 @@ void STViewer::Update(double globalTime, float deltaTime)
 	if (m_stereo)
 		m_RightEye->RebindVAO();
 
-
 	CB_Display();
 	glutSwapBuffers();
 }
@@ -404,15 +423,19 @@ void STViewer::resetCubes()
 #endif
 }
 
+
+/*---------------- OpenGL Init Functions ----------------*/
+
 void STViewer::initGL()
 {
-	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_images,
-		m_LeftEye, m_RightEye, &m_camera);
+	CB_InitReferences(m_stereo, &m_shader, &m_objectShader, &m_objshader, 
+		&m_images, m_LeftEye, m_RightEye, &m_camera);
 	CB_InitMenus(m_panolist);
 	CB_Init(this, m_fullscreen);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
+	m_objshader.CreateProgram(NULL, "obj.vert", "obj.frag");
 	m_shader.Bind();
 }
 
@@ -450,6 +473,33 @@ void STViewer::initTextures()
 	
 	fprintf(stderr, "ST Viewer Initialized\n");
 }
+
+
+/*---------------- Various Display/Draw Functions ----------------*/
+
+void STViewer::displayAnnotations()
+{
+	m_annotations.Display(m_camera.Projection, m_camera.View, &m_objectShader, LEFT_EYE, false);
+	if (m_stereo)
+		m_annotations.Display(m_camera.Projection, m_camera.View, &m_objectShader, RIGHT_EYE, false);
+}
+
+void STViewer::displayGUI()
+{
+	// Draw a new viewport to cover the whole scene
+	glViewport(0, 0, m_camera.ScreenWidth, m_camera.ScreenHeight);
+	// Reset projection to "only one screen"
+	glm::mat4 proj = glm::perspective(glm::radians(45.0f),
+		float(m_camera.ScreenWidth) / float(m_camera.ScreenHeight), 0.1f, 10000.0f);
+	m_gui.Display(glm::quat(glm::inverse(m_camera.View)),
+		proj * m_camera.View, &m_objectShader, m_guiPanoSelection);
+}
+
+void STViewer::displayObjs()
+{
+	m_objloader.DrawObj(m_objdata, &m_objshader, m_camera.Projection*m_camera.View);
+}
+
 
 void STViewer::Cleanup()
 {

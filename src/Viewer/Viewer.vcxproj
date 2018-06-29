@@ -485,6 +485,8 @@
   <ItemGroup>
     <None Include="gui.frag" />
     <None Include="gui.vert" />
+    <None Include="obj.frag" />
+    <None Include="obj.vert" />
     <None Include="packages.config" />
     <None Include="Shader.frag" />
     <None Include="Shader.geom" />

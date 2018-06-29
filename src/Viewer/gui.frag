@@ -6,10 +6,10 @@ uniform sampler2D image;
 in vec2 fragmentUV;
 
 // Ouput data
-out vec4 color;
+out vec4 outColor;
 
 void main()
 {
 	vec2 sampleCoords = vec2(fragmentUV.x, 1-fragmentUV.y);
-	color = texture(image, sampleCoords).rgba;
+	outColor = texture(image, sampleCoords).rgba;
 }

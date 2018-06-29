@@ -31,6 +31,7 @@ long long _programStartTime;
 bool _stereo = false;
 Shader *_shader;
 Shader *_objectShader;
+Shader *_objShader;
 ImageHandler *_images;
 CubePoints *_lefteye;
 CubePoints *_righteye;
@@ -47,16 +48,21 @@ void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo)
 	_stereo = stereo;
 }
 
-void CB_InitReferences(bool &stereo, Shader *shader, Shader* objectShader, ImageHandler *images, 
-	CubePoints *lefteye, CubePoints *righteye, Camera *camera)
+void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectShader, Shader *objShader,
+	ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera)
 {
 	_stereo = stereo;
+
 	_shader = shader;
 	_objectShader = objectShader;
+	_objShader = objShader;
+
 	_images = images;
+
 	_lefteye = lefteye;
 	if (_stereo)
 		_righteye = righteye;
+
 	_camera = camera;
 
 	// Init time
@@ -214,39 +220,8 @@ void CB_Display()
 			_images->BindTextures(*_shader, LEFT_EYE);
 		}
 
-		// Annotations
-		if (_viewer->m_displayAnnotation) {
-			_viewer->m_annotations.Display(_camera->Projection, _camera->View,
-				_objectShader, LEFT_EYE, false);
-			if (_stereo)
-				_viewer->m_annotations.Display(_camera->Projection, _camera->View,
-					_objectShader, RIGHT_EYE, false);
-		}
-
-		// GUI Pano Selection
-		if (_viewer->m_guistate == STViewer::GUISTATE::PANO) {
-			// Draw a new viewport to cover the whole scene
-			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
-
-			// Reset projection to "only one screen"
-			glm::mat4 proj = glm::perspective(glm::radians(45.0f), 
-				float(_camera->ScreenWidth) / float(_camera->ScreenHeight), 0.1f, 10000.0f);
-
-			_viewer->m_gui.Display(glm::quat(glm::inverse(_camera->View)),
-				proj * _camera->View, _objectShader, _viewer->m_guiPanoSelection);
-
-			//_viewer->m_gui.ShowCube(glm::inverse(_camera->View), proj * _camera->View,
-			//	_objectShader, _globalTime);
-		}
-		else if (_viewer->m_guistate == STViewer::GUISTATE::HELP) {
-			glViewport(0, 0, _camera->ScreenWidth, _camera->ScreenHeight);
-			_viewer->m_annotations.DisplayHelp(float(_camera->ScreenWidth) / _camera->ScreenHeight);
-		}
-		
-
-
-		// Rebind main program
-		if (_viewer->m_guistate != STViewer::GUISTATE::OFF || _viewer->m_displayAnnotation) {
+		// Set misc overlays, and if any were set, rebind to main program
+		if (_viewer->SetDisplayStates()) {
 			glDisable(GL_CULL_FACE);
 			_shader->Bind();
 			_shader->SetFloatUniform("TileWidth", _lefteye->m_TILEWIDTH);

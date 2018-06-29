@@ -57,7 +57,7 @@ void Shader::SetFloatUniform(const char* nameInShader, float value)
 
 void Shader::SetMatrixUniform(const char* nameInShader, glm::mat4x4 matrix)
 {
-	GLuint MatrixID = glGetUniformLocation(m_program, "MVP");
+	GLuint MatrixID = glGetUniformLocation(m_program, nameInShader);
 	if (MatrixID == -1) {
 		fprintf(stderr, "Error getting %s uniform\n", nameInShader);
 	}

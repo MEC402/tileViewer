@@ -8,15 +8,16 @@
 #include <thread>
 #include <vector>
 
+#include "Annotations.h"
 #include "Camera.h"
 #include "CubePoints.h"
 #include "ImageHandler.h"
+#include "ObjLoader.h"
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
 #include "RemoteClient.h"
 #include "ThreadPool.hpp"
-#include "Annotations.h"
 
 #include "VR.h"
 #include "GraphicalMenu.h"
@@ -57,7 +58,9 @@ public:
 	void ToggleGUI(GUISTATE state);
 	void ToggleLinear(void);
 	void ToggleDebug(void);
+	void ToggleObj(void);
 
+	bool SetDisplayStates(void);
 
 	// Main program loop
 	void Update(double globalTime, float deltaTime);
@@ -86,16 +89,21 @@ private:
 	//				Private Functions				//
 	//----------------------------------------------//
 
-	/*					Builders				*/
+	/*-------------- OpenGL Builders --------------*/
 	void initGL(void);
 	void initVR(void);
 	void initTextures(void);
 
 
-	/*		For resetting Cube Depths and		*/
-	/*		loading the next panorama in		*/
+	/*------------ Quad/Image Handlers ------------*/
 	void resetImages(void);
 	void resetCubes(void);
+
+
+	/*----------- Display/Draw Functions -----------*/
+	void displayAnnotations(void);
+	void displayGUI(void);
+	void displayObjs(void);
 
 	//----------------------------------------------//
 	//				Private Variables				//
@@ -110,6 +118,10 @@ private:
 	std::vector<PanoInfo> m_panolist;
 	int m_currentPano{ 0 };
 	
+	bool m_displayObj{ false };
+	Shader m_objshader;
+	ObjLoader m_objloader;
+	ObjLoader::ObjData m_objdata;
 
 	Shader m_shader;
 	Shader m_objectShader;
