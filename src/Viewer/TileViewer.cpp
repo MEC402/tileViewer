@@ -1,5 +1,7 @@
 #include "TileViewer.h"
 #include "KinectControl.h"
+#include "ObjLoader.h"
+
 
 KinectControl *kinect; // So we can call killkinect() at close and properly close our feed
 std::vector<PanoInfo> panolist;
@@ -11,9 +13,9 @@ void killkinect()
 		kinect->StopTrackingHands();
 }
 
+
 int main(int argc, char **argv)
 {
-
 	/* initialize GLUT, using any commandline parameters passed to the program */
 	glutInit(&argc, argv);
 

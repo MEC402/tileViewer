@@ -440,6 +440,7 @@
     <ClInclude Include="InternetDownload.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="KinectControl.h" />
+    <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="RemoteClient.h" />
     <ClInclude Include="Render.h" />
@@ -454,6 +455,7 @@
     <ClInclude Include="ThreadSafeQueue.hpp" />
     <ClInclude Include="TileViewer.h" />
     <ClInclude Include="STViewer.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="VR.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR)|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (No VR) (Size Optimal)|Win32'">true</ExcludedFromBuild>
@@ -468,6 +470,7 @@
     <ClCompile Include="ImageHandler.cpp" />
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="KinectControl.cpp" />
+    <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="RemoteClient.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Shader.cpp" />

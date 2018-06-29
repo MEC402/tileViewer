@@ -16,6 +16,7 @@
     <ClCompile Include="GraphicalMenu.cpp" />
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="KinectControl.cpp" />
+    <ClCompile Include="ObjLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -90,6 +91,8 @@
     <ClInclude Include="KinectControl.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="tiny_obj_loader.h" />
+    <ClInclude Include="ObjLoader.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

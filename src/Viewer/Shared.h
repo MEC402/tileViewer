@@ -15,14 +15,20 @@
 #define RIGHT_EYE 1
 
 #define PRINT_GL_ERRORS print_gl_errors(__LINE__, __FUNCTION__);
+#define PRINT_GENERIC_ERROR(ERR) print_generic_error(__LINE__, __FUNCTION__, ERR);
 
-inline void print_gl_errors(int line, const char* func)
+inline void print_gl_errors(int line, const char *func)
 {
 	GLenum errCode;
 	if ((errCode = glGetError()) != GL_NO_ERROR) {
 		const GLubyte *errString = gluErrorString(errCode);
 		fprintf(stderr, "OpenGL error on line %d in %s: %s\n", line, func, errString);
 	}
+}
+
+inline void print_generic_error(int line, const char *func, char *err)
+{
+	fprintf(stderr, "Generic error on line %d in %s: %s\n", line, func, err);
 }
 
 extern bool DEBUG_FLAG;
