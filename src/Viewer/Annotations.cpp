@@ -94,7 +94,9 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 		{
 			AnnotationData a;
 			if (annotationsArray[i].HasMember("file")) {
-				a.filePath = baseURL + '/' + annotationsArray[i]["file"].GetString();
+				std::string urlForWkhtmltoimage = replaceSubstring(baseURL, "file:", "file:///");
+				urlForWkhtmltoimage = replaceSubstring(urlForWkhtmltoimage, "File:", "File:///");
+				a.filePath = urlForWkhtmltoimage + '/' + annotationsArray[i]["file"].GetString();
 			}
 			if (annotationsArray[i].HasMember("yaw")) {
 				a.yaw = annotationsArray[i]["yaw"].GetFloat();
