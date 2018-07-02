@@ -19,6 +19,42 @@ void Annotations::Create()
 	Render::CreateQuadModel(&quad);
 }
 
+void Annotations::RenderHTML(AnnotationData* inout_annotation, const char* languageFolder, int openglTextureSlot)
+{
+	char buf[512];
+	std::string urlForWkhtmltoimage = replaceSubstring(inout_annotation->filePath, "file:", "file:///");
+	urlForWkhtmltoimage = replaceSubstring(urlForWkhtmltoimage, "File:", "File:///");
+	sprintf_s(buf, urlForWkhtmltoimage.c_str(), languageFolder);
+	
+	wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
+	wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
+	wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
+	wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
+	float pixelsPerMeter = 50;
+	sprintf_s(buf, "%d", int(inout_annotation->width*pixelsPerMeter));
+	wkhtmltoimage_set_global_setting(settings, "screenWidth", buf);
+
+	wkhtmltoimage_converter* converter = wkhtmltoimage_create_converter(settings, 0);
+	wkhtmltoimage_convert(converter);
+	const unsigned char* outputImage = 0;
+	long outputSize = wkhtmltoimage_get_output(converter, &outputImage);
+	
+	if (outputSize > 0)
+	{
+		int width, height, nrChannels;
+		//unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
+		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
+
+		GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+		Render::CreateTexture(&inout_annotation->texture, openglTextureSlot, width, height, format, d);
+
+		stbi_image_free(d);
+	}
+
+	// This also frees settings
+	wkhtmltoimage_destroy_converter(converter);
+}
+
 void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
 {
 	// Destroy any existing annotations
@@ -43,38 +79,10 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 	// Read JSON file
 	std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
 	annotations = parseAnnotationJSON(fileAsString, baseURL);
-
-	char buf[512];
+	
 	// Create a texture for each image
-	for (unsigned int i = 0; i< annotations.size(); ++i)
-	{
-		// Render from html page
-		wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
-		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
-		wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
-		wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
-		wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
-		float pixelsPerMeter = 50;
-		sprintf_s(buf, "%d", int(annotations[i].width*pixelsPerMeter));
-		wkhtmltoimage_set_global_setting(settings, "screenWidth", buf);
-		wkhtmltoimage_converter* converter = wkhtmltoimage_create_converter(settings, 0);
-		wkhtmltoimage_convert(converter);
-		const unsigned char* outputImage = 0;
-		long outputSize = wkhtmltoimage_get_output(converter, &outputImage);
-
-		if (outputSize) {
-			int width, height, nrChannels;
-			//unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
-			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
-
-			GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-			Render::CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
-
-			stbi_image_free(d);
-		}
-		
-		// This also frees settings
-		wkhtmltoimage_destroy_converter(converter);
+	for (unsigned int i = 0; i< annotations.size(); ++i) {
+		RenderHTML(&annotations[i], languageFolder.c_str(), THUMB_TX_SLOT);
 	}
 }
 
@@ -91,9 +99,7 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 		{
 			AnnotationData a;
 			if (annotationsArray[i].HasMember("file")) {
-				std::string urlForWkhtmltoimage = replaceSubstring(baseURL, "file:", "file:///");
-				urlForWkhtmltoimage = replaceSubstring(urlForWkhtmltoimage, "File:", "File:///");
-				a.filePath = urlForWkhtmltoimage + '/' + annotationsArray[i]["file"].GetString();
+				a.filePath = baseURL + '/' + annotationsArray[i]["file"].GetString();
 			}
 			if (annotationsArray[i].HasMember("yaw")) {
 				a.yaw = annotationsArray[i]["yaw"].GetFloat();
