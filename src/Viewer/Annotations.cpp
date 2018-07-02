@@ -16,14 +16,14 @@ Annotations::Annotations()
 
 void Annotations::Create()
 {
-	Render::CreateQuadModel(&quad);
+	Render_CreateQuadModel(&quad);
 }
 
 void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
 {
 	// Destroy any existing annotations
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		Render::DestroyTexture(&annotations[i].texture);
+		Render_DestroyTexture(&annotations[i].texture);
 	}
 	annotations.clear();
 
@@ -44,26 +44,18 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 	std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
 	annotations = parseAnnotationJSON(fileAsString, baseURL);
 
-	// Download image files
-	std::vector<std::string> urls;
 	char buf[512];
-	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		
-		urls.push_back(buf);
-	}
-	//std::vector<ImageData> files = downloadMultipleFiles(urls.data(), urls.size());
-
 	// Create a texture for each image
 	for (unsigned int i = 0; i< annotations.size(); ++i)
 	{
-		// Test load from html page
+		// Render from html page
 		wkhtmltoimage_init(true);
 		wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
 		settings = wkhtmltoimage_create_global_settings();
 
 		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
-		wkhtmltoimage_set_global_setting(settings, "in", buf);
-		wkhtmltoimage_set_global_setting(settings, "fmt", "png");
+		wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
+		wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
 		wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
 		float pixelsPerMeter = 50;
 		sprintf_s(buf, "%d", int(annotations[i].width*pixelsPerMeter));
@@ -79,7 +71,7 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
 
 			GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-			Render::CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
+			Render_CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
 
 			stbi_image_free(d);
 		}
@@ -138,7 +130,7 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection,
 
 	shader->SetMatrixUniform("MVP", viewProjection*rotation*translation*scale);
 	shader->BindTexture("image", THUMB_TX_SLOT, a.texture.id);
-	Render::DrawModel(quad);
+	Render_DrawModel(quad);
 }
 
 void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, unsigned int eye, bool showAlignementTool)
@@ -163,7 +155,7 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shad
 		glm::mat4x4 scale = glm::scale(glm::vec3(scaleAmount, scaleAmount, scaleAmount));
 		shader->SetMatrixUniform("MVP", projection*translation*scale);
 		shader->BindTexture("image", THUMB_TX_SLOT, 0);
-		Render::DrawModel(quad);
+		Render_DrawModel(quad);
 	}
 }
 
