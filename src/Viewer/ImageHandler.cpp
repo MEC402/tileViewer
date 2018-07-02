@@ -107,6 +107,7 @@ void ImageHandler::InitStereoURLs()
 					URL url(face, 1);
 					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 					m_urls->Enqueue(url);
+					m_ReadyURL.notify_one();
 				}
 			}
 		}
@@ -134,16 +135,19 @@ void ImageHandler::InitURLs(int pano, bool stereo)
 					URL url(face, 0);
 					sprintf_s(url.buf, m_panoList[pano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 					m_urls->Enqueue(url);
+					m_ReadyURL.notify_one();
 					if (stereo) {
 						URL url(face, 1);
 						sprintf_s(url.buf, m_panoList[pano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
 						m_urls->Enqueue(url);
+						m_ReadyURL.notify_one();
 					}
 				}
 			}
 		}
 	}
-	m_ReadyURL.notify_all();
+	m_ReadyURL.notify_all(); // Notify all in case we hit a gap when the queue was empty
+
 	// m_tileDepth is useful for discarding image files for which we already have a better texture
 	// Due to logic flow I'm not convinced there's a good place to put such a check, but maybe?
 	//for (int face = 0; face < 6; face++) {
@@ -359,7 +363,7 @@ void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 	int maxWidth = WIDTH * (int)pow(2, depth);
 	int maxHeight = HEIGHT * (int)pow(2, depth);
 
-	m_textures[eye][face] = Render_CreateTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
+	m_textures[eye][face] = Render::CreateTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
 
 	// Init PBOs
 	glGenBuffers(1, &m_pbos[eye][face]);

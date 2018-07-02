@@ -1,11 +1,15 @@
 #include "ObjLoader.h"
-
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/transform.hpp"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include "stb_image.h"
 
-
+ObjLoader::ObjLoader()
+{
+	//shader.CreateProgram(NULL, "obj.vert", "obj.frag");
+}
 
 bool ObjLoader::LoadObj(const char *path, ObjData &o)
 {
@@ -25,11 +29,11 @@ bool ObjLoader::LoadObj(const char *path, ObjData &o)
 		return false;
 	}
 
-	printf("# of vertices  = %d\n", (int)(attrib.vertices.size()) / 3);
-	printf("# of normals   = %d\n", (int)(attrib.normals.size()) / 3);
-	printf("# of texcoords = %d\n", (int)(attrib.texcoords.size()) / 2);
-	printf("# of materials = %d\n", (int)materials.size());
-	printf("# of shapes    = %d\n", (int)shapes.size());
+	//printf("# of vertices  = %d\n", (int)(attrib.vertices.size()) / 3);
+	//printf("# of normals   = %d\n", (int)(attrib.normals.size()) / 3);
+	//printf("# of texcoords = %d\n", (int)(attrib.texcoords.size()) / 2);
+	//printf("# of materials = %d\n", (int)materials.size());
+	//printf("# of shapes    = %d\n", (int)shapes.size());
 
 	materials.push_back(tinyobj::material_t()); // Default material
 	loadTextures(materials, textures);
@@ -69,10 +73,10 @@ bool ObjLoader::LoadObj(const char *path, ObjData &o)
 
 			loadTexCoords(attrib, idx, txCoords);
 			loadVertices(attrib, idx, vertices);
-			loadNormals(attrib, idx, normals, smoothVertexNormals);			
+			loadNormals(attrib, idx, normals, smoothVertexNormals, vertices);			
 		}
 
-		o.Normals = normals[0].empty();
+		o.Normals = !normals[0].empty();
 		std::vector<float> color;
 		std::vector<float> vertex_Ordered;
 		std::vector<float> normal_Ordered;
@@ -156,9 +160,23 @@ bool ObjLoader::LoadObj(const char *path, ObjData &o)
 	return true;
 }
 
-void ObjLoader::DrawObj(ObjData &o, Shader &shader)
+void ObjLoader::DrawObj(ObjData &o, Shader *shader, glm::mat4 ViewProjection)
 {
-	shader.Bind();
+	static float rotate = 0.0f;
+	glEnable(GL_DEPTH_TEST);
+	shader->Bind();
+
+	double scaling = 0.01;
+	glm::mat4 translation = glm::translate(glm::vec3(0.25, 0, 0));
+	glm::mat4 rotation = glm::rotate(glm::radians(rotate), glm::vec3(0, 1, 0));
+	glm::mat4 scale = glm::scale(glm::vec3(scaling, scaling, scaling));
+
+	glm::mat4 model = translation * rotation * scale;
+
+	shader->SetMatrixUniform("MVP", ViewProjection * model);
+	shader->SetMatrixUniform("Model", model);
+
+	rotate += 0.1f;
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, o.vertex_VBO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -222,8 +240,9 @@ void ObjLoader::loadTexCoords(tinyobj::attrib_t &attrib, tinyobj::index_t idx[],
 	}
 }
 
-void ObjLoader::loadNormals(tinyobj::attrib_t & attrib, tinyobj::index_t idx[], 
-	std::vector<std::vector<float>>& normals, std::map<int, glm::vec3> &smoothVertexNormals)
+void ObjLoader::loadNormals(tinyobj::attrib_t &attrib, tinyobj::index_t idx[], 
+	std::vector<std::vector<float>> &normals, std::map<int, glm::vec3> &smoothVertexNormals,
+	std::vector<std::vector<float>> &vertices)
 {
 	bool invalid_normal = false;
 	if (attrib.normals.size() > 0) {
@@ -268,15 +287,37 @@ void ObjLoader::loadNormals(tinyobj::attrib_t & attrib, tinyobj::index_t idx[],
 		}
 	}
 
-	//if (invalid_normal) {
-	//	computeNormals(normals[0], vertices[0], vertices[1], vertices[2]);
-	//	normals[1][0] = normals[0][0];
-	//	normals[1][1] = normals[0][1];
-	//	normals[1][2] = normals[0][2];
-	//	normals[2][0] = normals[0][0];
-	//	normals[2][1] = normals[0][1];
-	//	normals[2][2] = normals[0][2];
-	//}
+	if (invalid_normal) {
+		int lastIndex = vertices[0].size();
+		float v10[3];
+		v10[0] = vertices[1][lastIndex - 3] - vertices[0][lastIndex - 3];
+		v10[1] = vertices[1][lastIndex - 2] - vertices[0][lastIndex - 2];
+		v10[2] = vertices[1][lastIndex - 1] - vertices[0][lastIndex - 1];
+
+		float v20[3];
+		v20[0] = vertices[2][lastIndex - 3] - vertices[0][lastIndex - 3];
+		v20[1] = vertices[2][lastIndex - 2] - vertices[0][lastIndex - 2];
+		v20[2] = vertices[2][lastIndex - 1] - vertices[0][lastIndex - 1];
+
+		float N[3];
+		N[0] = v20[1] * v10[2] - v20[2] * v10[1];
+		N[1] = v20[2] * v10[0] - v20[0] * v10[2];
+		N[2] = v20[0] * v10[1] - v20[1] * v10[0];
+
+		float len2 = N[0] * N[0] + N[1] * N[1] + N[2] * N[2];
+		if (len2 > 0.0f) {
+			float len = sqrtf(len2);
+
+			N[0] /= len;
+			N[1] /= len;
+			N[2] /= len;
+		}
+		for (int i = 0; i < 3; i++) {
+			normals[i].push_back(N[0]);
+			normals[i].push_back(N[1]);
+			normals[i].push_back(N[2]);
+		}
+	}
 }
 
 bool ObjLoader::fileExists(const std::string &filename)
@@ -301,8 +342,63 @@ bool ObjLoader::hasSmoothing(tinyobj::shape_t &shape)
 	return false;
 }
 
-void ObjLoader::computeSmoothingNormals(tinyobj::attrib_t & attrib, tinyobj::shape_t & shape, std::map<int, glm::vec3>& smoothVertexNormals)
+void ObjLoader::computeSmoothingNormals(tinyobj::attrib_t & attrib, tinyobj::shape_t & shape, 
+	std::map<int, glm::vec3>& smoothVertexNormals)
 {
+	smoothVertexNormals.clear();
+	std::map<int, glm::vec3>::iterator iter;
+
+	for (size_t f = 0; f < shape.mesh.indices.size() / 3; f++) {
+		// Get the three indexes of the face (all faces are triangular)
+		tinyobj::index_t idx0 = shape.mesh.indices[3 * f + 0];
+		tinyobj::index_t idx1 = shape.mesh.indices[3 * f + 1];
+		tinyobj::index_t idx2 = shape.mesh.indices[3 * f + 2];
+
+		// Get the three vertex indexes and coordinates
+		int vi[3];      // indexes
+		float v[3][3];  // coordinates
+
+		for (int k = 0; k < 3; k++) {
+			vi[0] = idx0.vertex_index;
+			vi[1] = idx1.vertex_index;
+			vi[2] = idx2.vertex_index;
+			assert(vi[0] >= 0);
+			assert(vi[1] >= 0);
+			assert(vi[2] >= 0);
+
+			v[0][k] = attrib.vertices[3 * vi[0] + k];
+			v[1][k] = attrib.vertices[3 * vi[1] + k];
+			v[2][k] = attrib.vertices[3 * vi[2] + k];
+		}
+
+		// Compute the normal of the face
+		float normal[3];
+		computeNormals(normal, v[0], v[1], v[2]);
+
+		// Add the normal to the three vertexes
+		for (size_t i = 0; i < 3; ++i) {
+			iter = smoothVertexNormals.find(vi[i]);
+			if (iter != smoothVertexNormals.end()) {
+				// add
+				iter->second.x += normal[0];
+				iter->second.y += normal[1];
+				iter->second.z += normal[2];
+			}
+			else {
+				smoothVertexNormals[vi[i]].x = normal[0];
+				smoothVertexNormals[vi[i]].y = normal[1];
+				smoothVertexNormals[vi[i]].z = normal[2];
+			}
+		}
+
+	}  // f
+
+	   // Normalize the normals, that is, make them unit vectors
+	for (iter = smoothVertexNormals.begin(); iter != smoothVertexNormals.end();
+		iter++) {
+		iter->second = glm::normalize(iter->second);
+	}
+
 }
 
 void ObjLoader::computeNormals(float N[3], float v0[3], float v1[3], float v2[3]) {

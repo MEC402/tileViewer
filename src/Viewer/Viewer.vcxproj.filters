@@ -92,7 +92,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="tiny_obj_loader.h" />
-    <ClInclude Include="ObjLoader.h" />
+    <ClInclude Include="ObjLoader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -109,6 +111,12 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="gui.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="obj.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="obj.frag">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

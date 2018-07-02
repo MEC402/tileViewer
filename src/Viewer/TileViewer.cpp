@@ -50,10 +50,7 @@ int main(int argc, char **argv)
 				const char *Name;
 				IP = argv[i + 1];
 				Port = std::stoi(argv[i + 2]);
-				if (argc > i + 3)
-					Name = argv[i + 3];
-				else
-					Name = "A Computer With No Name";
+				Name = (argc > i + 3) ? argv[1 + 3] : "A Computer With No Name";
 				remote = new RemoteClient(IP, Port, Name);
 			}
 			else {

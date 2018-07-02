@@ -29,16 +29,18 @@ public:
 		bool Texture = true;
 	} ObjData;
 
+	ObjLoader();
 	bool LoadObj(const char *path, ObjData &o);
-	void DrawObj(ObjData &o, Shader &shader);
+	void DrawObj(ObjData &o, Shader *shader, glm::mat4 ModelViewProjection);
 
 private:
+	Shader shader;
 
 	bool fileExists(const std::string &filename);
 	bool loadTextures(std::vector<tinyobj::material_t> &materials, std::map<std::string, GLuint> &textures);
 	void loadVertices(tinyobj::attrib_t &attrib, tinyobj::index_t idx[], std::vector<std::vector<float>> &vertices);
 	void loadTexCoords(tinyobj::attrib_t &attrib, tinyobj::index_t idx[], std::vector<std::vector<float>> &txCoords);
-	void loadNormals(tinyobj::attrib_t &attrib, tinyobj::index_t idx[], std::vector<std::vector<float>> &normals, std::map<int, glm::vec3> &smoothVertexNormals);
+	void loadNormals(tinyobj::attrib_t &attrib, tinyobj::index_t idx[], std::vector<std::vector<float>> &normals, std::map<int, glm::vec3> &smoothVertexNormals, std::vector<std::vector<float>> &vertices);
 
 	bool hasSmoothing(tinyobj::shape_t &shape);
 	void computeSmoothingNormals(tinyobj::attrib_t &attrib, tinyobj::shape_t &shape, std::map<int, glm::vec3> &smoothVertexNormals);

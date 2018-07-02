@@ -3,7 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-void Render_CreateQuadModel(Model* model)
+void Render::CreateQuadModel(Model* model)
 {
 	const float positions[] = {
 		// Triangle 1
@@ -38,7 +38,7 @@ void Render_CreateQuadModel(Model* model)
 	model->indices = 2 * 3;
 }
 
-void Render_CreateCubeModel(Model *model)
+void Render::CreateCubeModel(Model *model)
 {
 	const GLuint indices[] = {
 		0, 1, 2, 0, 2, 3,
@@ -110,7 +110,7 @@ void Render_CreateCubeModel(Model *model)
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices[0], GL_STATIC_DRAW);
 }
 
-void Render_DestroyModel(Model* model)
+void Render::DestroyModel(Model* model)
 {
 	glDeleteBuffers(1, &model->vertexPositionBuffer);
 	glDeleteBuffers(1, &model->vertexUVBuffer);
@@ -118,7 +118,7 @@ void Render_DestroyModel(Model* model)
 	*model = { 0 };
 }
 
-void Render_DrawModel(Model model)
+void Render::DrawModel(Model model)
 {
 
 	// 1rst attribute buffer : vertices
@@ -136,7 +136,7 @@ void Render_DrawModel(Model model)
 	PRINT_GL_ERRORS;
 }
 
-GLuint Render_CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels)
+GLuint Render::CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels)
 {
 	GLuint texture;
 
@@ -159,14 +159,14 @@ GLuint Render_CreateTexture(int textureSlot, int width, int height, GLenum forma
 	return texture;
 }
 
-void Render_CreateTexture(Texture* out_texture, unsigned int textureSlot, unsigned int width, unsigned int height, GLenum format, unsigned char *pixels)
+void Render::CreateTexture(Texture* out_texture, unsigned int textureSlot, unsigned int width, unsigned int height, GLenum format, unsigned char *pixels)
 {
-	out_texture->id = Render_CreateTexture(textureSlot, width, height, format, pixels);
+	out_texture->id = CreateTexture(textureSlot, width, height, format, pixels);
 	out_texture->width = width;
 	out_texture->height = height;
 }
 
-void Render_DestroyTexture(Texture *texture)
+void Render::DestroyTexture(Texture *texture)
 {
 	glDeleteTextures(1, &texture->id);
 	*texture = { 0 };
