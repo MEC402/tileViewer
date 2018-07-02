@@ -2,6 +2,7 @@
 #include "Render.h"
 #include "PanoInfo.h"
 #include "Shader.h"
+#include "include/wkhtmltox/image.h"
 
 class Annotations
 {

@@ -7,15 +7,15 @@
 #include "Shared.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
-#include "include/wkhtmltox/image.h"
 
 Annotations::Annotations()
 {
-	
+
 }
 
 void Annotations::Create()
 {
+	wkhtmltoimage_init(1);
 	Render::CreateQuadModel(&quad);
 }
 
@@ -49,10 +49,7 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 	for (unsigned int i = 0; i< annotations.size(); ++i)
 	{
 		// Render from html page
-		wkhtmltoimage_init(true);
 		wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
-		settings = wkhtmltoimage_create_global_settings();
-
 		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
 		wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
 		wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
@@ -75,9 +72,9 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 
 			stbi_image_free(d);
 		}
-
+		
+		// This also frees settings
 		wkhtmltoimage_destroy_converter(converter);
-		wkhtmltoimage_deinit();
 	}
 }
 
