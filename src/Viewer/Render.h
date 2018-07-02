@@ -17,15 +17,14 @@ struct Texture
 	unsigned int height = 0;
 };
 
-class Render {
-public:
-	static void CreateQuadModel(Model* model);
-	static void CreateCubeModel(Model *model);
-	static void DestroyModel(Model* model);
-	static void DrawModel(Model model);
-	static GLuint CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels = 0);
-	static void CreateTexture(Texture *out_texture, unsigned int textureSlot, unsigned int width, unsigned int height, GLenum format, unsigned char *pixels = 0);
-	static void DestroyTexture(Texture *texture);
+namespace Render {
+	void CreateQuadModel(Model* model);
+	void CreateCubeModel(Model *model);
+	void DestroyModel(Model* model);
+	void DrawModel(Model model);
+	GLuint CreateTexture(int textureSlot, int width, int height, GLenum format, unsigned char* pixels = 0);
+	void CreateTexture(Texture *out_texture, unsigned int textureSlot, unsigned int width, unsigned int height, GLenum format, unsigned char *pixels = 0);
+	void DestroyTexture(Texture *texture);
 };
 
 #endif // _RENDER_H
