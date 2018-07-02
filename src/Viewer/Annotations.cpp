@@ -7,6 +7,7 @@
 #include "Shared.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
+#include "include/wkhtmltox/image.h"
 
 Annotations::Annotations()
 {
@@ -47,24 +48,44 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 	std::vector<std::string> urls;
 	char buf[512];
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
+		
 		urls.push_back(buf);
 	}
-	std::vector<ImageData> files = downloadMultipleFiles(urls.data(), urls.size());
+	//std::vector<ImageData> files = downloadMultipleFiles(urls.data(), urls.size());
 
 	// Create a texture for each image
-	for (unsigned int i = 0; i< files.size(); ++i)
+	for (unsigned int i = 0; i< annotations.size(); ++i)
 	{
-		if (files[i].data) {
+		// Test load from html page
+		wkhtmltoimage_init(true);
+		wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
+		settings = wkhtmltoimage_create_global_settings();
+
+		sprintf_s(buf, annotations[i].filePath.c_str(), languageFolder.c_str());
+		wkhtmltoimage_set_global_setting(settings, "in", buf);
+		wkhtmltoimage_set_global_setting(settings, "fmt", "png");
+		wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
+		float pixelsPerMeter = 50;
+		sprintf_s(buf, "%d", int(annotations[i].width*pixelsPerMeter));
+		wkhtmltoimage_set_global_setting(settings, "screenWidth", buf);
+		wkhtmltoimage_converter* converter = wkhtmltoimage_create_converter(settings, 0);
+		wkhtmltoimage_convert(converter);
+		const unsigned char* outputImage = 0;
+		long outputSize = wkhtmltoimage_get_output(converter, &outputImage);
+
+		if (outputSize) {
 			int width, height, nrChannels;
-			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
+			//unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
+			unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
 
 			GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
 			Render_CreateTexture(&annotations[i].texture, THUMB_TX_SLOT, width, height, format, d);
 
-			free(files[i].data);
 			stbi_image_free(d);
 		}
+
+		wkhtmltoimage_destroy_converter(converter);
+		wkhtmltoimage_deinit();
 	}
 }
 
@@ -92,8 +113,8 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 			if (annotationsArray[i].HasMember("distance")) {
 				a.distance = annotationsArray[i]["distance"].GetFloat();
 			}
-			if (annotationsArray[i].HasMember("height")) {
-				a.height = annotationsArray[i]["height"].GetFloat();
+			if (annotationsArray[i].HasMember("width")) {
+				a.width = annotationsArray[i]["width"].GetFloat();
 			}
 			annotationList.push_back(a);
 		}
@@ -111,8 +132,8 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection,
 	float yaw = a.yaw / 180.0f * glm::pi<float>();
 	glm::mat4x4 rotation = glm::rotate(yaw, glm::vec3(0, 1, 0)) * glm::rotate(pitch, glm::vec3(1, 0, 0));
 	glm::mat4x4 translation = glm::translate(glm::vec3(0,0,-a.distance));
-	float height = a.height;
-	float width = float(a.texture.width) / float(a.texture.height) * a.height;
+	float width = a.width;
+	float height = float(a.texture.height) / float(a.texture.width) * a.width;
 	glm::mat4x4 scale = glm::scale(glm::vec3(width, height, 1));
 
 	shader->SetMatrixUniform("MVP", viewProjection*rotation*translation*scale);

@@ -19,7 +19,7 @@ private:
 		float yaw = 0;
 		float pitch = 0;
 		float distance = 0;
-		float height = 0;
+		float width = 0;
 	};
 
 	Model quad;
