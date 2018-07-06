@@ -51,6 +51,8 @@ void RemoteClient::Close()
 	m_outSocket->Close();
 }
 
+// TODO: This can be made to handle multiple clients with a threaded lambda to append new sockets
+// Not a major priority for now
 void RemoteClient::Serve()
 {
 	m_Update = false;
@@ -69,6 +71,7 @@ void RemoteClient::Serve()
 		outMsg["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		outMsg["body"].AddMember("yaw", m_yaw, outMsg.GetAllocator());
 		outMsg["body"].AddMember("pitch", m_pitch, outMsg.GetAllocator());
+		//outMsg["body"].AddMember("uri", m_panoURI, outMsg.GetAllocator());
 
 		rapidjson::StringBuffer buffer;
 		buffer.Clear();
