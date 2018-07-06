@@ -155,7 +155,7 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.MoveCamera(pitchChange, yawChange, FOVChange);
 	if (m_remote != NULL && m_remote->m_Serving)
-		m_remote->UpdateClientCameras(m_camera.GetYaw(), m_camera.GetPitch());
+		m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
 }
 
 void STViewer::ResetCamera()

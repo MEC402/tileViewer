@@ -41,7 +41,7 @@ public:
 	std::string GetPano();
 
 	void GetCameraUpdate(float &yaw, float &pitch); // For receiving new camera data
-	void UpdateClientCameras(float yaw, float pitch); // For serving new camera data
+	void UpdateClients(float yaw, float pitch); // For serving new camera data
 	bool m_Serving;
 	bool m_Update;
 

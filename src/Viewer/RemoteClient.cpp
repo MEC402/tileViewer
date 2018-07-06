@@ -78,52 +78,14 @@ void RemoteClient::Serve()
 		m_Update = false;
 
 		m_.unlock(); // End lock
-
-
-		//std::string r = s->ReceiveEOF();
-		//if (r.empty()) {
-		//	delete s;
-		//	return;
-		//}
-		//
-		//rapidjson::Document d;
-		//d.Parse(r.c_str());
-		//
-		//if (d.HasMember("body")) {
-		//	rapidjson::Value& g = d["body"];
-		//	if (g.HasMember("name")) {
-		//		auto name = g["name"].GetString();
-		//		fprintf(stderr, "%s\n", name);
-		//	}
-		//}
-		//
-		////d["command"] = rapidjson::StringRef(m_cmd[SET_IMAGE].c_str());
-		//d["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
-		//d["body"].RemoveAllMembers();
-		////d["body"].AddMember("uri", "File:U:\\scratch\\CAtiles\\bridgeonly.json", d.GetAllocator());
-		//d["body"].AddMember("yaw", "SomeYaw", d.GetAllocator());
-		//d["body"].AddMember("pitch", "SomePitch", d.GetAllocator());
-		//
-		//rapidjson::StringBuffer b;
-		//b.Clear();
-		//rapidjson::Writer<rapidjson::StringBuffer> w(b);
-		//d.Accept(w);
-		//
-		//s->SendEOF(b.GetString());
-		//
-		//d["command"] = rapidjson::StringRef(m_cmd[CLOSE].c_str());
-		//b.Clear();
-		//rapidjson::Writer<rapidjson::StringBuffer> w2(b);
-		//d.Accept(w2);
-		//s->SendEOF(b.GetString());
-		//
-		//fprintf(stderr, "Closing socket\n");
-		//s->Close();
-		//delete s;
 	}
 }
 
-void RemoteClient::UpdateClientCameras(float yaw, float pitch)
+// TODO: Forward current panoramas
+// Not included (extremely trivial to do) for now because URIs are pointing to network drives,
+// and not all machines have access or equivalent drive naming schemes
+// We need the webserver to be running for this to truly work well
+void RemoteClient::UpdateClients(float yaw, float pitch) //,std::string pano)
 {
 	std::lock_guard<std::mutex> lock(m_);
 	m_yaw = yaw;
@@ -178,6 +140,28 @@ void RemoteClient::setImage(const char *path)
 	m_changepano = true;
 }
 
+void RemoteClient::GetCameraUpdate(float &yaw, float &pitch)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	yaw = m_yaw;
+	pitch = m_pitch;
+	m_Update = false;
+}
+
+void RemoteClient::updateCamera(rapidjson::Value &body)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	if (body.HasMember("yaw")) {
+		m_yaw = body["yaw"].GetFloat();
+		//fprintf(stderr, "Yaw Received: %f\n", m_yaw);
+	}
+	if (body.HasMember("pitch")) {
+		m_pitch = body["pitch"].GetFloat();
+		//fprintf(stderr, "Pitch Received: %f\n", m_pitch);
+	}
+	m_Update = true;
+}
+
 void RemoteClient::execute(int toExecute, rapidjson::Value &body)
 {
 	switch ((MSG)toExecute) {
@@ -201,28 +185,6 @@ void RemoteClient::execute(int toExecute, rapidjson::Value &body)
 		fprintf(stderr, "Unknown method\n");
 		return;
 	}
-}
-
-void RemoteClient::GetCameraUpdate(float &yaw, float &pitch)
-{
-	std::lock_guard<std::mutex> lock(m_);
-	yaw = m_yaw;
-	pitch = m_pitch;
-	m_Update = false;
-}
-
-void RemoteClient::updateCamera(rapidjson::Value &body)
-{
-	std::lock_guard<std::mutex> lock(m_);
-	if (body.HasMember("yaw")) {
-		m_yaw = body["yaw"].GetFloat();
-		//fprintf(stderr, "Yaw Received: %f\n", m_yaw);
-	}
-	if (body.HasMember("pitch")) {
-		m_pitch = body["pitch"].GetFloat();
-		//fprintf(stderr, "Pitch Received: %f\n", m_pitch);
-	}
-	m_Update = true;
 }
 
 void RemoteClient::recvMessage()
