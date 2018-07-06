@@ -47,6 +47,7 @@ public:
 	void ChangeFOV(float delta);
 	void Create(void);
 
+	void SetCamera(float exactPitch, float exactYaw);
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void SetPixelPerfect(void);
@@ -57,6 +58,9 @@ public:
 	void UpdateResolution(int newWidth, int newHeight);
 	void UpdateCameras(void);
 	void UpdateMVP(void);
+
+	float GetYaw(void);
+	float GetPitch(void);
 
 	Camera() {}
 

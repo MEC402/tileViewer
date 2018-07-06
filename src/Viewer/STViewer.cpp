@@ -41,8 +41,6 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
-	
-
 	initGL();
 	initVR();
 	initTextures();
@@ -156,6 +154,8 @@ PanoInfo STViewer::GetCurrentPano()
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.MoveCamera(pitchChange, yawChange, FOVChange);
+	if (m_remote != NULL && m_remote->m_Serving)
+		m_remote->UpdateClientCameras(m_camera.GetYaw(), m_camera.GetPitch());
 }
 
 void STViewer::ResetCamera()
@@ -224,11 +224,18 @@ bool STViewer::SetDisplayStates()
 // TODO: This is getting quite lengthy, possibly break up and refactor for readability/maintainability?
 void STViewer::Update(double globalTime, float deltaTime)
 {
-	if (m_remote != NULL && m_remote->ChangePano()) {
-		if (m_images.InitPanoList(m_remote->GetPano())) {
-			m_panolist = m_images.m_panoList;
-			m_currentPano = 0;
-			resetImages();
+	if (m_remote != NULL) {
+		if (m_remote->ChangePano()) {
+			if (m_images.InitPanoList(m_remote->GetPano())) {
+				m_panolist = m_images.m_panoList;
+				m_currentPano = 0;
+				resetImages();
+			}
+		} 
+		if (!m_remote->m_Serving && m_remote->m_Update) {
+			float yaw, pitch;
+			m_remote->GetCameraUpdate(yaw, pitch);
+			m_camera.SetCamera(pitch, yaw);
 		}
 	}
 
