@@ -122,6 +122,14 @@ void Camera::SplitHorizontal()
 	}
 }
 
+void Camera::SetCamera(float exactPitch, float exactYaw)
+{
+	m_pitch = exactPitch;
+	m_yaw = exactYaw;
+	UpdateMVP();
+	UpdateCameras();
+}
+
 void Camera::MoveCamera(float pitchDelta, float yawDelta, float FOVDelta)
 {
 	m_pitch += pitchDelta;
@@ -158,6 +166,16 @@ void Camera::UpdateResolution(int newWidth, int newHeight)
 	}
 	UpdateMVP();
 	UpdateCameras();
+}
+
+float Camera::GetYaw()
+{
+	return m_yaw;
+}
+
+float Camera::GetPitch()
+{
+	return m_pitch;
 }
 
 /* --------------- Private Functions --------------- */

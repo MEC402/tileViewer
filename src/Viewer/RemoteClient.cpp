@@ -2,19 +2,23 @@
 #include "RemoteClient.h"
 #include <chrono>
 
-RemoteClient::RemoteClient(const char *IP, int port, const char *name) :
+RemoteClient::RemoteClient(const char *IP, int port, const char *name, bool serve) :
 	m_IP(IP),
 	m_port(port),
-	m_name(name)
+	m_name(name),
+	m_Serving(serve)
 {
 	m_thread = std::thread([=]() {
-		if (!connect()) {
-			fprintf(stderr, "Encountered error when connecting to %s:%d\n", m_IP, m_port);
-			return;
+		if (m_Serving)
+			Serve();
+		else {
+			if (!connect()) {
+				fprintf(stderr, "Encountered error when connecting to %s:%d\n", m_IP, m_port);
+				return;
+			}
+			recvMessage();
 		}
-		recvMessage();
 	});
-	//recvMessage();
 }
 
 RemoteClient::RemoteClient()
@@ -26,85 +30,94 @@ RemoteClient::RemoteClient()
 
 RemoteClient::~RemoteClient()
 {
+	if (m_Serving)
+		Close();
+
 	if (m_thread.joinable())
 		m_thread.join();
 
-	m_socket->Close();
+	if (m_socket)
+		m_socket->Close();
+
 	delete m_socket;
 }
 
 void RemoteClient::Close()
 {
 	std::lock_guard<std::mutex> lock(m_);
-	m_socket->Close();
+	rapidjson::Document outMsg;
+	outMsg.Parse(MSG_TEMPLATE);
+	outMsg["command"] = rapidjson::StringRef(m_cmd[CLOSE].c_str());
+	m_outSocket->Close();
 }
 
+// TODO: This can be made to handle multiple clients with a threaded lambda to append new sockets
+// Not a major priority for now
 void RemoteClient::Serve()
 {
+	m_Update = false;
 	SocketServer in(m_port, 1);
+	m_outSocket = in.Accept();
 
-	Socket* s = in.Accept();
-
-
-	std::string r = s->ReceiveEOF();
-	if (r.empty()) {
-		delete s;
-		return;
-	}
-
-	rapidjson::Document d;
-	d.Parse(r.c_str());
-
-	if (d.HasMember("body")) {
-		rapidjson::Value& g = d["body"];
-		if (g.HasMember("Name")) {
-			auto name = g["Name"].GetString();
-			fprintf(stderr, "%s\n", name);
+	while (m_outSocket) {
+		while (!m_Update) {
+			std::unique_lock<std::mutex> lock(m_);
+			m_updateClients.wait(lock); // Begin await
 		}
+		m_.lock(); // Begin lock
+
+		rapidjson::Document outMsg;
+		outMsg.Parse(MSG_TEMPLATE);
+		outMsg["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
+		outMsg["body"].AddMember("yaw", m_yaw, outMsg.GetAllocator());
+		outMsg["body"].AddMember("pitch", m_pitch, outMsg.GetAllocator());
+		//outMsg["body"].AddMember("uri", m_panoURI, outMsg.GetAllocator());
+
+		rapidjson::StringBuffer buffer;
+		buffer.Clear();
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		outMsg.Accept(writer);
+		m_outSocket->SendEOF(buffer.GetString());
+		m_Update = false;
+
+		m_.unlock(); // End lock
 	}
+}
 
-	d["command"] = rapidjson::StringRef(m_cmd[SET_IMAGE].c_str());
-	d["body"].RemoveAllMembers();
-	d["body"].AddMember("uri", "File:U:\\scratch\\CAtiles\\bridgeonly.json", d.GetAllocator());
-
-	rapidjson::StringBuffer b;
-	b.Clear();
-	rapidjson::Writer<rapidjson::StringBuffer> w(b);
-	d.Accept(w);
-
-	s->SendEOF(b.GetString());
-
-	d["command"] = rapidjson::StringRef(m_cmd[CLOSE].c_str());
-	b.Clear();
-	rapidjson::Writer<rapidjson::StringBuffer> w2(b);
-	d.Accept(w2);
-	s->SendEOF(b.GetString());
-
-	fprintf(stderr, "Closing socket\n");
-	s->Close();
-	delete s;
+// TODO: Forward current panoramas
+// Not included (extremely trivial to do) for now because URIs are pointing to network drives,
+// and not all machines have access or equivalent drive naming schemes
+// We need the webserver to be running for this to truly work well
+void RemoteClient::UpdateClients(float yaw, float pitch) //,std::string pano)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	m_yaw = yaw;
+	m_pitch = pitch;
+	//m_panoURI = pano;
+	m_Update = true;
+	m_updateClients.notify_one();
 }
 
 bool RemoteClient::connect()
 {
 	try {
 		m_socket = new SocketClient(m_IP, m_port);
+		m_connected = true;
 		fprintf(stderr, "Socket successfully opened to server\n");
 		sendMessage(CONNECT);
+		return true;
 	}
 	catch (const char* s) {
 		fprintf(stderr, "Socket Exception: %s\n", s);
-		return false;
 	}
 	catch (std::string s) {
 		fprintf(stderr, "Socket Exception: %s\n", s.c_str());
-		return false;
 	}
 	catch (...) {
 		fprintf(stderr, "Unhandled Exception\n");
-		return false;
 	}
-	return true;
+	m_connected = false;
+	return false;
 }
 
 bool RemoteClient::ChangePano()
@@ -130,21 +143,47 @@ void RemoteClient::setImage(const char *path)
 	m_changepano = true;
 }
 
+void RemoteClient::GetCameraUpdate(float &yaw, float &pitch)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	yaw = m_yaw;
+	pitch = m_pitch;
+	m_Update = false;
+}
+
+void RemoteClient::updateCamera(rapidjson::Value &body)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	if (body.HasMember("yaw")) {
+		m_yaw = body["yaw"].GetFloat();
+		//fprintf(stderr, "Yaw Received: %f\n", m_yaw);
+	}
+	if (body.HasMember("pitch")) {
+		m_pitch = body["pitch"].GetFloat();
+		//fprintf(stderr, "Pitch Received: %f\n", m_pitch);
+	}
+	m_Update = true;
+}
+
 void RemoteClient::execute(int toExecute, rapidjson::Value &body)
 {
-	switch (toExecute) {
-	case 2:
+	switch ((MSG)toExecute) {
+	case GET_MEDIA_RESPONSE:
 		GetMedia();
 		break;
-	case 3:
+	case SET_IMAGE:
 		fprintf(stderr, "Switching panorama source\n");
 		setImage(body["uri"].GetString());
 		break;
-	case 4:
+	case CLOSE:
 		fprintf(stderr, "Server closed connection\n");
+		m_connected = false;
 		break;
-	case 0:
-	case 1:
+	case UPDATE_CAMERA:
+		updateCamera(body);
+		break;
+	case CONNECT:
+	case GET_MEDIA:
 	default:
 		fprintf(stderr, "Unknown method\n");
 		return;
@@ -153,18 +192,32 @@ void RemoteClient::execute(int toExecute, rapidjson::Value &body)
 
 void RemoteClient::recvMessage()
 {
-	while (true) {
+	while (m_connected) {
 		std::string inMsg = m_socket->ReceiveEOF();
 
 		rapidjson::Document d;
 		d.Parse(inMsg.c_str());
 
 		bool match = false;
-		for (unsigned int i = 0; i < m_cmd->length(); i++) {
-			if (d["command"].GetString() == m_cmd[i]) {
-				execute(i, d["body"]);
-				match = true;
-				break;
+		if (inMsg == "") {
+			m_connected = false;
+			fprintf(stderr, "NULL message, Disconnecting\n");
+			continue;
+		}
+		if (d.HasParseError()) {
+			m_connected = false;
+			fprintf(stderr, "Parse error, disconnecting\n");
+			continue;
+		}
+
+
+		if (d.HasMember("command")) {
+			for (unsigned int i = 0; i < m_cmd->length(); i++) {
+				if (d["command"].GetString() == m_cmd[i]) {
+					execute(i, d["body"]);
+					match = true;
+					break;
+				}
 			}
 		}
 		if (!match) {
@@ -182,6 +235,8 @@ void RemoteClient::sendMessage(MSG TYPE)
 	case CONNECT:
 		r["command"] = rapidjson::StringRef(m_cmd[TYPE].c_str());
 		r["body"].AddMember("name", rapidjson::StringRef(m_name), r.GetAllocator());
+		break;
+	case UPDATE_CAMERA:
 		break;
 	case GET_MEDIA:
 	case GET_MEDIA_RESPONSE:

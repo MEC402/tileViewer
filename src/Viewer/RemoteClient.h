@@ -31,7 +31,7 @@
 
 class RemoteClient {
 public:
-	RemoteClient(const char *IP, int port, const char *name);
+	RemoteClient(const char *IP, int port, const char *name, bool serve);
 	RemoteClient(void);
 	~RemoteClient(void);
 	void Close(void);
@@ -40,21 +40,32 @@ public:
 	void GetMedia(void);
 	std::string GetPano();
 
+	void GetCameraUpdate(float &yaw, float &pitch); // For receiving new camera data
+	void UpdateClients(float yaw, float pitch); // For serving new camera data
+	bool m_Serving;
+	bool m_Update;
+
 private:
-	enum MSG { CONNECT = 0, GET_MEDIA, GET_MEDIA_RESPONSE, SET_IMAGE, CLOSE, UNKNOWN };
+	enum MSG { CONNECT = 0, GET_MEDIA, GET_MEDIA_RESPONSE, SET_IMAGE, CLOSE, UPDATE_CAMERA, UNKNOWN };
 
 	const char *m_IP;
 	int m_port;
 	const char *m_name;
-	std::string m_cmd[5] = { "client_connect", "get_media", "get_media_response", "set_image", "close_connection" };
+	float m_yaw;
+	float m_pitch;
 
+	Socket *m_outSocket;
 	SocketClient *m_socket;
 	std::thread m_thread;
-
-	std::string m_panoURI;
 	std::mutex m_;
+	std::condition_variable m_updateClients;
+
+
+	std::string m_cmd[6] = { "client_connect", "get_media", "get_media_response", "set_image", "close_connection", "update_camera" };
+	std::string m_panoURI;
 
 	bool m_changepano;
+	bool m_connected;
 
 	bool connect(void);
 	void recvMessage(void);
@@ -62,6 +73,7 @@ private:
 
 	void execute(int toExecute, rapidjson::Value &body);
 	void setImage(const char* path);
+	void updateCamera(rapidjson::Value &body);
 };
 
 #endif // _REMOTECLIENT_H

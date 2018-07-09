@@ -38,6 +38,7 @@ private:
 	std::mutex threadRunning;
 	std::condition_variable resumeThread;
 
+	void RenderHTML(AnnotationData* inout_annotation, const char* languageFolder, int openglTextureSlot);
 	std::vector<AnnotationData> parseAnnotationJSON(std::string jsonText, std::string baseURL);
 	void renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, Shader* shader);
 	
