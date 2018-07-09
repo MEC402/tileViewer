@@ -13,50 +13,95 @@ Annotations::Annotations()
 
 }
 
-void Annotations::Create()
+void Annotations::Create(std::string languageFolder)
 {
-	wkhtmltoimage_init(1);
+	this->languageFolder = languageFolder;
+	// Start render thread
+	std::thread htmlRenderingThread(RenderHTMLPages, this);
+	htmlRenderingThread.detach();
+
 	Render::CreateQuadModel(&quad);
 }
 
-void Annotations::RenderHTML(AnnotationData* inout_annotation, const char* languageFolder, int openglTextureSlot)
+void Annotations::RenderHTMLPages(Annotations* a)
 {
+	wkhtmltoimage_init(0);
 	char buf[512];
-	std::string urlForWkhtmltoimage = replaceSubstring(inout_annotation->filePath, "file:", "file:///");
-	urlForWkhtmltoimage = replaceSubstring(urlForWkhtmltoimage, "File:", "File:///");
-	sprintf_s(buf, urlForWkhtmltoimage.c_str(), languageFolder);
-	
-	wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
-	wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
-	wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
-	wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
-	float pixelsPerMeter = 50;
-	sprintf_s(buf, "%d", int(inout_annotation->width*pixelsPerMeter));
-	wkhtmltoimage_set_global_setting(settings, "screenWidth", buf);
-
-	wkhtmltoimage_converter* converter = wkhtmltoimage_create_converter(settings, 0);
-	wkhtmltoimage_convert(converter);
-	const unsigned char* outputImage = 0;
-	long outputSize = wkhtmltoimage_get_output(converter, &outputImage);
-	
-	if (outputSize > 0)
+	while (1)
 	{
-		int width, height, nrChannels;
-		//unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)files[i].data, files[i].dataSize, &width, &height, &nrChannels, 0));
-		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
+		// Sleep until we need to load new annotations
+		{
+			std::unique_lock<std::mutex> lock(a->dataMutex);
+			a->resumeThread.wait(lock);
+		}
 
-		GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
-		Render::CreateTexture(&inout_annotation->texture, openglTextureSlot, width, height, format, d);
+		a->threadRunning.lock();
+		for (unsigned int i = 0; i < a->annotations.size(); ++i)
+		{
+			unsigned char* imageData = 0;
+			int width, height, nrChannels;
 
-		stbi_image_free(d);
+			std::string fileExtention = getFileExtentionString(a->annotations[i].filePath);
+
+			if (fileExtention == "html") {
+				std::string urlForWkhtmltoimage = replaceSubstring(a->annotations[i].filePath, "file:", "file:///");
+				urlForWkhtmltoimage = replaceSubstring(urlForWkhtmltoimage, "File:", "File:///");
+				sprintf_s(buf, urlForWkhtmltoimage.c_str(), a->languageFolder.c_str());
+
+				wkhtmltoimage_global_settings* settings = wkhtmltoimage_create_global_settings();
+				wkhtmltoimage_set_global_setting(settings, "in", buf); // Path to HTML file
+				wkhtmltoimage_set_global_setting(settings, "fmt", "png"); // Image format to create
+				wkhtmltoimage_set_global_setting(settings, "out", ""); // Write to an internal buffer
+				sprintf_s(buf, "%d", int(a->annotations[i].width * a->annotations[i].pixelsPerMeter));
+				wkhtmltoimage_set_global_setting(settings, "screenWidth", buf);
+				sprintf_s(buf, "%f", a->annotations[i].zoom);
+				wkhtmltoimage_set_global_setting(settings, "web.minimumFontSize", buf);
+				wkhtmltoimage_set_global_setting(settings, "transparent", "true");
+
+				wkhtmltoimage_converter* converter = wkhtmltoimage_create_converter(settings, 0);
+				wkhtmltoimage_convert(converter);
+				const unsigned char* outputImage = 0;
+				long outputSize = wkhtmltoimage_get_output(converter, &outputImage);
+
+				if (outputSize > 0)
+				{
+					imageData = (unsigned char*)(stbi_load_from_memory((stbi_uc*)outputImage, outputSize, &width, &height, &nrChannels, 0));
+				}
+				// This also frees settings
+				wkhtmltoimage_destroy_converter(converter);
+			}
+
+			else if (fileExtention == "png") {
+				std::vector<std::string> url;
+				sprintf_s(buf, a->annotations[i].filePath.c_str(), a->languageFolder.c_str());
+				url.push_back(buf);
+				std::vector<ImageData> images = downloadMultipleFiles(url.data(), 1);
+
+				if (images.size() > 0 && images[0].data) {
+					imageData = (unsigned char*)(stbi_load_from_memory((stbi_uc*)images[0].data, images[0].dataSize, &width, &height, &nrChannels, 0));
+				}
+			}
+
+			if (imageData) {
+				GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+				a->dataMutex.lock();
+				a->annotations[i].imageWidth = width;
+				a->annotations[i].imageHeight = height;
+				a->annotations[i].imageFormat = format;
+				a->annotations[i].imageData = imageData;
+				a->dataMutex.unlock();
+			}
+		}
+		a->threadRunning.unlock();
 	}
-
-	// This also frees settings
-	wkhtmltoimage_destroy_converter(converter);
 }
 
 void Annotations::Load(std::string annotationsJSONAddress, std::string languageFolder)
 {
+	// Wait for the rendering thread to finish handling data
+	threadRunning.lock();
+	threadRunning.unlock();
+
 	// Destroy any existing annotations
 	for (unsigned int i = 0; i < annotations.size(); ++i) {
 		Render::DestroyTexture(&annotations[i].texture);
@@ -81,9 +126,9 @@ void Annotations::Load(std::string annotationsJSONAddress, std::string languageF
 	annotations = parseAnnotationJSON(fileAsString, baseURL);
 	
 	// Create a texture for each image
-	for (unsigned int i = 0; i< annotations.size(); ++i) {
-		RenderHTML(&annotations[i], languageFolder.c_str(), THUMB_TX_SLOT);
-	}
+	std::unique_lock<std::mutex> lock(dataMutex);
+	resumeThread.notify_all();
+	//RenderHTMLPages(&annotations, &dataMutex, languageFolder);
 }
 
 std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::string jsonText, std::string baseURL)
@@ -112,6 +157,12 @@ std::vector<Annotations::AnnotationData> Annotations::parseAnnotationJSON(std::s
 			}
 			if (annotationsArray[i].HasMember("width")) {
 				a.width = annotationsArray[i]["width"].GetFloat();
+			}
+			if (annotationsArray[i].HasMember("pixels-per-meter")) {
+				a.pixelsPerMeter = annotationsArray[i]["pixels-per-meter"].GetFloat();
+			}
+			if (annotationsArray[i].HasMember("zoom")) {
+				a.zoom = annotationsArray[i]["zoom"].GetFloat();
 			}
 			annotationList.push_back(a);
 		}
@@ -146,9 +197,20 @@ void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shad
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	for (unsigned int i = 0; i < annotations.size(); ++i) {
-		if (annotations[i].texture.id) {
-			renderAnnotation(annotations[i], projection*view, shader);
+	for (unsigned int i = 0; i < annotations.size(); ++i)
+	{
+		AnnotationData& a = annotations[i];
+		if (a.texture.id) {
+			renderAnnotation(a, projection*view, shader);
+		}
+		else {
+			// Upload images to openGL that have been loaded on the HTML rendering thread
+			dataMutex.lock();
+			if (a.imageData) {
+				Render::CreateTexture(&a.texture, THUMB_TX_SLOT, a.imageWidth, a.imageHeight, a.imageFormat, a.imageData);
+				stbi_image_free(a.imageData);
+			}
+			dataMutex.unlock();
 		}
 	}
 

@@ -46,4 +46,10 @@ inline std::string replaceSubstring(std::string source, std::string find, std::s
 	return source;
 }
 
+inline std::string getFileExtentionString(std::string fileName)
+{
+	size_t lastDot = fileName.find_last_of(".");
+	return fileName.substr(lastDot+1);
+}
+
 #endif // _SHARED_H

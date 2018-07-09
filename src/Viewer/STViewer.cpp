@@ -48,7 +48,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	initTextures();
 
 	m_objloader.LoadObj("C:\\Users\\W8\\Desktop\\teapot.obj", m_objdata);
-	m_annotations.Create();
+	m_annotations.Create("en");
 	m_gui.Create(m_panolist);
 
 	Controls::SetViewer(this);
@@ -368,8 +368,8 @@ void STViewer::resetImages()
 	m_LoadedTextures->Clear();
 	m_images.ClearQueues();
 
-	if (m_panolist[m_currentPano].annotations != "")
-		m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
+	// Clears previous annotations loads annotations for the new pano, if any
+	m_annotations.Load(m_panolist[m_currentPano].annotations, "en");
 
 	// Sanity check
 	m_images.ClearQueues();

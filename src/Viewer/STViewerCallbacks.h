@@ -147,20 +147,7 @@ void CB_Display()
 
 			glm::mat4x4 perspective = buildVRProjectionMatrix(_vr, eyeIndex);
 			glm::mat4x4 view = glm::mat4_cast(glm::inverse(getVRHeadsetRotation(_vr)));
-			// Correct right eye panorama alignment
-			if (eyeIndex == 1)
-			{
-				// This works only for very vertical adjustments
-				PanoInfo pano = _viewer->GetCurrentPano();
-				view = view * glm::eulerAngleYXZ(0.0f, -_verticalEyeRotation + pano.verticalCorrection, 0.0f);
-			}
-
-			//if (eyeIndex == 1) printf("IPD: %fmm, Separation correction: %fmm\n", interpupillaryDistance*1000, separationCorrection*1000);
-			// Todo: report camera yaw and pitch for people making annotations.
-			float cameraYaw = 0;
-			float cameraPitch = 0;
-			//printf("Yaw: %f,\tPitch:%f\n", cameraYaw, cameraPitch);
-
+			
 			_shader->SetMatrixUniform("MVP", perspective*view);
 
 			if (eyeIndex==0) {
@@ -177,8 +164,9 @@ void CB_Display()
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
 			// Annotations
-			bool drawAlignmentDotTool = controllers.right.indexFingerTrigger > 0.5f;
-			_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, drawAlignmentDotTool);
+			if (controllers.right.indexFingerTrigger < 0.5f) {
+				_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, false);
+			}
 
 			// GUI
 			double uiDisplayWaitTime = 1.5;
