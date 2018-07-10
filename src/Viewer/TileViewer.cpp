@@ -31,6 +31,9 @@ int main(int argc, char **argv)
 	bool stereo = false;
 	bool fullscreen = false;
 	bool fivepanel = false;
+	bool borderless = false;
+	int width = 1280; // Defaults
+	int height = 800;
 	remote = NULL;
 	kinect = NULL;
 
@@ -43,6 +46,12 @@ int main(int argc, char **argv)
 
 		if (argv[i] == std::string("-5"))
 			fivepanel = true;
+
+		if (argv[i] == std::string("-b")) {
+			borderless = true;
+			width = std::stoi(argv[i + 1]);
+			height = std::stoi(argv[i + 2]);
+		}
 
 #ifdef KINECT
 		if (argv[i] == std::string("-k")) {
@@ -85,5 +94,5 @@ int main(int argc, char **argv)
 	}
 
 	DEBUG_FLAG = false;
-	STViewer viewer(argv[argc - 1], stereo, fivepanel, fullscreen, 1280, 800, remote, kinect);
+	STViewer viewer(argv[argc - 1], stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
 }

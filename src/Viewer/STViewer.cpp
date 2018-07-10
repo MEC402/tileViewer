@@ -14,11 +14,12 @@
 
 /*---------------- Public Functions ----------------*/
 
-STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
-	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
+STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, bool borderless,
+	int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
 	m_stereo(stereo),
 	m_fivepanel(fivepanel),
 	m_fullscreen(fullscreen),
+	m_borderless(borderless),
 	m_remote(remote),
 	m_kinect(kinect)
 {
@@ -438,7 +439,7 @@ void STViewer::initGL()
 	CB_InitReferences(m_stereo, &m_shader, &m_objectShader,	&m_images, 
 		m_LeftEye, m_RightEye, &m_camera);
 	CB_InitMenus(m_panolist);
-	CB_Init(this, m_fullscreen);
+	CB_Init(this, m_fullscreen, m_borderless);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");

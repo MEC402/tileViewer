@@ -11,7 +11,7 @@ STViewer *_viewer;
 // CB = Callback, meant to indicate "Safe to call directly"
 void CB_UpdateEyes(CubePoints *lefteye, CubePoints *righteye, bool stereo);
 void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectshader, ImageHandler *images, CubePoints *lefteye, CubePoints *righteye, Camera *camera);
-void CB_Init(STViewer *v, bool fullscreen);
+void CB_Init(STViewer *v, bool fullscreen, bool borderless);
 void CB_EnableVR(VRDevice *vr);
 void CB_InitMenus(std::vector<PanoInfo> &panoList);
 void CB_Display(void);
@@ -51,16 +51,12 @@ void CB_InitReferences(bool &stereo, Shader *shader, Shader *objectShader, Image
 	CubePoints *lefteye, CubePoints *righteye, Camera *camera)
 {
 	_stereo = stereo;
-
 	_shader = shader;
 	_objectShader = objectShader;
-
 	_images = images;
-
 	_lefteye = lefteye;
 	if (_stereo)
 		_righteye = righteye;
-
 	_camera = camera;
 
 	// Init time
@@ -76,14 +72,17 @@ void CB_EnableVR(VRDevice *vr)
 	_vr = vr;
 }
 
-void CB_Init(STViewer *v, bool fullscreen)
+void CB_Init(STViewer *v, bool fullscreen, bool borderless)
 {
 	_viewer = v;
-
-	glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
+	
+	if (borderless)
+		glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE | GLUT_BORDERLESS | GLUT_CAPTIONLESS);
+	else 
+		glutInitDisplayMode(GLUT_DEPTH | GLUT_RGB | GLUT_DOUBLE);
 	glutInitWindowSize(_camera->ScreenWidth, _camera->ScreenHeight); // Defaults to 1280 x 800 windowed
 	glutCreateWindow("TileViewer - ST Shader Annihilation Edition");
-	if (fullscreen) {
+	if (fullscreen && !borderless) {
 		glutFullScreen();
 	}
 	

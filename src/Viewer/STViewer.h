@@ -28,7 +28,7 @@
 class STViewer {
 
 public:
-	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, 
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, bool borderless,
 		int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect);
 
 	enum GUISTATE { PANO, HELP, OFF };
@@ -136,6 +136,7 @@ private:
 	bool m_stereo{ false };
 	bool m_fivepanel{ false };
 	bool m_fullscreen{ false };
+	bool m_borderless{ false };
 	bool m_linear{ true };
 	bool m_comparisonMode{ false };
 	bool m_exactpixelmode{ false };
