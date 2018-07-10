@@ -14,11 +14,12 @@
 
 /*---------------- Public Functions ----------------*/
 
-STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
-	bool fullscreen, int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
+STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, bool borderless,
+	int viewWidth, int viewHeight, RemoteServent *remote, KinectControl *kinect) :
 	m_stereo(stereo),
 	m_fivepanel(fivepanel),
 	m_fullscreen(fullscreen),
+	m_borderless(borderless),
 	m_remote(remote),
 	m_kinect(kinect)
 {
@@ -45,7 +46,9 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel,
 	initVR();
 	initTextures();
 
+#ifdef OBJLOAD
 	m_objloader.LoadObj("C:\\Users\\W8\\Desktop\\teapot.obj", m_objdata);
+#endif
 	m_annotations.Create("en");
 	m_gui.Create(m_panolist);
 
@@ -154,8 +157,16 @@ PanoInfo STViewer::GetCurrentPano()
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.MoveCamera(pitchChange, yawChange, FOVChange);
-	if (m_remote != NULL && m_remote->m_Serving)
-		m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
+	if (m_remote != NULL && m_remote->m_Serving) {
+		if (m_remote->m_DistributedView) {
+			float xFOV, yFOV;
+			_camera->GetFOV(xFOV, yFOV);
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV);
+		}
+		else {
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
+		}
+	}
 }
 
 void STViewer::ResetCamera()
@@ -204,19 +215,27 @@ void STViewer::ToggleLinear()
 
 void STViewer::ToggleObj()
 {
+#ifdef OBJLOAD
 	m_displayObj = !m_displayObj;
+#endif
+	return;
 }
 
 bool STViewer::SetDisplayStates()
 {
-	if (m_displayObj)
-		displayObjs();
+
 	if (m_guistate == PANO)
 		displayGUI();
 	if (m_displayAnnotation)
 		displayAnnotations();
+#ifdef OBJLOAD
+	if (m_displayObj)
+		displayObjs();
 
-	return (m_displayObj || m_guistate == PANO || m_displayAnnotation);
+	return (m_guistate == PANO || m_displayAnnotation || m_displayObj);
+#else
+	return (m_guistate == PANO || m_displayAnnotation);
+#endif
 }
 
 /* ---------------------- Primary Update Loop ---------------------- */
@@ -438,11 +457,13 @@ void STViewer::initGL()
 	CB_InitReferences(m_stereo, &m_shader, &m_objectShader,	&m_images, 
 		m_LeftEye, m_RightEye, &m_camera);
 	CB_InitMenus(m_panolist);
-	CB_Init(this, m_fullscreen);
+	CB_Init(this, m_fullscreen, m_borderless);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
+#ifdef OBJLOAD
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
 	m_objshader.CreateProgram(NULL, "obj.vert", "obj.frag");
+#endif
 	m_shader.Bind();
 }
 
@@ -505,7 +526,10 @@ void STViewer::displayGUI()
 
 void STViewer::displayObjs()
 {
+#ifdef OBJLOAD
 	m_objloader.DrawObj(m_objdata, &m_objshader, m_camera.Projection*m_camera.View);
+#endif
+	return;
 }
 
 

@@ -16,7 +16,7 @@
 #include "PanoInfo.h"
 #include "Shader.h"
 #include "Shared.h"
-#include "RemoteClient.h"
+#include "RemoteServent.h"
 #include "ThreadPool.hpp"
 
 #include "VR.h"
@@ -28,8 +28,8 @@
 class STViewer {
 
 public:
-	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, 
-		int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect);
+	STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, bool borderless,
+		int viewWidth, int viewHeight, RemoteServent *remote, KinectControl *kinect);
 
 	enum GUISTATE { PANO, HELP, OFF };
 
@@ -118,10 +118,12 @@ private:
 	std::vector<PanoInfo> m_panolist;
 	int m_currentPano{ 0 };
 	
+#ifdef OBJLOAD
 	bool m_displayObj{ false };
 	Shader m_objshader;
 	ObjLoader m_objloader;
 	ObjLoader::ObjData m_objdata;
+#endif
 
 	Shader m_shader;
 	Shader m_objectShader;
@@ -136,6 +138,7 @@ private:
 	bool m_stereo{ false };
 	bool m_fivepanel{ false };
 	bool m_fullscreen{ false };
+	bool m_borderless{ false };
 	bool m_linear{ true };
 	bool m_comparisonMode{ false };
 	bool m_exactpixelmode{ false };
@@ -145,7 +148,7 @@ private:
 	bool m_usingVR{ false };
 	VRDevice m_vr;
 
-	RemoteClient *m_remote;
+	RemoteServent *m_remote;
 	KinectControl *m_kinect;
 
 	// Magic number for maximum depth (0 indexed)

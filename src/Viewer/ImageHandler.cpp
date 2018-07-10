@@ -330,7 +330,7 @@ void ImageHandler::Screenshot(int width, int height)
 	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
 	std::thread t([](unsigned char* image, int width, int height, int dumpcount)
 	{
-#ifdef _USE_WIN_H
+#ifdef WIN32
 		// Windows pls
 		char buff[FILENAME_MAX];
 		char buf[FILENAME_MAX];

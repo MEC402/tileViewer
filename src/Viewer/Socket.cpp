@@ -1,4 +1,11 @@
-﻿/*
+﻿// Changes to source file:
+// Added: ReceiveEOF
+// Added: SendEOF
+// Added: Macros
+// Added: Deprecation defines
+// Added: SocketServer - OpenSockets()
+
+/*
 Socket.cpp
 
 Copyright (C) 2002-2004 Ren� Nyffenegger
@@ -238,6 +245,10 @@ Socket* SocketServer::Accept() {
 
 	Socket* r = new Socket(new_sock);
 	return r;
+}
+
+int SocketServer::OpenSockets() {
+	return nofSockets_;
 }
 
 SocketClient::SocketClient(const std::string& host, int port) : Socket() {

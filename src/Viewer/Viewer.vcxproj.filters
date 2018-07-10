@@ -10,13 +10,13 @@
     <ClCompile Include="TileViewer.cpp" />
     <ClCompile Include="STViewer.cpp" />
     <ClCompile Include="VR.cpp" />
-    <ClCompile Include="RemoteClient.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="GraphicalMenu.cpp" />
     <ClCompile Include="Annotations.cpp" />
     <ClCompile Include="KinectControl.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
+    <ClCompile Include="RemoteServent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h">
@@ -38,9 +38,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="PanoInfo.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="RemoteClient.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Shader.h">
@@ -93,6 +90,9 @@
     </ClInclude>
     <ClInclude Include="tiny_obj_loader.h" />
     <ClInclude Include="ObjLoader.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RemoteServent.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
