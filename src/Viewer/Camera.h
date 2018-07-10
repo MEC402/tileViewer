@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <stdio.h>
+#include <mutex>
 
 class Camera {
 public:
@@ -23,6 +24,7 @@ public:
 	unsigned int NumCameras;
 	Viewport **LeftCameras;
 	Viewport **RightCameras;
+
 	// Matricies
 	glm::mat4 Projection;
 	glm::mat4 View;
@@ -44,6 +46,7 @@ public:
 
 	void Init(int cameracount, int width, int height);
 
+	void SetFOV(float FOV);
 	void ChangeFOV(float delta);
 	void Create(void);
 
@@ -67,8 +70,8 @@ public:
 
 private:
 	const float FivePanelFOV{ 32.8093072f }; //Magic voodoo number pulled from spviewer codebase
-	const int FivePanelWidth{ 1920 };
-	const int FivePanelHeight{ 1080 };
+	const int FivePanelWidth{ 1080 };
+	const int FivePanelHeight{ 1920 };
 
 	const float tileRes{ 512.0f };
 	const float tileWidth{ 0.125f };
@@ -79,15 +82,17 @@ private:
 	float m_yaw;
 	float m_pitch;
 	float m_resetFOV;
-
+	float m_aspectRatio;
 
 	bool hsplit;
+
+	std::mutex m_;
 
 	glm::vec3 cameraUp;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraCenter;
 
-	void setFOV(void);
+	void setFOVx(void);
 	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);
 	void updateCameras(float fovy, float aRatio, bool hsplit);
 	void updateMVP(float pitch, float yaw, float fov, int height, int width);

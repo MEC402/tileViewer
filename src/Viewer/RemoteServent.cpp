@@ -78,6 +78,11 @@ RemoteServent::~RemoteServent()
 	delete m_socket;
 }
 
+void RemoteServent::SetCameraPtr(Camera *c)
+{
+	camera = c;
+}
+
 void RemoteServent::SetPosition(POSITION position)
 {
 	m_position = position;
@@ -198,6 +203,13 @@ void RemoteServent::UpdateClients(float yaw, float pitch, float xFOV, float yFOV
 	updateCamera(xFOV, yFOV);
 }
 
+void RemoteServent::UpdateClients(float yaw, float pitch, float xFOV, float yFOV, float yFOVDelta)
+{
+	m_yaw = yaw;
+	m_pitch = pitch;
+	updateCamera(xFOV, yFOV, yFOVDelta);
+}
+
 bool RemoteServent::connect()
 {
 	try {
@@ -254,15 +266,25 @@ void RemoteServent::GetCameraUpdate(float &yaw, float &pitch)
 void RemoteServent::updateCamera(rapidjson::Value &body)
 {
 	std::lock_guard<std::mutex> lock(m_);
-	if (body.HasMember("yaw")) {
+	if (body.HasMember("yaw"))
 		m_yaw = body["yaw"].GetFloat();
-		//fprintf(stderr, "Yaw Received: %f\n", m_yaw);
-	}
-	if (body.HasMember("pitch")) {
+
+	if (body.HasMember("pitch"))
 		m_pitch = body["pitch"].GetFloat();
-		//fprintf(stderr, "Pitch Received: %f\n", m_pitch);
+	
+	if (body.HasMember("fov")) {
+		m_fov = body["fov"].GetFloat();
+		camera->SetFOV(m_fov);
 	}
-	m_Update = true;
+	if (body.HasMember("fovChange")) {
+		float fovDelta = body["fovChange"].GetFloat();
+		m_fov += body["fovChange"].GetFloat();
+		camera->ChangeFOV(fovDelta);
+	}
+
+	m_Update = !m_DistributedView; // Don't notify STViewer to pull camera updates if we're in DistrView
+	if (m_DistributedView)
+		camera->SetCamera(m_pitch, m_yaw);
 }
 
 void RemoteServent::execute(int toExecute, rapidjson::Value &body)
@@ -393,6 +415,41 @@ void RemoteServent::updateCamera(float xFOV, float yFOV)
 		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		r["body"].AddMember("yaw", yaw, r.GetAllocator());
 		r["body"].AddMember("pitch", pitch, r.GetAllocator());
+		rapidjson::StringBuffer buffer;
+		buffer.Clear();
+		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+		r.Accept(writer);
+
+		rc.socket->SendEOF(buffer.GetString());
+	}
+}
+
+void RemoteServent::updateCamera(float xFOV, float yFOV, float yFOVChange)
+{
+	for (RemoteClient rc : m_remoteClients) {
+		float pitch = m_pitch, yaw = m_yaw;
+		switch (rc.position) {
+		case UP:
+			pitch += yFOV;
+			break;
+		case DOWN:
+			pitch -= yFOV;
+			break;
+		case RIGHT:
+			yaw -= xFOV;
+			break;
+		case LEFT:
+			yaw += xFOV;
+			break;
+		}
+
+		rapidjson::Document r;
+		r.Parse(MSG_TEMPLATE);
+		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
+		r["body"].AddMember("yaw", yaw, r.GetAllocator());
+		r["body"].AddMember("pitch", pitch, r.GetAllocator());
+		r["body"].AddMember("fov", yFOV, r.GetAllocator());
+		//r["body"].AddMember("fovChange", yFOVChange, r.GetAllocator());
 		rapidjson::StringBuffer buffer;
 		buffer.Clear();
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

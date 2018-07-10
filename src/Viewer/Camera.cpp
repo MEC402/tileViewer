@@ -10,48 +10,54 @@ void Camera::Init(int cameracount, int width, int height)
 		m_yFOV = 45.0f;
 		ViewWidth = ScreenWidth = width;
 		ViewHeight = ScreenHeight = height;
+		m_aspectRatio = float(ViewWidth) / ViewHeight;
 	}
-	else {
+	else if (cameracount == 3) {
+		NumCameras = cameracount;
+		m_yFOV = 45.0f;
+		ViewWidth = width / 3;
+		ScreenWidth = width;
+		ViewHeight = ScreenHeight = height; 
+		m_aspectRatio = float(ViewHeight) / ViewWidth;
+	} else {
 		NumCameras = cameracount;
 		m_yFOV = FivePanelFOV; 
 		ViewWidth = FivePanelWidth;
 		ViewHeight = FivePanelHeight;
 		ScreenWidth = width;
 		ScreenHeight = height;
+		m_aspectRatio = float(ViewWidth) / ViewHeight;
 	}
 
 	cameraUp = glm::vec3(0, 1, 0);
 	cameraCenter = glm::vec3(0, 0, 0);
 	m_resetFOV = m_yFOV;
 
-	FirstMouse = true;
 	m_yaw = 0.0f;//-270.0f;
 	m_pitch = 0.0f;
-	LastX = ScreenWidth / 2.0f;
-	LastY = ScreenHeight / 2.0f;
-
 
 	LeftCameras = new Viewport*[NumCameras]();
 	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();
 	Create();
+	SetPixelPerfect();
 }
 
 void Camera::Create()
 {
-	createCameras(LeftCameras, m_yFOV, float(ViewHeight) / float(ViewWidth), true);
+	createCameras(LeftCameras, m_yFOV, float(ViewWidth) / float(ViewHeight), true);
 }
 
 void Camera::SetPixelPerfect()
 {
-	float frustumWidth = (NumCameras < 2) ?
-		(float(ViewWidth) / tileRes) * tileWidth :
-		(float(ViewHeight) / tileRes) * tileWidth;
-	float frustumHeight = (NumCameras < 2) ?
-		(float(ViewHeight) / tileRes) * tileWidth :
-		(float(ViewWidth) / tileRes) * tileWidth;
-	//float frustumWidth = (float(ViewWidth) / tileRes) * tileWidth;
-	//float frustumHeight = (float(ViewHeight) / tileRes) * tileWidth;
+	//float frustumWidth = (NumCameras < 5) ?
+	//	(float(ViewWidth) / tileRes) * tileWidth :
+	//	(float(ViewHeight) / tileRes) * tileWidth;
+	//float frustumHeight = (NumCameras < 5) ?
+	//	(float(ViewHeight) / tileRes) * tileWidth :
+	//	(float(ViewWidth) / tileRes) * tileWidth;
+	float frustumWidth = (float(ViewWidth) / tileRes) * tileWidth;
+	float frustumHeight = (float(ViewHeight) / tileRes) * tileWidth;
 
 	float yBaseAngle = glm::degrees(atan((2 * tileDistance) / frustumHeight));
 	float xBaseAngle = glm::degrees(atan((2 * tileDistance) / frustumWidth));
@@ -74,6 +80,7 @@ void Camera::UpdateCameras()
 
 void Camera::DrawViewport(Viewport *viewport)
 {
+	std::lock_guard<std::mutex> lock(m_);
 	if (viewport == NULL)
 		return;
 
@@ -122,12 +129,19 @@ void Camera::SplitHorizontal()
 	}
 }
 
+void Camera::SetFOV(float FOV)
+{
+	m_yFOV = FOV;
+}
+
 void Camera::SetCamera(float exactPitch, float exactYaw)
 {
+	m_.lock();
 	m_pitch = exactPitch;
 	m_yaw = exactYaw;
 	UpdateMVP();
 	UpdateCameras();
+	m_.unlock();
 }
 
 void Camera::MoveCamera(float pitchDelta, float yawDelta, float FOVDelta)
@@ -160,8 +174,8 @@ void Camera::UpdateResolution(int newWidth, int newHeight)
 {
 	ScreenWidth = newWidth;
 	ScreenHeight = newHeight;
-	if (NumCameras < 2) {
-		ViewWidth = newWidth;
+	if (NumCameras < 5) {
+		ViewWidth = newWidth / NumCameras;
 		ViewHeight = newHeight;
 	}
 	SetPixelPerfect();
@@ -190,6 +204,8 @@ void Camera::GetFOV(float &xFOV, float &yFOV)
 void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool multiscreen)
 {
 	// Ported from spviewer
+	//float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
+	aRatio = float(ViewWidth) / float(ViewHeight);
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -(float(NumCameras) - 1) * 0.5f * fovx;
 
@@ -211,9 +227,11 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 
 void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 {
+	aRatio = float(ViewWidth) / float(ViewHeight);
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
+	//float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
-
+	
 	// Rotate backwards so our center screen is our "0" rotation camera
 	//rotate_x -= (fovx * (int)(NumCameras / 2));
 	// TODO: It's prooobably not very necessary to update EVERYTHING, but its cheap and prevents mistakes so w/e
@@ -246,10 +264,10 @@ void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 
 void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 {
-	if (NumCameras < 2)
+	//if (NumCameras < 5)
 		Projection = glm::perspective(glm::radians(fov), float(ViewWidth) / float(ViewHeight), 0.1f, float(height * 2.0f));//10000.0f);
-	else
-		Projection = glm::perspective(glm::radians(fov), float(ViewHeight) / float(ViewWidth), 0.1f, float(height * 2.0f));//10000.0f);
+	//else
+	//	Projection = glm::perspective(glm::radians(fov), float(ViewHeight) / float(ViewWidth), 0.1f, float(height * 2.0f));//10000.0f);
 
 	if (pitch > 89.0f)
 		pitch = 89.0f;
@@ -271,4 +289,9 @@ void Camera::updateMVP(float pitch, float yaw, float fov, int height, int width)
 
 	Model = glm::mat4(1.0f);
 	MVP = Projection * View * Model;
+}
+
+void Camera::setFOVx()
+{
+	m_xFOV = glm::atan(glm::tan(glm::radians(m_yFOV*0.5f)) * m_aspectRatio) * 2.0f;
 }

@@ -4,6 +4,7 @@
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include "Socket.h"
+#include "Camera.h"
 #include "Shared.h"
 
 #include <rapidjson/document.h>
@@ -45,6 +46,7 @@ public:
 	RemoteServent(const char *IP, int port, const char *name, bool serve, bool distributedView);
 	RemoteServent(void);
 	~RemoteServent(void);
+	void SetCameraPtr(Camera *c);
 	void SetPosition(POSITION position);
 	void Close(void);
 	void Serve(void);
@@ -53,6 +55,7 @@ public:
 	std::string GetPano();
 
 	void GetCameraUpdate(float &yaw, float &pitch); // For receiving new camera data
+	void UpdateClients(float yaw, float pitch, float xFOV, float yFOV, float yFOVDelta);
 	void UpdateClients(float yaw, float pitch, float xFOV, float yFOV);
 	void UpdateClients(float yaw, float pitch); // For serving new camera data
 	bool m_Serving;
@@ -67,8 +70,10 @@ private:
 	const char *m_name;
 	float m_yaw;
 	float m_pitch;
+	float m_fov;
 
 	POSITION m_position;
+	Camera *camera;
 	//Socket *m_outSocket;
 	std::vector<RemoteClient> m_remoteClients;
 	SocketClient *m_socket;
@@ -93,6 +98,7 @@ private:
 	void setImage(const char* path);
 	void updateCamera(rapidjson::Value &body);
 	void updateCamera(float xFOV, float yFOV);
+	void updateCamera(float xFOV, float yFOV, float yFOVDelta);
 };
 
 #endif // _RemoteServent_H

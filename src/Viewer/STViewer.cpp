@@ -54,6 +54,13 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullsc
 
 	Controls::SetViewer(this);
 
+	if (m_remote != NULL
+		&& !m_remote->m_Serving
+		&& m_remote->m_DistributedView)
+	{
+		m_remote->SetCameraPtr(&m_camera);
+	}
+
 	glutMainLoop();
 }
 
@@ -161,7 +168,8 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 		if (m_remote->m_DistributedView) {
 			float xFOV, yFOV;
 			_camera->GetFOV(xFOV, yFOV);
-			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV);
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV, FOVChange);
+			//m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV);
 		}
 		else {
 			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
