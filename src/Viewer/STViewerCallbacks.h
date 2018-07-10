@@ -164,9 +164,8 @@ void CB_Display()
 			view = glm::translate(view, getVRHeadsetPosition(_vr)); // Negate headset translation
 
 			// Annotations
-			if (controllers.right.indexFingerTrigger < 0.5f) {
-				_viewer->m_annotations.Display(perspective, view, _objectShader, eyeIndex, false);
-			}
+			float annotationAlpha = 1 - ((controllers.right.indexFingerTrigger > controllers.left.indexFingerTrigger) ? controllers.right.indexFingerTrigger : controllers.left.indexFingerTrigger);
+			_viewer->m_annotations.Display(perspective, view, _objectShader, annotationAlpha, false);
 
 			// GUI
 			double uiDisplayWaitTime = 1.5;

@@ -36,6 +36,7 @@ void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjectio
 	float menuRotation = panoSelection*tileSeparation;
 	glDisable(GL_DEPTH_TEST);
 	shader->Bind();
+	shader->SetFloatUniform("alpha", 1.0f);
 
 	// Limit the tiles drawn so that they don't wrap all they way around the ring
 	int peripheralThumbnailCount = 3;

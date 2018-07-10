@@ -189,9 +189,10 @@ void Annotations::renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection,
 	Render::DrawModel(quad);
 }
 
-void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, unsigned int eye, bool showAlignementTool)
+void Annotations::Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, float alpha, bool showAlignementTool)
 {
 	shader->Bind();
+	shader->SetFloatUniform("alpha", alpha);
 	glDisable(GL_DEPTH_TEST);
 	// Enable alpha blending
 	glEnable(GL_BLEND);
