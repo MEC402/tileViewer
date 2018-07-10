@@ -118,10 +118,12 @@ private:
 	std::vector<PanoInfo> m_panolist;
 	int m_currentPano{ 0 };
 	
+#ifdef OBJLOAD
 	bool m_displayObj{ false };
 	Shader m_objshader;
 	ObjLoader m_objloader;
 	ObjLoader::ObjData m_objdata;
+#endif
 
 	Shader m_shader;
 	Shader m_objectShader;

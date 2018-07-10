@@ -1,5 +1,5 @@
-#ifndef IMAGEHANDLER_H
-#define IMAGEHANDLER_H
+#ifndef _IMAGEHANDLER_H
+#define _IMAGEHANDLER_H
 
 #include <GL\glew.h>
 #include <GL\freeglut.h>
@@ -13,7 +13,6 @@
 #include <vector>
 
 #ifdef WIN32
-#define _USE_WIN_H
 #include <windows.h>
 #else
 #include <unistd.h>
@@ -84,4 +83,4 @@ private:
 	std::chrono::high_resolution_clock::time_point t1;
 };
 
-#endif
+#endif // _IMAGEHANDLER_H

@@ -42,5 +42,5 @@ private:
 	std::vector<AnnotationData> parseAnnotationJSON(std::string jsonText, std::string baseURL);
 	void renderAnnotation(AnnotationData a, glm::mat4x4 viewProjection, Shader* shader);
 	
-	static void Annotations::RenderHTMLPages(Annotations* a);
+	static void RenderHTMLPages(Annotations* a);
 };
