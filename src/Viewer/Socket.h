@@ -3,6 +3,7 @@
 // Added: SendEOF
 // Added: Macros
 // Added: Deprecation defines
+// Added: SocketServer - OpenSockets()
 
 /*
 Socket.h
@@ -93,6 +94,7 @@ public:
 	SocketServer(int port, int connections, TypeSocket type = BlockingSocket);
 
 	Socket* Accept();
+	int OpenSockets(void);
 };
 
 class SocketSelect {

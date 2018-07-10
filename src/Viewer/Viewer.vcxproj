@@ -442,7 +442,7 @@
     <ClInclude Include="KinectControl.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="PanoInfo.h" />
-    <ClInclude Include="RemoteClient.h" />
+    <ClInclude Include="RemoteServent.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="SafeQueue.h" />
     <ClInclude Include="Shader.h" />
@@ -471,7 +471,7 @@
     <ClCompile Include="InternetDownload.cpp" />
     <ClCompile Include="KinectControl.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
-    <ClCompile Include="RemoteClient.cpp" />
+    <ClCompile Include="RemoteServent.cpp" />
     <ClCompile Include="Render.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Socket.cpp" />

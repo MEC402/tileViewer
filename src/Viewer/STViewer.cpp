@@ -15,7 +15,7 @@
 /*---------------- Public Functions ----------------*/
 
 STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullscreen, bool borderless,
-	int viewWidth, int viewHeight, RemoteClient *remote, KinectControl *kinect) :
+	int viewWidth, int viewHeight, RemoteServent *remote, KinectControl *kinect) :
 	m_stereo(stereo),
 	m_fivepanel(fivepanel),
 	m_fullscreen(fullscreen),
@@ -157,8 +157,16 @@ PanoInfo STViewer::GetCurrentPano()
 void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 {
 	m_camera.MoveCamera(pitchChange, yawChange, FOVChange);
-	if (m_remote != NULL && m_remote->m_Serving)
-		m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
+	if (m_remote != NULL && m_remote->m_Serving) {
+		if (m_remote->m_DistributedView) {
+			float xFOV, yFOV;
+			_camera->GetFOV(xFOV, yFOV);
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV);
+		}
+		else {
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
+		}
+	}
 }
 
 void STViewer::ResetCamera()

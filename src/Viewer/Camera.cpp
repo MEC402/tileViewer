@@ -164,6 +164,7 @@ void Camera::UpdateResolution(int newWidth, int newHeight)
 		ViewWidth = newWidth;
 		ViewHeight = newHeight;
 	}
+	SetPixelPerfect();
 	UpdateMVP();
 	UpdateCameras();
 }
@@ -176,6 +177,12 @@ float Camera::GetYaw()
 float Camera::GetPitch()
 {
 	return m_pitch;
+}
+
+void Camera::GetFOV(float &xFOV, float &yFOV)
+{
+	xFOV = m_xFOV;
+	yFOV = m_yFOV;
 }
 
 /* --------------- Private Functions --------------- */
