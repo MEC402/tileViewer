@@ -460,8 +460,8 @@ void STViewer::initGL()
 	CB_Init(this, m_fullscreen, m_borderless);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
-#ifdef OBJLOAD
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
+#ifdef OBJLOAD
 	m_objshader.CreateProgram(NULL, "obj.vert", "obj.frag");
 #endif
 	m_shader.Bind();
