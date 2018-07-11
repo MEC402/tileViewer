@@ -40,7 +40,7 @@ void Camera::Init(int cameracount, int width, int height)
 	RightCameras = new Viewport*[NumCameras]();
 	UpdateMVP();
 	Create();
-	SetPixelPerfect();
+	//SetPixelPerfect();
 }
 
 void Camera::Create()
@@ -75,7 +75,7 @@ void Camera::UpdateMVP()
 
 void Camera::UpdateCameras()
 {
-	updateCameras(m_yFOV, float(ViewHeight) / float(ViewWidth), hsplit);
+	updateCameras(m_yFOV, float(ViewWidth) / float(ViewHeight), hsplit);
 }
 
 void Camera::DrawViewport(Viewport *viewport)
@@ -178,7 +178,7 @@ void Camera::UpdateResolution(int newWidth, int newHeight)
 		ViewWidth = newWidth / NumCameras;
 		ViewHeight = newHeight;
 	}
-	SetPixelPerfect();
+	//SetPixelPerfect();
 	UpdateMVP();
 	UpdateCameras();
 }
@@ -199,13 +199,23 @@ void Camera::GetFOV(float &xFOV, float &yFOV)
 	yFOV = m_yFOV;
 }
 
+void Camera::SetRotation(float xrotate)
+{
+	if (NumCameras > 1)
+		return UpdateCameras();
+
+	float aRatio = float(ViewWidth) / float(ViewHeight);
+	float fovx = glm::atan(glm::tan(glm::radians(xrotate*0.5f)) * aRatio) * 2.0f;
+	float rotate_x = -(0.5f * fovx);
+	LeftCameras[0]->rotation = rotate_x;
+}
+
 /* --------------- Private Functions --------------- */
 
 void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool multiscreen)
 {
 	// Ported from spviewer
-	//float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	aRatio = float(ViewWidth) / float(ViewHeight);
+	//aRatio = float(ViewWidth) / float(ViewHeight);
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -(float(NumCameras) - 1) * 0.5f * fovx;
 
@@ -227,9 +237,8 @@ void Camera::createCameras(Viewport **viewports, float fovy, float aRatio, bool 
 
 void Camera::updateCameras(float fovy, float aRatio, bool hsplit)
 {
-	aRatio = float(ViewWidth) / float(ViewHeight);
+	//aRatio = float(ViewWidth) / float(ViewHeight);
 	float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
-	//float fovx = glm::atan(glm::tan(glm::radians(fovy*0.5f)) * aRatio) * 2.0f;
 	float rotate_x = -float(NumCameras - 1) * 0.5f * fovx;
 	
 	// Rotate backwards so our center screen is our "0" rotation camera

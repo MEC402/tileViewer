@@ -272,8 +272,8 @@ void RemoteServent::updateCamera(rapidjson::Value &body)
 	if (body.HasMember("pitch"))
 		m_pitch = body["pitch"].GetFloat();
 	
-	if (body.HasMember("fov")) {
-		m_fov = body["fov"].GetFloat();
+	if (body.HasMember("FOVy")) {
+		m_fov = body["FOVy"].GetFloat();
 		camera->SetFOV(m_fov);
 	}
 	if (body.HasMember("fovChange")) {
@@ -281,10 +281,19 @@ void RemoteServent::updateCamera(rapidjson::Value &body)
 		m_fov += body["fovChange"].GetFloat();
 		camera->ChangeFOV(fovDelta);
 	}
+	if (body.HasMember("FOVx")) {
+		float FOVx = body["FOVx"].GetFloat();
+		if (m_position == LEFT || m_position == RIGHT)
+			camera->SetRotation(FOVx);
+		//else if (m_position == RIGHT)
+		//	camera->SetRotation(FOVx);
+	}
+
 
 	m_Update = !m_DistributedView; // Don't notify STViewer to pull camera updates if we're in DistrView
-	if (m_DistributedView)
+	if (m_DistributedView) {
 		camera->SetCamera(m_pitch, m_yaw);
+	}
 }
 
 void RemoteServent::execute(int toExecute, rapidjson::Value &body)
@@ -402,12 +411,12 @@ void RemoteServent::updateCamera(float xFOV, float yFOV)
 		case DOWN:
 			pitch -= yFOV;
 			break;
-		case RIGHT:
-			yaw -= xFOV;
-			break;
-		case LEFT:
-			yaw += xFOV;
-			break;
+		//case LEFT:
+		//	yaw += xFOV;
+		//	break;
+		//case RIGHT:
+		//	yaw -= xFOV;
+		//	break;
 		}
 
 		rapidjson::Document r;
@@ -415,6 +424,7 @@ void RemoteServent::updateCamera(float xFOV, float yFOV)
 		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		r["body"].AddMember("yaw", yaw, r.GetAllocator());
 		r["body"].AddMember("pitch", pitch, r.GetAllocator());
+		r["body"].AddMember("FOVx", yFOV, r.GetAllocator());
 		rapidjson::StringBuffer buffer;
 		buffer.Clear();
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -448,7 +458,8 @@ void RemoteServent::updateCamera(float xFOV, float yFOV, float yFOVChange)
 		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		r["body"].AddMember("yaw", yaw, r.GetAllocator());
 		r["body"].AddMember("pitch", pitch, r.GetAllocator());
-		r["body"].AddMember("fov", yFOV, r.GetAllocator());
+		r["body"].AddMember("FOVy", yFOV, r.GetAllocator());
+		r["body"].AddMember("FOVx", xFOV, r.GetAllocator());
 		//r["body"].AddMember("fovChange", yFOVChange, r.GetAllocator());
 		rapidjson::StringBuffer buffer;
 		buffer.Clear();

@@ -65,6 +65,7 @@ public:
 	float GetYaw(void);
 	float GetPitch(void);
 	void GetFOV(float &xFOV, float &yFOV);
+	void SetRotation(float xrotate);
 
 	Camera() {}
 
