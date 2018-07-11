@@ -468,8 +468,8 @@ void STViewer::initGL()
 	CB_Init(this, m_fullscreen, m_borderless);
 
 	m_shader.CreateProgram("Shader.geom", "Shader.vert", "Shader.frag");
-#ifdef OBJLOAD
 	m_objectShader.CreateProgram(0, "gui.vert", "gui.frag");
+#ifdef OBJLOAD
 	m_objshader.CreateProgram(NULL, "obj.vert", "obj.frag");
 #endif
 	m_shader.Bind();
@@ -515,9 +515,10 @@ void STViewer::initTextures()
 
 void STViewer::displayAnnotations()
 {
-	m_annotations.Display(m_camera.Projection, m_camera.View, &m_objectShader, LEFT_EYE, false);
+	glm::mat4 correctedView = m_camera.View * glm::rotate(-glm::pi<float>()/2, glm::vec3(0, 1, 0));
+	m_annotations.Display(m_camera.Projection, correctedView, &m_objectShader, 1, false);
 	if (m_stereo)
-		m_annotations.Display(m_camera.Projection, m_camera.View, &m_objectShader, RIGHT_EYE, false);
+		m_annotations.Display(m_camera.Projection, correctedView, &m_objectShader, 1, false);
 }
 
 void STViewer::displayGUI()

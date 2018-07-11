@@ -12,7 +12,7 @@ public:
 	Annotations();
 	void Create(std::string languageFolder);
 	void Load(std::string annotationsJSONAddress, std::string languageFolder);
-	void Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, unsigned int eye, bool showAlignementTool);
+	void Display(glm::mat4x4 projection, glm::mat4x4 view, Shader* shader, float alpha, bool showAlignementTool);
 	void DisplayHelp(float aspect);
 private:
 	struct AnnotationData
