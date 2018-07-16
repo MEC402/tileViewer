@@ -58,10 +58,10 @@ public:
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void SetPixelPerfect(void);
-	void OffsetFrustum(float leftDelta, float rightDelta, float topDelta, float bottomDelta, float nearDelta, float farDelta);
 	void SplitHorizontal(void);
 
 	void DrawViewport(Viewport *viewport);
+	void SetViewportOffset(float vertOffset, float horzOffset);
 
 	void UpdateResolution(int newWidth, int newHeight);
 	void UpdateCameras(void);

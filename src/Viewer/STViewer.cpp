@@ -23,17 +23,21 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullsc
 	m_remote(remote),
 	m_kinect(kinect)
 {
+	PRINT_DEBUG_MESSAGE("Initializing Panolist");
 	m_images.InitPanoList(panoURI);
 
-	// Init camera
+	PRINT_DEBUG_MESSAGE("Intiailizing Camera");
 	if (m_fivepanel)
 		m_camera.Init(5, viewWidth, viewHeight);
 	else
 		m_camera.Init(1, viewWidth, viewHeight);
 
-	if (m_stereo)
+	if (m_stereo) {
+		PRINT_DEBUG_MESSAGE("Initializing Stereo");
 		m_camera.SplitHorizontal();
+	}
 
+	PRINT_DEBUG_MESSAGE("Starting threadpools");
 	downloadPool = new Threads::ThreadPool(std::thread::hardware_concurrency());
 	texturePool = new Threads::ThreadPool(std::thread::hardware_concurrency()-1);
 	workerPool = new Threads::ThreadPool(2);
@@ -42,13 +46,16 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullsc
 
 	m_LoadedTextures = new SafeQueue<ImageData*>();
 
+	PRINT_DEBUG_MESSAGE("Initializing GL callbacks");
 	initGL();
 	initVR();
+	PRINT_DEBUG_MESSAGE("Initializing Textures");
 	initTextures();
 
 #ifdef OBJLOAD
 	m_objloader.LoadObj("C:\\Users\\W8\\Desktop\\teapot.obj", m_objdata);
 #endif
+	PRINT_DEBUG_MESSAGE("Initializing Annotations and GUI")
 	m_annotations.Create("en");
 	m_gui.Create(m_panolist);
 
@@ -61,6 +68,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullsc
 		m_remote->SetCameraPtr(&m_camera);
 	}
 
+	PRINT_DEBUG_MESSAGE("Starting main loop");
 	glutMainLoop();
 }
 
@@ -175,11 +183,6 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch());
 		}
 	}
-}
-
-void STViewer::ChangeFrustum(float left, float right, float top, float bottom, float _near, float _far)
-{
-	m_camera.OffsetFrustum(left, right, top, bottom, _near, _far);
 }
 
 void STViewer::ResetCamera()
@@ -484,6 +487,7 @@ void STViewer::initVR()
 {
 	m_usingVR = createVRDevice(&m_vr, m_camera.ScreenWidth, m_camera.ScreenHeight);
 	if (m_usingVR) {
+		PRINT_DEBUG_MESSAGE("Initializing VR");
 		m_stereo = true;
 		updateVRDevice(&m_vr);
 		CB_EnableVR(&m_vr);

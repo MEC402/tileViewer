@@ -16,25 +16,37 @@ RemoteServent::RemoteServent(const char *IP, int port, const char *name) :
 	});
 }
 
-RemoteServent::RemoteServent(const char *IP, int port, const char *name, char position) :
+RemoteServent::RemoteServent(const char *IP, int port, const char *name, std::string position) :
 	m_IP(IP),
 	m_port(port),
 	m_name(name)
 {
-	switch (position) {
-	case 'u':
+
+	// C++ does not tolerate string switches, and we have no guarantee on the number of characters given
+	// So, whatever.  Waterfall! Wheee!
+	if (position == std::string("u"))
 		m_position = UP;
-		break;
-	case 'd':
+
+	if (position == std::string("d"))
 		m_position = DOWN;
-		break;
-	case 'l':
+
+	if (position == std::string("l"))
 		m_position = LEFT;
-		break;
-	case 'r':
+
+	if (position == std::string("r"))
 		m_position = RIGHT;
-		break;
-	}
+
+	if (position == std::string("ul"))
+		m_position = U_LEFT;
+
+	if (position == std::string("ur"))
+		m_position = U_RIGHT;
+
+	if (position == std::string("dl"))
+		m_position = D_LEFT;
+
+	if (position == std::string("dr"))
+		m_position = D_RIGHT;
 
 	m_thread = std::thread([=]() {
 		if (!connect()) {
@@ -53,6 +65,7 @@ RemoteServent::RemoteServent(const char *IP, int port, const char *name, bool se
 	m_DistributedView(distributedView)
 {
 	m_thread = std::thread([=]() {
+		PRINT_DEBUG_MESSAGE("Starting serving thread");
 		Serve();
 	});
 }
@@ -104,7 +117,10 @@ void RemoteServent::Close()
 
 void RemoteServent::acceptClient(SocketServer &in)
 {
+	PRINT_DEBUG_MESSAGE("Starting to accept clients")
 	Socket *s = in.Accept();
+	if (s == NULL)
+		return PRINT_DEBUG_MESSAGE("Error getting socket")
 	RemoteClient rc;
 	rc.socket = s;
 	rc.socket->ReceiveEOF();
@@ -144,9 +160,11 @@ void RemoteServent::Serve()
 {
 	m_Update = false;
 	bool m_AcceptClients = true;
-	SocketServer in(m_port, 3);
+	PRINT_DEBUG_MESSAGE("Attempting to create SocketServer object")
+	SocketServer in(m_port, 8);
+	PRINT_DEBUG_MESSAGE("Starting to accept clients")
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 8; i++) {
 		acceptClient(in);
 	}
 
@@ -170,6 +188,7 @@ void RemoteServent::Serve()
 		outMsg["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		outMsg["body"].AddMember("yaw", m_yaw, outMsg.GetAllocator());
 		outMsg["body"].AddMember("pitch", m_pitch, outMsg.GetAllocator());
+		outMsg["body"].AddMember("yFov", m_fov, outMsg.GetAllocator());
 		//outMsg["body"].AddMember("uri", m_panoURI, outMsg.GetAllocator());
 
 		buffer.Clear();
@@ -200,14 +219,14 @@ void RemoteServent::UpdateClients(float yaw, float pitch, float xFOV, float yFOV
 {
 	m_yaw = yaw;
 	m_pitch = pitch;
-	updateCamera(xFOV, yFOV);
+	updateCamera(yFOV, pitch, yaw);
 }
 
 void RemoteServent::UpdateClients(float yaw, float pitch, float xFOV, float yFOV, float yFOVDelta)
 {
 	m_yaw = yaw;
 	m_pitch = pitch;
-	updateCamera(xFOV, yFOV, yFOVDelta);
+	updateCamera(yFOV, pitch, yaw);
 }
 
 bool RemoteServent::connect()
@@ -272,27 +291,56 @@ void RemoteServent::updateCamera(rapidjson::Value &body)
 	if (body.HasMember("pitch"))
 		m_pitch = body["pitch"].GetFloat();
 	
-	if (body.HasMember("FOVy")) {
-		m_fov = body["FOVy"].GetFloat();
+	if (body.HasMember("yFOV")) {
+		m_fov = body["yFOV"].GetFloat();
 		camera->SetFOV(m_fov);
 	}
+
 	if (body.HasMember("fovChange")) {
 		float fovDelta = body["fovChange"].GetFloat();
 		m_fov += body["fovChange"].GetFloat();
 		camera->ChangeFOV(fovDelta);
 	}
-	if (body.HasMember("FOVx")) {
-		float FOVx = body["FOVx"].GetFloat();
-		if (m_position == LEFT || m_position == RIGHT)
-			camera->SetRotation(FOVx);
-		//else if (m_position == RIGHT)
-		//	camera->SetRotation(FOVx);
+
+	float vertOffset = 0, horzOffset = 0;
+	switch (m_position) {
+	case UP:
+		vertOffset = 2.0f;
+		break;
+	case DOWN:
+		vertOffset = -2.0f;
+		break;
+	case U_LEFT:
+		vertOffset = 2.0f;
+		horzOffset = -2.0f;
+		break;
+	case D_LEFT:
+		vertOffset = 2.0f;
+		horzOffset = -2.0f;
+		break;
+	case LEFT:
+		horzOffset = -2.0f;
+		break;
+	case U_RIGHT:
+		vertOffset = 2.0f;
+		horzOffset = 2.0f;
+		break;
+	case D_RIGHT:
+		vertOffset = -2.0f;
+		horzOffset = 2.0f;
+		break;
+	case RIGHT:
+		horzOffset = 2.0f;
+		break;
+	default:
+		vertOffset = 0.0f;
+		horzOffset = 0.0f;
 	}
-
-
+	
 	m_Update = !m_DistributedView; // Don't notify STViewer to pull camera updates if we're in DistrView
 	if (m_DistributedView) {
 		camera->SetCamera(m_pitch, m_yaw);
+		camera->SetViewportOffset(vertOffset, horzOffset);
 	}
 }
 
@@ -400,67 +448,15 @@ void RemoteServent::sendMessage(MSG TYPE)
 	m_socket->SendEOF(buffer.GetString());
 }
 
-void RemoteServent::updateCamera(float xFOV, float yFOV)
+void RemoteServent::updateCamera(float yFOV, float pitch, float yaw)
 {
 	for (RemoteClient rc : m_remoteClients) {
-		float pitch = m_pitch, yaw = m_yaw;
-		switch (rc.position) {
-		case UP:
-			pitch += yFOV;
-			break;
-		case DOWN:
-			pitch -= yFOV;
-			break;
-		//case LEFT:
-		//	yaw += xFOV;
-		//	break;
-		//case RIGHT:
-		//	yaw -= xFOV;
-		//	break;
-		}
-
 		rapidjson::Document r;
 		r.Parse(MSG_TEMPLATE);
 		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
 		r["body"].AddMember("yaw", yaw, r.GetAllocator());
 		r["body"].AddMember("pitch", pitch, r.GetAllocator());
-		r["body"].AddMember("FOVx", yFOV, r.GetAllocator());
-		rapidjson::StringBuffer buffer;
-		buffer.Clear();
-		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-		r.Accept(writer);
-
-		rc.socket->SendEOF(buffer.GetString());
-	}
-}
-
-void RemoteServent::updateCamera(float xFOV, float yFOV, float yFOVChange)
-{
-	for (RemoteClient rc : m_remoteClients) {
-		float pitch = m_pitch, yaw = m_yaw;
-		switch (rc.position) {
-		case UP:
-			pitch += yFOV;
-			break;
-		case DOWN:
-			pitch -= yFOV;
-			break;
-		case RIGHT:
-			yaw -= xFOV;
-			break;
-		case LEFT:
-			yaw += xFOV;
-			break;
-		}
-
-		rapidjson::Document r;
-		r.Parse(MSG_TEMPLATE);
-		r["command"] = rapidjson::StringRef(m_cmd[UPDATE_CAMERA].c_str());
-		r["body"].AddMember("yaw", yaw, r.GetAllocator());
-		r["body"].AddMember("pitch", pitch, r.GetAllocator());
-		r["body"].AddMember("FOVy", yFOV, r.GetAllocator());
-		r["body"].AddMember("FOVx", xFOV, r.GetAllocator());
-		//r["body"].AddMember("fovChange", yFOVChange, r.GetAllocator());
+		r["body"].AddMember("yFOV", yFOV, r.GetAllocator());
 		rapidjson::StringBuffer buffer;
 		buffer.Clear();
 		rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);

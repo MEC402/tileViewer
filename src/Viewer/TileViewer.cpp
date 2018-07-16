@@ -65,12 +65,12 @@ int main(int argc, char **argv)
 				Port = std::stoi(argv[i + 2]);
 				Name = (argc > i + 3) ? argv[1 + 3] : "A Computer With No Name";
 				if (argc > i + 4)
-					remote = new RemoteServent(IP, Port, Name, argv[i + 4][0]);
+					remote = new RemoteServent(IP, Port, Name, std::string(argv[i + 4]));
 				else
 					remote = new RemoteServent(IP, Port, Name);
 			}
 			else {
-				fprintf(stderr, "Invalid number of arguments available for remote.\nFlag Usage: -r <IP> <port> [name [u|d|l|r]]\nLaunching without remote\n");
+				fprintf(stderr, "Invalid number of arguments available for remote.\nFlag Usage: -r <IP> <port> [name [u|d|l|r|ul|ur|dl|dr]] (Up, Down, Left, Right, Upper Left, etc)\nLaunching without remote\n");
 			}
 		}
 
@@ -95,5 +95,6 @@ int main(int argc, char **argv)
 	}
 
 	DEBUG_FLAG = false;
+
 	STViewer viewer(argv[argc - 1], stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
 }

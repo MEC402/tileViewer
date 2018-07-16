@@ -42,7 +42,7 @@ private:
 
 public:
 	RemoteServent(const char *IP, int port, const char *name);
-	RemoteServent(const char *IP, int port, const char *name, char position);
+	RemoteServent(const char *IP, int port, const char *name, std::string position);
 	RemoteServent(const char *IP, int port, const char *name, bool serve, bool distributedView);
 	RemoteServent(void);
 	~RemoteServent(void);
@@ -97,8 +97,7 @@ private:
 	void execute(int toExecute, rapidjson::Value &body);
 	void setImage(const char* path);
 	void updateCamera(rapidjson::Value &body);
-	void updateCamera(float xFOV, float yFOV);
-	void updateCamera(float xFOV, float yFOV, float yFOVDelta);
+	void updateCamera(float yFOV, float pitch, float yaw);
 };
 
 #endif // _RemoteServent_H
