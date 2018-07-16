@@ -176,7 +176,7 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 		if (m_remote->m_DistributedView) {
 			float xFOV, yFOV;
 			_camera->GetFOV(xFOV, yFOV);
-			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV, FOVChange);
+			m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), yFOV);
 			//m_remote->UpdateClients(m_camera.GetYaw(), m_camera.GetPitch(), xFOV, yFOV);
 		}
 		else {
