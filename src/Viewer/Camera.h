@@ -17,6 +17,10 @@ public:
 		int height;
 		float rotation;
 
+		float viewportHorizontalSkew{ 0.0f };
+		float viewportVerticalSkew{ 0.0f };
+		bool skewViewport{ false };
+
 		glm::vec3 direction = glm::vec3(0,0,1);
 		glm::quat cameraQuat = glm::quat(glm::vec3(0, 0, 0));
 	};
@@ -54,6 +58,7 @@ public:
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
 	void ResetCamera(void);
 	void SetPixelPerfect(void);
+	void OffsetFrustum(float leftDelta, float rightDelta, float topDelta, float bottomDelta, float nearDelta, float farDelta);
 	void SplitHorizontal(void);
 
 	void DrawViewport(Viewport *viewport);
@@ -85,6 +90,14 @@ private:
 	float m_resetFOV;
 	float m_aspectRatio;
 
+	float left{ 0.0f };
+	float right{ 0.0f };
+	float top{ 0.0f };
+	float bottom{ 0.0f };
+	float _near{ 0.1f };
+	float _far{ 1000.0f };
+
+	bool swap{ false };
 	bool hsplit;
 
 	std::mutex m_;
@@ -92,6 +105,8 @@ private:
 	glm::vec3 cameraUp;
 	glm::vec3 cameraFront;
 	glm::vec3 cameraCenter;
+
+	glm::mat4 frustum;
 
 	void setFOVx(void);
 	void createCameras(Viewport **cams, float fovy, float aRatio, bool multiscreen);

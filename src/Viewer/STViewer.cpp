@@ -177,6 +177,11 @@ void STViewer::MoveCamera(float pitchChange, float yawChange, float FOVChange)
 	}
 }
 
+void STViewer::ChangeFrustum(float left, float right, float top, float bottom, float _near, float _far)
+{
+	m_camera.OffsetFrustum(left, right, top, bottom, _near, _far);
+}
+
 void STViewer::ResetCamera()
 {
 	m_camera.ResetCamera();

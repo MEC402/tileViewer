@@ -50,6 +50,7 @@ public:
 
 	// Camera Controls
 	void MoveCamera(float pitchChange, float yawChange, float FOVChange);
+	void ChangeFrustum(float left, float right, float top, float bottom, float _near, float _far);
 	void ResetCamera(void);
 	void ToggleExactPixels(void);
 	void Screenshot(void);

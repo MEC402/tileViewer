@@ -59,29 +59,52 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	float yawChange = 0;
 	float FOVChange = 0;
 
+	float left = 0, right = 0, top = 0, bottom = 0, _near = 0, _far = 0;
+
+	static float scale = 0.1f;
+	int mod = glutGetModifiers();
+	int direction = 1;
+	if (mod == 2)
+		direction = -1;
+
 	switch (key) {
 	case GLUT_KEY_UP:
-		pitchChange += 1.0f;
+		//pitchChange += 1.0f;
+		top = scale * direction;
 		break;
 
 	case GLUT_KEY_DOWN:
-		pitchChange -= 1.0f;
+		//pitchChange -= 1.0f;
+		bottom = scale * direction;
 		break;
 
 	case GLUT_KEY_RIGHT:
-		yawChange += 1.0f;
+		//yawChange += 1.0f;
+		right = scale * direction;
 		break;
 
 	case GLUT_KEY_LEFT:
-		yawChange -= 1.0f;
+		//yawChange -= 1.0f;
+		left = scale * direction;
 		break;
 
 	case GLUT_KEY_PAGE_UP:
-		FOVChange += DEBUG_stepping;
+		//FOVChange += DEBUG_stepping;
+		_far = scale * direction;
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
-		FOVChange -= DEBUG_stepping;
+		//FOVChange -= DEBUG_stepping;
+		_near = scale * direction;
+		break;
+
+	case GLUT_KEY_HOME:
+		scale += 0.005f;;
+		fprintf(stderr, "Scale: %f\n", scale);
+		break;
+	case GLUT_KEY_END:
+		scale -= 0.005f;
+		fprintf(stderr, "Scale: %f\n", scale);
 		break;
 
 	case GLUT_KEY_F1:
@@ -122,6 +145,7 @@ void Controls::ProcessGLUTKeys(int key, int x1, int y1)
 	}
 	
 	viewer->MoveCamera(pitchChange, yawChange, FOVChange);
+	viewer->ChangeFrustum(left, right, top, bottom, _near, _far);
 }
 
 void Controls::ProcessKeys(unsigned char key, int x, int y)

@@ -190,6 +190,16 @@ void CB_Display()
 			_camera->DrawViewport(_camera->LeftCameras[i]);
 			_shader->SetMatrixUniform("MVP", _camera->MVP);
 			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
+			//_camera->MoveCamera(-13.0f, 0.0, 0.0);
+			//_camera->OffsetFrustum(0, 0, 1.0f, 1.0f, 0, 0);
+			_camera->DrawViewport(_camera->LeftCameras[i+1]);
+			_shader->SetMatrixUniform("MVP", _camera->MVP);
+			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
+			//_camera->OffsetFrustum(0, 0, -1.0f, -1.0f, 0, 0);
+			//_camera->MoveCamera(13.0f, 0.0, 0.0);
+			_camera->DrawViewport(_camera->LeftCameras[i + 2]);
+			_shader->SetMatrixUniform("MVP", _camera->MVP);
+			glDrawArrays(GL_POINTS, 0, _lefteye->m_NumVertices);
 		}
 
 		// Right Eye
