@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string>
 
-#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
+//#define DEBUG // Comment out to disable debug macro blocks for all files importing Shared.h
 //#define OBJLOAD
 //#define KINECT
 //#define OCULUS

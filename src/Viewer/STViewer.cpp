@@ -123,6 +123,9 @@ void STViewer::SelectPano(int pano)
 			m_guiPanoSelection = (float)pano;
 			m_selectedPano = (float)pano;
 			m_images.m_currentPano = m_currentPano;
+			if (m_remote != NULL && m_remote->m_Serving)
+				m_remote->ChangePano(m_currentPano);
+
 			resetImages();
 		}
 	}
@@ -261,11 +264,7 @@ void STViewer::Update(double globalTime, float deltaTime)
 {
 	if (m_remote != NULL) {
 		if (m_remote->ChangePano()) {
-			if (m_images.InitPanoList(m_remote->GetPano())) {
-				m_panolist = m_images.m_panoList;
-				m_currentPano = 0;
-				resetImages();
-			}
+			SelectPano(m_remote->GetPanoIndex());
 		} 
 		if (!m_remote->m_Serving && m_remote->m_Update) {
 			float yaw, pitch;

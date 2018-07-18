@@ -10,22 +10,23 @@ RemoteServent::RemoteServent(const char *IP, int port, const char *name, std::st
 	// C++ doesn't allow string switches, and we won't necessarily have a single char
 	// Waterfall wheee!
 	if (position != "") {
-		if (position == "u")
-			m_position = UP;
-		if (position == "d")
-			m_position = DOWN;
-		if (position == "r")
-			m_position = RIGHT;
-		if (position == "l")
-			m_position = LEFT;
-		if (position == "ul")
-			m_position = U_LEFT;
-		if (position == "ur")
-			m_position = U_RIGHT;
-		if (position == "dl")
-			m_position = D_LEFT;
-		if (position == "dr")
-			m_position = D_RIGHT;
+		for (int i = 0; i < position.length(); i += 2) {
+			int n = position[i + 1] - '0';
+			switch (position[i]) {
+			case 'u':
+				m_vertOffset = n * 2.0;
+				break;
+			case 'd':
+				m_vertOffset = -(n * 2.0);
+				break;
+			case 'r':
+				m_horzOffset = n * 2.0;
+				break;
+			case 'l':
+				m_horzOffset = -(n * 2.0);
+				break;
+			}
+		}
 	}
 	
 	m_thread = std::thread([=]() {
@@ -69,10 +70,6 @@ void RemoteServent::SetCameraPtr(Camera *c)
 	camera = c;
 }
 
-void RemoteServent::SetPosition(POSITION position)
-{
-	m_position = position;
-}
 
 /* ------------------------------------------------------------------- */
 /* --------------------- Begin Server Functions ---------------------- */
@@ -130,12 +127,12 @@ void RemoteServent::Serve()
 			rapidjson::Document d;
 			d.Parse(inMsg.c_str());
 			fprintf(stderr, "Received %s\n", inMsg.c_str());
-			if (d.HasMember("command")
-				&& d["command"].GetString() == std::string(m_cmd[SET_DISTRIBUTED]))
-			{
-				fprintf(stderr, "Setting rc.position value\n");
-				rc.position = (POSITION)d["body"]["position"].GetInt();
-			}
+			//if (d.HasMember("command")
+			//	&& d["command"].GetString() == std::string(m_cmd[SET_DISTRIBUTED]))
+			//{
+			//	fprintf(stderr, "Setting rc.position value\n");
+			//	rc.position = (POSITION)d["body"]["position"].GetInt();
+			//}
 		}
 
 		m_remoteClients.push_back(rc);
@@ -188,15 +185,38 @@ bool RemoteServent::ChangePano()
 	return m_changepano;
 }
 
+void RemoteServent::ChangePano(int panoindex)
+{
+	m_panoIndex = panoindex;
+	rapidjson::Document r;
+	r.Parse(MSG_TEMPLATE);
+	r["command"] = rapidjson::StringRef(m_cmd[SET_IMAGE].c_str());
+	r["body"].AddMember("pano_index", m_panoIndex, r.GetAllocator());
+	rapidjson::StringBuffer buffer;
+	buffer.Clear();
+	rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+	r.Accept(writer);
+
+	broadcastMessage(buffer.GetString());
+}
+
 void RemoteServent::GetMedia()
 {
 	fprintf(stderr, "RemoteServent::GetMedia not implemented\n");
 }
 
-std::string RemoteServent::GetPano()
+std::string RemoteServent::GetPanoURI()
 {
 	std::lock_guard<std::mutex> lock(m_);
+	m_changepano = false;
 	return m_panoURI;
+}
+
+int RemoteServent::GetPanoIndex()
+{
+	std::lock_guard<std::mutex> lock(m_);
+	m_changepano = false;
+	return m_panoIndex;
 }
 
 
@@ -280,7 +300,7 @@ void RemoteServent::sendMessage(MSG TYPE)
 		break;
 	case SET_DISTRIBUTED:
 		r["command"] = rapidjson::StringRef(m_cmd[TYPE].c_str());
-		r["body"].AddMember("position", m_position, r.GetAllocator());
+		//r["body"].AddMember("position", m_position, r.GetAllocator());
 		break;
 	case UPDATE_CAMERA:
 		break;
@@ -332,46 +352,11 @@ void RemoteServent::updateCamera(rapidjson::Value &body)
 		m_fov += body["fovChange"].GetFloat();
 		camera->ChangeFOV(fovDelta);
 	}
-
-	float vertOffset = 0, horzOffset = 0;
-	switch (m_position) {
-	case UP:
-		vertOffset = 2.0f;
-		break;
-	case DOWN:
-		vertOffset = -2.0f;
-		break;
-	case U_LEFT:
-		vertOffset = 2.0f;
-		horzOffset = -2.0f;
-		break;
-	case D_LEFT:
-		vertOffset = -2.0f;
-		horzOffset = -2.0f;
-		break;
-	case LEFT:
-		horzOffset = -2.0f;
-		break;
-	case U_RIGHT:
-		vertOffset = 2.0f;
-		horzOffset = 2.0f;
-		break;
-	case D_RIGHT:
-		vertOffset = -2.0f;
-		horzOffset = 2.0f;
-		break;
-	case RIGHT:
-		horzOffset = 2.0f;
-		break;
-	default:
-		vertOffset = 0.0f;
-		horzOffset = 0.0f;
-	}
 	
 	m_Update = !m_DistributedView; // Don't notify STViewer to pull camera updates if we're in DistrView
 	if (m_DistributedView) {
 		camera->SetCamera(m_pitch, m_yaw);
-		camera->SetViewportOffset(vertOffset, horzOffset);
+		camera->SetViewportOffset(m_vertOffset, m_horzOffset);
 	}
 }
 
@@ -382,8 +367,14 @@ void RemoteServent::execute(int toExecute, rapidjson::Value &body)
 		GetMedia();
 		break;
 	case SET_IMAGE:
-		fprintf(stderr, "Switching panorama source\n");
-		setImage(body["uri"].GetString());
+		fprintf(stderr, "Switching panorama\n");
+		if (body.HasMember("uri")) {
+			setImage(body["uri"].GetString());
+		}
+		else if (body.HasMember("pano_index")) {
+			m_panoIndex = body["pano_index"].GetInt();
+			m_changepano = true;
+		}
 		break;
 	case UPDATE_CAMERA:
 		updateCamera(body);

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 					remote = new RemoteServent(IP, Port, Name);
 			}
 			else {
-				fprintf(stderr, "Invalid number of arguments available for remote.\nFlag Usage: -r <IP> <port> [name [u|d|l|r|ul|ur|dl|dr]] (Up, Down, Left, Right, Upper Left, etc)\nLaunching without remote\n");
+				fprintf(stderr, "Invalid number of arguments available for remote.\nFlag Usage: -r <IP> <port> [name [u|d|l|r|]] (Panel distance to host, ex: u1r2 means up one right two panels)\nLaunching without remote\n");
 			}
 		}
 

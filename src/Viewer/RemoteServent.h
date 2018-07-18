@@ -36,12 +36,10 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 class RemoteServent {
-public:
-	enum POSITION { UP = 0, DOWN, LEFT, RIGHT, U_LEFT, U_RIGHT, D_LEFT, D_RIGHT };
 
 private:
+	// this used to have more stuff in it and I don't wanna refactor it out
 	struct RemoteClient {
-		POSITION position;
 		Socket *socket;
 	};
 
@@ -51,12 +49,13 @@ public:
 	~RemoteServent(void);
 
 	void SetCameraPtr(Camera *c);
-	void SetPosition(POSITION position);
 	void Close(void);
 	void Serve(void);
 	bool ChangePano(void);
+	void ChangePano(int panoindex);
 	void GetMedia(void);
-	std::string GetPano();
+	std::string GetPanoURI();
+	int GetPanoIndex();
 
 	void GetCameraUpdate(float &yaw, float &pitch); // For receiving new camera data
 	void UpdateClients(float yaw, float pitch, float yFOV = 0.0f); // For serving new camera data
@@ -75,7 +74,8 @@ private:
 	float m_pitch;
 	float m_fov;
 
-	POSITION m_position;
+	double m_vertOffset{ 0.0 };
+	double m_horzOffset{ 0.0 };
 	Camera *camera;
 
 	std::vector<RemoteClient> m_remoteClients;
@@ -84,7 +84,8 @@ private:
 	std::mutex m_;
 	std::condition_variable m_updateClients;
 	std::string m_panoURI;
-	bool m_changepano;
+	int m_panoIndex{ 0 };
+	bool m_changepano{ false };
 	bool m_connected;
 
 	void acceptClient(SocketServer &in);
