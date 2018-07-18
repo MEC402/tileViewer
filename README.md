@@ -80,6 +80,7 @@ From the repo, there should be three sets of shaders:
 Place these inside the same directory as the compiled executable.
 
 Run the executable from a command prompt, possible flags are:
+
 | Name | Flag | Parameters |
 | ---- | ---- | ---------- |
 | Start Fullscreen | -f | None |
