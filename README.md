@@ -86,10 +86,10 @@ Run the executable from a command prompt, possible flags are:
 | Start Fullscreen | -f | None |
 | Start Stereoscopic | -s | None |
 | Run in 5-Panel Powerwall Mode | -5 | None |
-| Run in Borderless Window | -b | <Width> <Height> |
+| Run in Borderless Window | -b | \<Width\> \<Height\> |
 | Use Kinect | -k | None |
-| Enable Remote* | -r | <Server IP> <Server Port> [Machine Name [u|d|l|r]] |
-| Synchronized/Distributed Viewing** | -sv | <Host IP> <Port> [Machine Name [-d]] |
+| Enable Remote* | -r | \<Server IP\> \<Server Port\> [Machine Name [u|d|l|r]] |
+| Synchronized/Distributed Viewing** | -sv | \<Host IP\> \<Port\> [Machine Name [-d]] |
 
 * Enabling the Remote will connect the TileViewer to either: 
 - An HTTP Web Server to remotely control the Viewer, change Panorama source URIs, etc
