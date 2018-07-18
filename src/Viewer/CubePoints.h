@@ -1,45 +1,51 @@
-#pragma once
+#ifndef CUBEPOINTS_H
+#define CUBEPOINTS_H
+
+#include <deque>
 #include <thread>
 #include <vector>
-#include "Vertex.h"
+#include <GL\glew.h>
+#include "Shared.h"
 
 
 class CubePoints {
 
 public:
 
-	CubePoints(int maxResDepth);
+	CubePoints(int maxResDepth, int m_eye);
 	~CubePoints() = default;
-	int FaceCurrentDepth(int face);
-	void FaceNextDepth(int face);
-	std::thread FaceNextDepthThread(int face);
 
-	int QuadCurrentDepth(int face, int row, int col);
-	void SetQuadDepth(int face, int row, int col, int depth);
-	void QuadNextDepth(int face, int row, int col);
-	std::thread QuadNextDepthThread(int face, int row, int col);
+	void BindVAO(void);
+	void RebindVAO(void);
+	void QuadSetDepth(int face, int row, int col, int depth);
+	void ResetDepth(void);
+
 
 	GLuint m_PositionVBOID{ 0 };
 	GLuint m_PositionVAOID{ 0 };
 	GLsizei m_NumVertices{ 0 };
 
-	void RebindVAO();
-
 	// Magic hardcoded number please do not forget about me
-	int m_datasize{ 11 };
-	// No really don't forget about it look right here
-	bool Ready{ false };
+	// xyz face depth (3 + 1 + 1)
+	int m_datasize{ 5 };
 
+	// How far away vertices from a quad center to place (used in geometry shader)
+	float m_TILEWIDTH{ 0.0f };
+	
 private:
+	void m_setupOGL(void);
+	
+	float* m_buffer;
 
+	int m_eye;
 	int m_maxResDepth{ 0 };
-	int m_currentResDepth{ 0 };
 	int m_faceDimensions{ 0 };
 	int m_faceQuads{ 0 };
 	int m_perRow{ 0 };
 	float m_faceDistance{ 0.0f };
-	float m_TILEWIDTH{ 0.0f };
 	float m_TILESTEP{ 0.0f };
+
+	std::vector<float> m_positions;
 
 	// 6 faces
 	// 8 quads X direction
@@ -47,13 +53,8 @@ private:
 	// Index of tile
 	// Depth of tile
 	int m_tileMap[6][8][8][2]{ { { { 0 } } } };
-	//std::vector< std::vector <std::vector <std::vector<int>>>> m_tileMap;
 
-	std::vector<float> m_positions;
-	std::vector<UVCords> m_uvs;
-	GLuint m_VAOID{ 0 };
-	GLuint m_UVCordsVBOID{ 0 };
-
-	void m_setupOGL();
-	
+	std::deque<std::tuple<int,int>> m_VBOupdates;	
 };
+
+#endif

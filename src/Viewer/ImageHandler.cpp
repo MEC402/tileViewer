@@ -1,267 +1,373 @@
-#include "stdafx.h"
-#include "PanoInfo.h"
+//#include "stdafx.h"
 
-#include <string>
-#include <vector>
-#include <algorithm>
-#include <windows.h>
-#include <thread>
+#include "ImageHandler.h"
+#include "InternetDownload.h"
+#include "Render.h"
+#include <chrono>
+#include <mutex>
 
+#define STBI_NO_HDR		// Totally optional, but reduces total codebase size
+#define STBI_ONLY_PNG	// Totally optional, but reduces total codebase size
+#define STBI_ONLY_JPEG	// Totally optional, but reduces total codebase size
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-int ImageHandler::m_maxWidth[6];
-int ImageHandler::m_maxHeight[6];
-int ImageHandler::m_faceWidth[6];
-int ImageHandler::m_faceHeight[6];
-GLuint ImageHandler::m_textures[6];
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+#include "stb_image_write.h"
+
+#ifdef DEBUG
+#define TIMERSTART std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
+#define NOW std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()
+#endif
+
+
+// Texture names
 const char *ImageHandler::m_txUniforms[6] = { "TxFront", "TxBack", "TxRight", "TxLeft", "TxTop", "TxBottom" };
 const char ImageHandler::m_faceNames[6] = { 'f', 'b', 'r', 'l', 'u', 'd' };
-int ImageHandler::m_tileDepth[6][8][8] = { { { 0 } } };
-std::vector<PanoInfo> ImageHandler::m_panoList;
+const int WIDTH = 512;
+const int HEIGHT = 512;
+const int MAXDEPTH = 3;
 
 /* ---------------- Public Functions ---------------- */
 
-void ImageHandler::InitTextureAtlas(GLuint program) 
+ImageHandler::ImageHandler()
 {
-	glGenTextures(6, m_textures);
+	m_currentPano = 0;
+	m_dumpcount = 0;
+	m_stereoLoaded = false;
+}
 
-	// hardcoded magic
-	int maxDepth = 3;
+void ImageHandler::InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender) 
+{
+	Decompressed = toRender;
+	m_urls = new SafeQueue<URL>();
+	m_compressed = new SafeQueue<ImageData*>();
 
 	for (int i = 0; i < 6; i++) {
-		initFaceAtlas(i, maxDepth, program);
-		LoadFaceImage(i, 0);
+		initFaceAtlas(i, MAXDEPTH, LEFT_EYE);	
+	}
+
+	if (m_panoList.size() > 0)
+		InitURLs(0, stereo);
+
+	if (stereo) {
+		InitStereo();
 	}
 }
 
-void ImageHandler::InitPanoListFromOnlineFile(std::string url)
+bool ImageHandler::InitPanoList(std::string url)
 {
 	ImageData jsonFile;
 	downloadFile(&jsonFile, url);
-	if (jsonFile.data) {
-		std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
-		// Base URL is the substring before the last backslash or forward slash
-		size_t lastSlashPosition = url.find_last_of("/\\");
-		std::string baseURL = url.substr(0, lastSlashPosition);
-		m_panoList = parsePanoInfoFile(fileAsString, baseURL);
-	}
-}
-
-void ImageHandler::LoadImageData(ImageData image)
-{
-	//if (image.depth < m_tileDepth[image.face][image.h_offset][image.w_offset]) {
-	//	return;
-	//}
-	//m_tileDepth[image.face][image.h_offset][image.w_offset] = image.depth;
-
-	int width, height, nrChannels;
-	unsigned char *d = stbi_load_from_memory((stbi_uc*)image.data, image.dataSize,
-		&width, &height, &nrChannels, 0);
-
-	if (d) {
-		glActiveTexture(image.activeTexture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, image.w_offset * width, image.h_offset * height,
-			width, height, GL_RGB, GL_UNSIGNED_BYTE, d);
-
-		GLenum errCode;
-		if ((errCode = glGetError()) != GL_NO_ERROR) {
-			const GLubyte *errString = gluErrorString(errCode);
-			printf("OPENGL ERROR: %s\n", errString);
-		}
-	}
-	else {
-		fprintf(stderr, "Error loading image file!\n");
-	}
-	stbi_image_free(d);
-}
-
-void ImageHandler::LoadQuadImage(int face, int row, int col, int depth)
-{
-	// Invert rows because I structured this like a complete maniac and now I don't know how to undo the evil that is Aku
-	row = 7 - row;
-
-	// Magic number so we can set our xOffset correctly in the texture atlas
-	int numQuadsToChange = 8 / (int)pow(2, depth);
-
-	// Calculate the relative quad based on the depth 
-	// e.g. If we're at level 1, on row 7, 7%2 -> 1, which is the correct texture for that given quad
-	//int depthQuadRow = (int)floor(row % (int)pow(2, depth));
-	int depthQuadRow = row / numQuadsToChange;
-
-	// Actually calculate our xOffset for the texture atlas
-	int depthQuadCol = col / numQuadsToChange;
-
-	// *Theoretically* this should prevent us from overwriting a higher res texture with a lower res one
-	if (m_tileDepth[face][depthQuadRow][depthQuadCol] >= depth) {
-		return;
-	}
-	m_tileDepth[face][depthQuadRow][depthQuadCol] = depth;
-
-	const int bufferSize = 128;
-	char buf[bufferSize];
-	sprintf_s(buf, bufferSize, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], depthQuadRow, depthQuadCol);
-
-	ImageData *imageFile = new ImageData{ 0 };
-	downloadFile(imageFile, buf);
-	imageFile->w_offset = depthQuadCol;
-	imageFile->h_offset = depthQuadRow;
-	imageFile->activeTexture = GL_TEXTURE0 + face;
-	ImageQueue::Enqueue(imageFile);
-}
-
-void ImageHandler::LoadFaceImage(int face, int depth)
-{
-	const char facename = m_faceNames[face];
-	int activeTexture = GL_TEXTURE0 + face;
-
-	fprintf(stderr, "Loading tile data for face: %c At depth level: %d\n", facename, depth+1);
-	
-	// This seems to work pretty nicely
-	int maxDepth = (int)pow(2, depth); // Get the 2^n maximal depth to search for
-	std::vector<std::string> urls;
-
-	for (int i = 0; i < maxDepth; i++) {
-
-		int bufferSize = 256;
-		char buf[256];
-		for (int j = 0; j < maxDepth; j++) {
-			sprintf_s(buf, m_panoList[0].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
-			urls.push_back(buf);
-		}
-	}
-
-	//std::vector<ImageData> imageFiles(urls.size());
-	ImageData **imageFiles = new ImageData*[urls.size()];
-	for (int i = 0; i < maxDepth * maxDepth; i++) {
-		imageFiles[i] = new ImageData{ 0 };
-	}
-	//downloadMultipleFiles(imageFiles, urls.data(), urls.size());
-	std::thread t(downloadMultipleFiles, imageFiles, urls.data(), urls.size());
-	t.detach();
-	//t.join();
-
-	int i = 0;
-	while(i < (maxDepth * maxDepth)) {
-		if (imageFiles[i]->complete) {
-			imageFiles[i]->activeTexture = activeTexture;
-			imageFiles[i]->face = face;
-			ImageQueue::Enqueue(imageFiles[i]);
-
-			// Reset complete flag to false so we aren't double-counting
-			imageFiles[i]->complete = false;
-			i++;
-		}
-	}
-	m_faceWidth[face] = 512 * maxDepth;
-	m_faceHeight[face] = 512 * maxDepth;
-	delete[]imageFiles;
-}
-
-float ImageHandler::TxScalingX(int face)
-{
-	return (float)m_faceWidth[face] / (float)m_maxWidth[face];
-}
-
-float ImageHandler::TxScalingY(int face)
-{
-	return (float)m_faceHeight[face] / (float)m_maxHeight[face];
-}
-
-
-// For use after doing a hot-reload on shaders
-void ImageHandler::RebindTextures(GLuint program)
-{
-	for (int i = 0; i < 6; i++) {
-		GLuint TxUniform = glGetUniformLocation(program, m_txUniforms[i]);
-		if (TxUniform == -1) {
-			fprintf(stderr, "Error getting %s uniform\n", m_txUniforms[i]);
+	try {
+		if (jsonFile.data) {
+			std::string fileAsString(jsonFile.data, jsonFile.data + jsonFile.dataSize);
+			// Base URL is the substring before the last backslash or forward slash
+			size_t lastSlashPosition = url.find_last_of("/\\");
+			std::string baseURL = url.substr(0, lastSlashPosition);
+			m_panoList = parsePanoInfoFile(fileAsString, baseURL);
+			return true;
 		}
 		else {
-			glUniform1i(TxUniform, i);
+			fprintf(stderr, "Could not open provided pano list URI\n");
 		}
 	}
+	catch (const std::exception &exc) {
+		fprintf(stderr, "%s\n", exc.what());
+	}
+	return false;
+}
+
+void ImageHandler::InitStereo()
+{
+	// Try to populate stereo URLs first
+	InitStereoURLs();
+
+	// If our texture bindings != 0, we've already initialized the second eye textures
+	if (m_textures[RIGHT_EYE][0] != 0) return;
+
+	for (int i = 0; i < 6; i++) {
+		initFaceAtlas(i, MAXDEPTH, RIGHT_EYE);
+	}
+
+}
+
+void ImageHandler::InitStereoURLs()
+{
+	if (m_stereoLoaded)
+		return;
+
+	m_stereoLoaded = true;
+	for (int depth = 0; depth <= MAXDEPTH; depth++) {
+		int maxDepth = (int)pow(2, depth);
+		for (int i = maxDepth - 1; i >= 0; i--) {
+			for (int j = maxDepth - 1; j >= 0; j--) {
+				for (int face = 0; face < 6; face++) {
+					URL url(face, 1);
+					sprintf_s(url.buf, m_panoList[m_currentPano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+					m_urls->Enqueue(url);
+					m_ReadyURL.notify_one();
+				}
+			}
+		}
+	}
+	m_ReadyURL.notify_all();
+}
+
+
+void ImageHandler::InitURLs(int pano, bool stereo)
+{
+	std::lock_guard<std::mutex> lock(m_);
+	if (m_panoList.size() < 1)
+		return;
+	m_stereoLoaded = stereo;
+
+	if (!m_urls->IsEmpty())
+		m_urls->Clear();
+
+	// TODO: This works fine but I'm sure there's a more legible way to write it
+	for (int depth = 0; depth <= MAXDEPTH; depth++) {
+		int maxDepth = (int)pow(2, depth);
+		for (int i = maxDepth - 1; i >= 0; i--) {
+			for (int j = maxDepth - 1; j >= 0; j--) {
+				for (int face = 0; face < 6; face++) {
+					URL url(face, 0);
+					sprintf_s(url.buf, m_panoList[pano].leftAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+					m_urls->Enqueue(url);
+					m_ReadyURL.notify_one();
+					if (stereo) {
+						URL url(face, 1);
+						sprintf_s(url.buf, m_panoList[pano].rightAddress.c_str(), depth + 1, m_faceNames[face], i, j);
+						m_urls->Enqueue(url);
+						m_ReadyURL.notify_one();
+					}
+				}
+			}
+		}
+	}
+	m_ReadyURL.notify_all(); // Notify all in case we hit a gap when the queue was empty
+
+	// m_tileDepth is useful for discarding image files for which we already have a better texture
+	// Due to logic flow I'm not convinced there's a good place to put such a check, but maybe?
+	//for (int face = 0; face < 6; face++) {
+	//	for (int row = 0; row < 8; row++) {
+	//		for (int col = 0; col < 8; col++) {
+	//			m_tileDepth[face][row][col] = 0;
+	//		}
+	//	}
+	//}
+}
+
+void ImageHandler::ClearQueues()
+{
+	std::lock_guard<std::mutex> lock(m_);
+	m_compressed->Clear();
+	m_compressed->ToggleDiscard();
+	m_urls->Clear();
+	m_urls->ToggleDiscard();
+}
+
+void ImageHandler::LoadImageData(ImageData *image)
+{
+	// TODO: Need to include a given images width/height so we're not hardcoding 512x512
+	if (image->data) {
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[image->eye][image->face]);
+		PRINT_GL_ERRORS
+
+		int* dst = (int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+		if (dst) {
+			std::memcpy(dst, image->data, image->width * image->height * image->colorChannels);
+		}
+		PRINT_GL_ERRORS
+		glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+		GLenum format = (image->colorChannels == 3) ? GL_RGB : GL_RGBA;
+
+		glActiveTexture(GL_TEXTURE0 + image->face + (6 * image->eye));
+		glTexSubImage2D(GL_TEXTURE_2D, 0, image->w_offset, image->h_offset, WIDTH, HEIGHT,
+			format, GL_UNSIGNED_BYTE, nullptr);
+		PRINT_GL_ERRORS
+		
+		glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	}
+	else {
+		fprintf(stderr, "Error loading image file! No pixel data found\n");
+	}
+	image->Free();
+}
+
+// Copies image data from Left eye to Right eye texture bindings
+// Will only work with OpenGL 4.3+
+void ImageHandler::CopyImageData()
+{
+	int major, minor;
+	glGetIntegerv(GL_MAJOR_VERSION, &major);
+	glGetIntegerv(GL_MINOR_VERSION, &minor);
+	if (major < 4 || (major >= 4 && minor < 3)) {
+		fprintf(stderr, "glCopyImageSubData calls only allowed in OpenGL 4.3+\n");
+		fprintf(stderr, "Your hardware is running %d.%d\n", major, minor);
+		fprintf(stderr, "Comparison Mode is not compatible with this system\n");
+		return;
+	}
+
+	for (int i = 0; i < 6; i++) {
+		if (m_textures[RIGHT_EYE][i] == 0)
+			initFaceAtlas(i, MAXDEPTH, RIGHT_EYE);
+
+		//srcName, 
+		//srcTarget, srcLevel, srcX, srcY, srcZ,
+		//dstName,
+		//dstTarget, dstLevel, dstX, dstY, dstZ,
+		//srcWidth, srcHeight, srcDepth
+		glCopyImageSubData(
+			m_textures[LEFT_EYE][i],
+			GL_TEXTURE_2D, 0, 0, 0, 0,
+			m_textures[RIGHT_EYE][i],
+			GL_TEXTURE_2D, 0, 0, 0, 0,
+			4096, 4096, 1);
+		PRINT_GL_ERRORS
+	}
+}
+
+void ImageHandler::LoadQuadImage()
+{
+	while (true) {
+		while (m_urls->IsEmpty()) {
+			std::unique_lock<std::mutex> lock(m_);
+			m_ReadyURL.wait(lock);
+		}
+		
+		if (m_urls->IsEmpty())
+			continue;
+
+		URL u = m_urls->Dequeue();
+		
+		ImageData *imageFile = new ImageData{ 0 };
+		downloadFile(imageFile, u.buf);
+
+		imageFile->face = u.face;
+		imageFile->eye = u.eye;
+
+		m_compressed->Enqueue(imageFile);
+
+		m_ReadyCompressedImage.notify_one();
+	}
+}
+
+void ImageHandler::Decompress()
+{
+	ImageData* imageFile = NULL;
+	while (true) {
+
+		while (m_compressed->IsEmpty()) {
+			std::unique_lock<std::mutex> lock(m_);
+			m_ReadyCompressedImage.wait(lock);
+		}
+
+		if ((imageFile = m_compressed->Dequeue()) == NULL)
+			continue;
+		
+		
+		int width, height, nrChannels;
+		unsigned char *d = (unsigned char*)stbi_load_from_memory((stbi_uc*)imageFile->data, 
+			imageFile->dataSize, &width, &height, &nrChannels, 0);
+
+		free(imageFile->data);
+
+		imageFile->data = d;
+		imageFile->w_offset *= width;
+		imageFile->h_offset *= height;
+		imageFile->width = width;
+		imageFile->height = height;
+		imageFile->colorChannels = nrChannels;
+		imageFile->width = width;
+		imageFile->height = height;
+
+		Decompressed->Enqueue(imageFile);
+	}
+}
+
+void ImageHandler::SetFilter(int eye, bool linear)
+{
+	if (m_textures[eye][0] == 0) {
+		fprintf(stderr, "No texture loaded for that eye\n");
+		return;
+	}
+
+	for (int i = 0; i < 6; i++) {
+		glActiveTexture(GL_TEXTURE0 + i + (eye * 6));
+		if (linear) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+		else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+	}
+}
+
+// For use after doing a hot-reload on shaders (Or switching between two sets of Texture Atlases)
+void ImageHandler::BindTextures(Shader &shader, int eye)
+{
+	if (m_textures[eye][0] == 0) {
+		fprintf(stderr, "No texture loaded for that eye\n");
+		return;
+	}
+
+	for (int i = 0; i < 6; i++) {
+		shader.SetSamplerUniform(m_txUniforms[i], i + (6 * eye));
+	}
+}
+
+void ImageHandler::Screenshot(int width, int height)
+{
+	unsigned char* image = (unsigned char*)malloc(width * height * 3 * sizeof(char));
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, image);
+	std::thread t([](unsigned char* image, int width, int height, int dumpcount)
+	{
+#ifdef WIN32
+		// Windows pls
+		char buff[FILENAME_MAX];
+		char buf[FILENAME_MAX];
+		GetCurrentDirectoryA(FILENAME_MAX, buff);
+#else
+		char buff[1024];
+		char buf[1024];
+		getcwd(buff, sizeof(buff));
+#endif
+		std::string cwd(buff);
+
+		sprintf_s(buf, "%s\\Output_%d.png", cwd.c_str(), dumpcount);
+		dumpcount++;
+
+		stbi_flip_vertically_on_write(true);
+		stbi_write_png(buf, width, height, 3, image, width * 3);
+
+		fprintf(stderr, "Saved image to %s\n", buf);
+		free(image);
+	}, image, width, height, m_dumpcount);
+	t.detach();
 }
 
 /* ---------------- Private Functions ---------------- */
 
-//void ImageHandler::threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, imageData *data)
-//{
-//	// Directory structure is: path\\depth level\\facename\\row\\column
-//	// Depth level is 1 indexed instead of 0 indexed (but row/col are 0 indexed?), so we're formatting with depth+1 
-//	char buf[60];
-//	sprintf_s(buf, 60, "%s\\%d\\%s\\%d\\%d.jpg",
-//		path, depth + 1, facename, i, j);
-//	int width, height, nrChannels;
-//	unsigned char *d = stbi_load(buf, &width, &height, &nrChannels, 0);
-//	if (d) {
-//		*data = { d, width, height, width * j, height * i };
-//	}
-//	else {
-//		fprintf(stderr, "Failed to load image\n");
-//	}
-//	// Don't call stbi_free() here, call it back in LoadImageFromPath after we try to dump images into the GPU
-//}
 
-void ImageHandler::initFaceAtlas(int face, int depth, GLuint program)
+void ImageHandler::initFaceAtlas(int face, int depth, int eye)
 {
-	//int unused;
-	////TODO: Need to look at the deepest level *for the given face*, not just hardcoded
-	//stbi_info("f_0.jpg", &m_maxWidth[face], &m_maxHeight[face], &unused);
-	//
-	//m_maxWidth[face] *= pow(2, depth);
-	//m_maxHeight[face] *= pow(2, depth);
-	m_maxWidth[face] = 512 * (int)pow(2, depth);
-	m_maxHeight[face] = 512 * (int)pow(2, depth);
+	// TODO: Probably shouldn't hardcode image resolution like this
+	int maxWidth = WIDTH * (int)pow(2, depth);
+	int maxHeight = HEIGHT * (int)pow(2, depth);
 
-	const char *uniform = m_txUniforms[face];
-	glActiveTexture(GL_TEXTURE0 + face);
+	m_textures[eye][face] = Render::CreateTexture(face + (eye * 6), maxWidth, maxHeight, GL_RGB, 0);
 
-	glBindTexture(GL_TEXTURE_2D, m_textures[face]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_maxWidth[face], m_maxHeight[face], 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-	GLuint TxUniform = glGetUniformLocation(program, uniform);
-	if (TxUniform == -1) {
-		fprintf(stderr, "Error getting %s uniform\n", uniform);
-	}
-	else {
-		glUniform1i(TxUniform, face);
-	}
-}
-
-// Gnarly WIN32 API calls to traverse a given directory and find out max resolution depth
-int ImageHandler::maxResDepth(const char *path)
-{
-	WIN32_FIND_DATAA findfiledata;
-	HANDLE hFind = INVALID_HANDLE_VALUE;
-	std::vector<int> output;
-	char fullpath[MAX_PATH];
-	GetFullPathNameA(path, MAX_PATH, fullpath, 0);
-	std::string fp(fullpath);
-
-	hFind = FindFirstFileA((fp + "\\*").c_str(), &findfiledata);
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			if ((findfiledata.dwFileAttributes | FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY
-				&& (findfiledata.cFileName[0] != '.'))
-			{
-				fprintf(stderr, "Found: %s\n", findfiledata.cFileName);
-				output.push_back(atoi(findfiledata.cFileName));
-			}
-		} while (FindNextFileA(hFind, &findfiledata) != 0);
-	}
-	int depth = 0;
-	for (unsigned int i = 0; i < output.size(); i++) {
-		if (output[i] > depth)
-			depth = output[i];
-	}
-
-	// Reduce depth by 1, since folders are listed 1/2/3/4 instead of 0/1/2/3
-	return depth-1;
+	// Init PBOs
+	glGenBuffers(1, &m_pbos[eye][face]);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pbos[eye][face]);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, WIDTH * HEIGHT * 3, 0, GL_STREAM_DRAW);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }

@@ -1,51 +1,86 @@
-#pragma once
-#include <GL/glew.h>
-#include "Image.h"
-#include "InternetDownload.h"
+#ifndef _IMAGEHANDLER_H
+#define _IMAGEHANDLER_H
 
-struct PanoInfo;
+#include <GL\glew.h>
+#include <GL\freeglut.h>
+#include <algorithm>
+#include <chrono>
+#include <condition_variable>
+#include <deque>
+#include <fstream>
+#include <string>
+#include <thread>
+#include <vector>
+
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#include "Image.h"
+#include "ImageHandler.h"
+#include "PanoInfo.h"
+#include "ThreadPool.hpp"
+#include "SafeQueue.h"
+#include "Shader.h"
+#include "Shared.h"
 
 class ImageHandler {
 
 public:
+	std::vector<PanoInfo> m_panoList;
+	int m_currentPano;
+	SafeQueue<ImageData*> *Decompressed;
 
-	//struct ImageData {
-	//	DownloadedFile file;
-	//	int w_offset;
-	//	int h_offset;
-	//	int activeTexture;
-	//};
+	void InitTextureAtlas(bool stereo, SafeQueue<ImageData*> *toRender);
+	void InitStereo();
+	void InitStereoURLs(void);
+	bool InitPanoList(std::string url);
+	void InitURLs(int pano, bool stereo);
 
-	static void InitTextureAtlas(GLuint program);
-	static void InitPanoListFromOnlineFile(std::string url);
-	static void LoadImageData(ImageData image);
-	static void LoadFaceImage(int face, int depth);
-	static void LoadQuadImage(int face, int row, int col, int depth);
-	static float TxScalingX(int face);
-	static float TxScalingY(int face);
-	static void RebindTextures(GLuint program);
+	void LoadImageData(ImageData *image);
+	void CopyImageData(void);
+	void SetFilter(int eye, bool linear);
+	void BindTextures(Shader &shader, int eye);
+	void Screenshot(int width, int height);
+
+	void ClearQueues(void);
+	void LoadQuadImage(void);
+	void Decompress(void);
+
+	ImageHandler();
 
 private:
-	//struct ImageData {
-	//	DownloadedFile file;
-	//	int w_offset;
-	//	int h_offset;
-	//	int activeTexture;
-	//};
+	void initFaceAtlas(int face, int depth, int eye);
 
-	static void initFaceAtlas(int face, int depth, GLuint program);
-	static int maxResDepth(const char *path);
-	static void threadedImageLoad(const char *path, int depth, const char *facename, int i, int j, ImageData *data);
+	struct URL {
+		char buf[256];
+		int face;
+		int eye;
+		URL(int f = 0, int e = 0) :face(f), eye(e) {}
+	};
 
-	static int m_maxWidth[6];
-	static int m_maxHeight[6];
-	static int m_faceWidth[6];
-	static int m_faceHeight[6];
-	static GLuint m_textures[6];
+	std::mutex m_;
+	std::condition_variable m_ReadyURL;
+	std::condition_variable m_ReadyCompressedImage;
+
+	GLuint m_textures[2][6];
+	GLuint m_pbos[2][6];
 	static const char *m_txUniforms[6];
 	static const char m_faceNames[6];
 
-	static int m_tileDepth[6][8][8];
-	static std::vector<PanoInfo> m_panoList;
-	static std::vector<ImageData> m_imageData;
+	//std::deque<URL> m_urls;
+	SafeQueue<URL> *m_urls;
+	SafeQueue<ImageData*> *m_compressed;
+	//ImageQueue *m_compressed;
+
+	int m_tileDepth[6][8][8];
+
+	int m_dumpcount;
+	bool m_stereoLoaded;
+
+	std::chrono::high_resolution_clock::time_point t1;
 };
+
+#endif // _IMAGEHANDLER_H

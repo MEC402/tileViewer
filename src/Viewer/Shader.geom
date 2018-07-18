@@ -4,68 +4,63 @@ layout(points) in;
 layout(triangle_strip, max_vertices = 4) out;
 
 in VOUT {
-	vec3 vColor;
-	vec3 vOffset;
 	flat highp int vFace;
 	flat highp int vDepth;
 } vin[];
 
 out vec2 txCoord;
-out vec3 fColor;	
 flat out highp int fFace;
 
 
 uniform mat4 MVP;
+uniform float TileWidth;
 uniform bool Debug;
 
 // For use in calculating ST coordinates
 int wl = (0x01 << (3 - vin[0].vDepth));
 float segl = 1.0 / (wl * 1.0);
 
+
+// Calculate these things ahead of time so we don't repeat them 4x
+
+// F/B want X/Y, R/L want Z/Y, U/D want X/Z
+// This allows us to swap the correct value out and return a vec2
+int idx = ((vin[0].vFace + 4) % 6) / 2;
+
+// Only flip coordinates on Odd faces (Except if it's 4/5, then flip 4 and not 5)
+int flip = (vin[0].vFace >> 2) ^ (vin[0].vFace & 1);
+
+// Get the coordinate to flip (0 for face 1, 2 for faces 3/4)
+int n =  ((( (vin[0].vFace&2) | (vin[0].vFace&4)) >> vin[0].vFace-2) << 1) * flip;
+
 vec2 getST(vec4 pos, int face)
-{
-	if (Debug) {
-		segl = 1.0;
-	}
-	
+{	
 	pos = (pos + vec4(0.5, 0.5, 0.5, 1.0)) * segl;
 
-	// All the (1.0 * segl) - pos.n stuff is to flip ST coordinates across an axis without relying on wrapping
-	switch (face) {
-		case 0:
-			pos.y = (1.0 * segl) - pos.y;
-			return vec2(pos.x, pos.y);
-		case 1:
-			pos.x = (1.0 * segl) - pos.x;
-			pos.y = (1.0 * segl) - pos.y;
-			return vec2(pos.x, pos.y);
-		case 2:
-			pos.y = (1.0 * segl) - pos.y;
-			return vec2(pos.z, pos.y);
-		case 3:
-			pos.y = (1.0 * segl) - pos.y;
-			pos.z = (1.0 * segl) - pos.z;
-			return vec2(pos.z, pos.y);
-		case 4:
-			pos.z = (1.0 * segl) - pos.z;
-		case 5:
-			return vec2(pos.x, pos.z);
-	}
+	pos[idx] = 0.0;
+	 // If flip, flip.  Otherwise retain the original pos[n] value.
+	pos[n] = (((segl * 1.0) - pos[n])*flip) + ((flip^1) * pos[n]);
+
+	// Everything flips Y, if it doesn't use Y then it will be replaced anyways
+	pos[1] = (segl * 1.0) - pos[1];
+	pos[idx] = pos[2];
+	return vec2(pos);
 }
 
 
 void main()
 {
-	// Color is unnecessary but useful for debugging, can be removed in the final product
-	fColor = vin[0].vColor;
-	//fColor = vec3(1.0, 0.5, 0.5)
-	
-	//TODO: We can optimize these values out since we know what face we're drawing a quad for, we don't need
-	// to precalculate these CPU side.  We can just switch on them here based on the face and set the values
-	// as appropriate.
-	float x = vin[0].vOffset.x;
-	float y = vin[0].vOffset.y;
-	float z = vin[0].vOffset.z;
+	highp int face = vin[0].vFace;
+
+	vec3 Shift = vec3(TileWidth, TileWidth, TileWidth);
+	Shift[idx] = 0.0;
+	float x = Shift.x;
+	float y = Shift.y;
+	float z = Shift.z;
+
+	if (Debug) {
+		segl = 1.0;
+	}
 
 	vec4 position;
 	// TODO: I'm sure there's a better way to check which coordinates to use
@@ -76,30 +71,30 @@ void main()
 		// Translate against MVP matrix
 		gl_Position = MVP * position;
 
-		// Set our ST coords (x/y just refer to vector position 0/1, not literally x/y coords)
-		txCoord = getST(position, vin[0].vFace);
+		// Set our ST coords
+		txCoord = getST(position, face);
 
 		// Tell the frag shader what face we are (and what texture to use)
-		fFace = vin[0].vFace;
+		fFace = face;
 		EmitVertex(); 			 
 					  			 
 		// Rinse, repeat
 		position = gl_in[0].gl_Position + vec4( x, -y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4(-x,  y, -z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex(); 			 
 								 
 		position = gl_in[0].gl_Position + vec4( x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex();
 
 	} else {
@@ -109,26 +104,26 @@ void main()
 
 		position = gl_in[0].gl_Position + vec4(-x, -y, -z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4( x, -y, -z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex(); 			 
 					  			 
 		position = gl_in[0].gl_Position + vec4(-x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex(); 			 
 								 
 		position = gl_in[0].gl_Position + vec4( x,  y, z, 0.0);
 		gl_Position = MVP * position;
-		txCoord = getST(position, vin[0].vFace);
-		fFace = vin[0].vFace;
+		txCoord = getST(position, face);
+		fFace = face;
 		EmitVertex();
 	}
 

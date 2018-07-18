@@ -1,36 +1,56 @@
-#include "stdafx.h"
+#include "CubePoints.h"
 #include <cmath>
 #include <time.h>
 
+#include <mutex>
+
 /* ----------- Layout of current data for each quad face ----------- */
-/* --------- [ x y z | g_x g_y g_z | r g b | face | depth ] -------- */
+/* -------------------- [ x y z | face | depth ] ------------------- */
 /* ----------------------------------------------------------------- */
 
-CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) - 1)
+std::mutex m_;
+
+CubePoints::CubePoints(int maxResDepth, int m_eye) : 
+	m_maxResDepth((int)pow(2, maxResDepth) - 1),
+	m_eye(m_eye)
 {
+	// Number of quads per axis
 	m_faceDimensions = (int)pow(2, maxResDepth);
+
+	// Total number of quads per face
 	m_faceQuads = m_faceDimensions * m_faceDimensions;
+
+	// 6 faces * number of quads per face * amount of data per quad
 	m_positions.resize(6 * m_faceQuads * m_datasize);
+
+	// Amount of data per row for any given face
 	m_perRow = m_faceDimensions * m_datasize;
 
+	// How far over is our next quad center point
 	m_TILESTEP = (1.0f / (float)m_faceDimensions);
-	m_TILEWIDTH =  m_TILESTEP / 2.0f;
 
+	// How far away the edges of a quad are from its center point
+	m_TILEWIDTH = m_TILESTEP / 2.0f;
+
+	// How far away from the origin to place quads
 	m_faceDistance = m_TILESTEP * ((float)m_faceDimensions / 2.0f);
+
+	// Number of points to draw in OpenGL calls
 	m_NumVertices = (GLuint)(6 * m_faceQuads);
-	srand((unsigned int)time(NULL));
 
 	// Generate points for each of the 6 faces
 	for (int face = 0; face < 6; face++) {
+
 		// Where in our vector to begin
 		int faceBegin = (m_faceQuads * m_datasize) * face;
 		// Where in our vector to end
 		int faceEnd = (m_faceQuads * m_datasize) * (face + 1);
 
+		// Starting X/Y positions for a given face
 		float quadX = -m_TILEWIDTH * m_maxResDepth;
 		float quadY = m_TILEWIDTH * m_maxResDepth;
-		//float quadX = -1;
-		//float quadY = -1;
+
+		// Offsets are incremented/decremented appropriately in the nested loop
 		float xOffset = 0.0f;
 		float yOffset = 0.0f;
 
@@ -39,14 +59,11 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) 
 		float y = 0.0f;
 		float z = 0.0f;
 
-		// Geometry "build quad on these points" data
-		float g_x = 0.0f;
-		float g_y = 0.0f;
-		float g_z = 0.0f;
-
 		for (int quadPoint = faceBegin, xCoord = 0, yCoord = 0; quadPoint < faceEnd; xCoord++) {
 
+			// Populate our map with vertex buffer offset for this quad
 			m_tileMap[face][yCoord][xCoord][0] = quadPoint;
+			// Default depth of 0
 			m_tileMap[face][yCoord][xCoord][1] = 0;
 
 			// Set xyz position for vertex and plane direction for geometry shader to build quads in
@@ -55,76 +72,43 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) 
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = -m_faceDistance;
-				g_x = m_TILEWIDTH;
-				g_y = m_TILEWIDTH;
-				g_z = 0.00f;
 				break;
 			case 1: // Back face
 				x = quadX + xOffset;
 				y = quadY + yOffset;
 				z = m_faceDistance;
-				g_x = m_TILEWIDTH;
-				g_y = m_TILEWIDTH;
-				g_z = 0.00f;
 				break;
 			case 2: // Right face
 				x = m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
-				g_x = 0.00f;
-				g_y = m_TILEWIDTH;
-				g_z = m_TILEWIDTH;
 				break;
 			case 3: // Left face
 				x = -m_faceDistance;
 				y = quadY + yOffset;
 				z = quadX + xOffset;
-				g_x = 0.00f;
-				g_y = m_TILEWIDTH;
-				g_z = m_TILEWIDTH;
 				break;
 			case 4: // Top face
 				x = quadX + xOffset;
 				y = m_faceDistance;
 				z = quadY + yOffset;
-				g_x = m_TILEWIDTH;
-				g_y = 0.00f;
-				g_z = m_TILEWIDTH;
 				break;
-			case 5:
+			case 5: // Bottom face
 				x = quadX + xOffset;
 				y = -m_faceDistance;
 				z = quadY + yOffset;
-				g_x = m_TILEWIDTH;
-				g_y = 0.00f;
-				g_z = m_TILEWIDTH;
 				break;
 			}
 
-			// xyz coordinates for the center point of the quad
+			//xyz coordinates for the center point of the quad
 			m_positions[quadPoint++] = x;
 			m_positions[quadPoint++] = y;
 			m_positions[quadPoint++] = z;
-
-			// What planes we want to create the quad on in our geometry shader
-			m_positions[quadPoint++] = g_x;
-			m_positions[quadPoint++] = g_y;
-			m_positions[quadPoint++] = g_z;
-
-			// Random colors so we can see if we're generating the right number of quads per face
-			// This is unnecessary and can be removed from the final product, but it's useful for debugging
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			//m_positions[quadPoint++] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-			m_positions[quadPoint++] = 1.0f;
-			m_positions[quadPoint++] = 1.0f;
-			m_positions[quadPoint++] = 1.0f;
-
-
-
+			
 			// So we know which texture to use
 			m_positions[quadPoint++] = (float)face;
-
+			
+			// Set the depth value of the quad in the vertex buffer
 			m_positions[quadPoint++] = 0.0f;
 
 			xOffset += m_TILESTEP;
@@ -132,6 +116,7 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) 
 				xOffset = 0.0f;
 				yOffset -= m_TILESTEP;
 				yCoord++;
+				// We're in a for loop so this automatically increments up to 0
 				xCoord = -1;
 			}
 		}
@@ -139,49 +124,27 @@ CubePoints::CubePoints(int maxResDepth) : m_maxResDepth((int)pow(2,maxResDepth) 
 	m_setupOGL();
 }
 
-int CubePoints::FaceCurrentDepth(int face)
+void CubePoints::QuadSetDepth(int face, int row, int col, int depth)
 {
-	int faceIndex = face * (m_datasize * m_faceQuads);
-	return (int)m_positions[faceIndex + 10];
-}
+	std::lock_guard<std::mutex> lock(m_);
 
-void CubePoints::FaceNextDepth(int face)
-{
-	int startIndex = face * (m_datasize * m_faceQuads);
-	int currentDepth = (int)m_positions[startIndex + m_datasize - 1];
-	for (int i = 0, j = m_datasize-1; i < m_faceQuads; i++, j += m_datasize) {
-		m_positions[(startIndex + j)] = (float)(currentDepth + 1);
-	}
-	Ready = true;
-}
+	if (face != 5)
+		row = (m_faceDimensions - 1) - row;
+	if (face == 1 || face == 3)
+		col = (m_faceDimensions - 1) - col;
 
-std::thread CubePoints::FaceNextDepthThread(int face)
-{
-	return std::thread([=] { FaceNextDepth(face); });
-}
-
-int CubePoints::QuadCurrentDepth(int face, int row, int col)
-{
-	row = (m_faceDimensions - 1) - row;
-	return m_tileMap[face][row][col][1];
-}
-
-void CubePoints::SetQuadDepth(int face, int row, int col, int depth)
-{
-	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
-	row = (m_faceDimensions - 1) - row;
-	fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, depth);
-
-	if (depth > 3) {
-		fprintf(stderr, "Tile group is already at max depth, skipping\n");
+	// Hopefully prevents loading lower-res tiles over high-res tiles?
+	if (m_tileMap[face][row][col][1] > depth) {
 		return;
 	}
-
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);
-	int depthQuadRow = row / numQuadsToChange;
-	int depthQuadCol = col / numQuadsToChange;
-	int startRow = numQuadsToChange * depthQuadRow;
-	int startCol = numQuadsToChange * depthQuadCol;
+		
+	// Bunch of offset math so we can update groups of quads if we're not at the lowest depth
+	int quadToChange = m_tileMap[face][row][col][0];				// Get the VBO offset index of the quad
+	int numQuadsToChange = m_faceDimensions / (int)pow(2, depth);	// Calculate how many quads in the group to change
+	int depthQuadRow = row / numQuadsToChange;						// Reduce to that depths adjusted row
+	int depthQuadCol = col / numQuadsToChange;						// Reduce to that depths adjusted col
+	int startRow = numQuadsToChange * depthQuadRow;					// Starting row
+	int startCol = numQuadsToChange * depthQuadCol;					// Starting col
 
 	for (int i = 0; i < numQuadsToChange; i++) {
 		for (int j = 0; j < numQuadsToChange; j++) {
@@ -189,142 +152,91 @@ void CubePoints::SetQuadDepth(int face, int row, int col, int depth)
 			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)depth;
 		}
 	}
-	Ready = true;
+	m_VBOupdates.emplace_back(std::tuple<int, int>(
+		m_tileMap[face][startRow][startCol][0],
+		m_tileMap[face][startRow + numQuadsToChange - 1][startCol + numQuadsToChange - 1][0] + m_datasize
+		));
 }
 
-void CubePoints::QuadNextDepth(int face, int row, int col)
+void CubePoints::ResetDepth()
 {
-	// Rows look up ST coordinates in reverse, so we need to update depth levels in reverse
-	row = (m_faceDimensions - 1) - row;
-
-	int quadToChange = m_tileMap[face][row][col][0];
-	int nextDepth = m_tileMap[face][row][col][1] + 1;
-	//fprintf(stderr, "Attempting to send tile %d/%d to depth level %d\n", row, col, nextDepth);
-
-	// Maaaagic numbers
-	if (nextDepth > 3) {
-		fprintf(stderr, "Tile group is already at max depth, skipping\n");
-		return;
+	std::lock_guard<std::mutex> lock(m_);
+	for (unsigned int i = m_datasize - 1; i < m_positions.size(); i += m_datasize) {
+		m_positions[i] = 0.0f;
 	}
 
-	// Number of quads per axis / Depth level tells us how many quads in each axis need updating
-	int numQuadsToChange = m_faceDimensions / (int)pow(2, nextDepth);
-
-	// Calculate what the new level position of a quad will be (eg: Level 1 might be 0,0 or 1,0 or 1,1 etc)
-	//int depthQuadRow = floor(row % (int)pow(2, nextDepth));
-	int depthQuadRow = row / numQuadsToChange;
-
-	//NOT CALCULATING CORRECTLY
-	//int depthQuadCol = floor(col % (int)pow(2, nextDepth));
-	int depthQuadCol = col / numQuadsToChange;
-
-	// What row we want to start making changes on
-	int startRow = numQuadsToChange * depthQuadRow;
-
-	// What column we want to start making changes on
-	int startCol = numQuadsToChange * depthQuadCol;
-
-	// Debug values to change tile color based on its depth
-	//float r = 0.0f, g = 0.0f, b = 0.0f;
-	//switch (nextDepth) {
-	//case 1:
-	//	r = 1.0f;
-	//	break;
-	//case 2:
-	//	g = 1.0f;
-	//	break;
-	//case 3:
-	//	b = 1.0f;
-	//	break;
-	//}
-
-	for (int i = 0; i < numQuadsToChange; i++) {
-		for (int j = 0; j < numQuadsToChange; j++) {
-			//fprintf(stderr, "Setting quad row/col %d/%d to depth level %d\n", quadX + j, quadY + i, nextDepth);
-			m_tileMap[face][startRow + i][startCol + j][1] = nextDepth;
-			m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 1] = (float)nextDepth;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 3] = b;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 4] = g;
-			//m_positions[m_tileMap[face][startRow + i][startCol + j][0] + m_datasize - 5] = r;
+	for (int i = 0; i < 6; i++) {
+		for (int j = 0; j < m_faceDimensions; j++) {
+			for (int k = 0; k < m_faceDimensions; k++) {
+				m_tileMap[i][j][k][1] = 0;
+			}
 		}
 	}
-	Ready = true;
 
-	//TODO: This might be an incredibly expensive way to update our VBO/VAO
-	// At 11 data points (3 points of color for debugging) we're sending 16MB over the bus if this is a full push
-	// At 8 data points (xyz/geometry/face/depth) we're still sending 12MB over the bus
-	// Look into glBufferSubData() and see if we can't use that instead
-	//glBindVertexArray(m_PositionVAOID);
-	//glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	//glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
-	//
-	//// Bind our rgb FOR DEBUGGAN
-	////glEnableVertexAttribArray(2);
-	////glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
-	//
-	//// Bind our depth level
-	//glEnableVertexAttribArray(4);
-	//glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
-	//
-	//glBindVertexArray(0);
+	m_VBOupdates.emplace_back(std::tuple<int, int>(0, m_positions.size()));
 }
 
-std::thread CubePoints::QuadNextDepthThread(int face, int row, int col)
+void CubePoints::BindVAO()
 {
-	return std::thread([=] { QuadNextDepth(face, row, col); });
-}
-
-void CubePoints::RebindVAO()
-{
-	Ready = false;
-
-	//TODO: This might be an incredibly expensive way to update our VBO/VAO
-	// Look into glBufferSubData() and see if we can't use that instead
 	glBindVertexArray(m_PositionVAOID);
 	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-	//glBufferSubData(m_PositionVBOID, (10 * sizeof(float)), m_datasize * sizeof(float), &m_positions.front());
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
-	
-	glBindVertexArray(0);
-}
-
-void CubePoints::m_setupOGL() 
-{
-	// Binding this will create a vertex buffer in your GPU
-	// https://www.opengl.org/sdk/docs/man/html/glGenBuffers.xhtml
-	glGenBuffers(1, &m_PositionVBOID);
-	glGenVertexArrays(1, &m_PositionVAOID);
-	glBindVertexArray(m_PositionVAOID);
-
-	// "Open" a named buffer object
-	// https://www.opengl.org/sdk/docs/man/html/glBindBuffer.xhtml
-	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
-
-	// Give data
-	// https://www.opengl.org/sdk/docs/man/html/glBufferData.xhtml
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(), GL_STATIC_DRAW);
 
 	// Bind our xyz
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), 0);
-
-	// Bind our geometry plane
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
-
-	// Bind our rgb
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(6 * sizeof(float)));
-
+	
 	// Which face the quad belongs to
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(9 * sizeof(float)));
-
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(3 * sizeof(float)));
+	
 	// Depth level
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(10 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, m_datasize * sizeof(float), (void*)(4 * sizeof(float)));
 
-	glBindVertexArray(0);
+	glBindVertexArray(m_PositionVAOID);
+}
+
+void CubePoints::RebindVAO()
+{
+	std::lock_guard<std::mutex> lock(m_);
+
+	while (!m_VBOupdates.empty()) {
+		std::tuple<int, int> Range = m_VBOupdates.front();
+		int front = std::get<0>(Range);
+		int back = std::get<1>(Range);
+		m_VBOupdates.pop_front();
+
+		glBindVertexArray(m_PositionVAOID);
+		glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+		if (m_buffer)
+			std::memcpy(&m_buffer[int(front)], &m_positions[front], (back - front) * sizeof(float));
+#ifdef DEBUG
+		else
+			fprintf(stderr, "MapBuffer pointer is NULL\n");
+#endif
+
+		glFlushMappedBufferRange(GL_ARRAY_BUFFER, front * sizeof(float), (back - front) * sizeof(float));
+#ifdef DEBUG
+		PRINT_GL_ERRORS
+#endif
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+}
+
+void CubePoints::m_setupOGL()
+{
+	glGenBuffers(1, &m_PositionVBOID);
+	glGenVertexArrays(1, &m_PositionVAOID);
+	glBindVertexArray(m_PositionVAOID);
+	glBindBuffer(GL_ARRAY_BUFFER, m_PositionVBOID);
+
+	// Use a BufferStorage so we can have a persistant pointer to it for later updates
+	glBufferStorage(GL_ARRAY_BUFFER, sizeof(float) * m_positions.size(), &m_positions.front(),
+		GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+
+	BindVAO();
+
+	// Acquire said pointer
+	m_buffer = (float*)glMapBufferRange(GL_ARRAY_BUFFER, 0, m_positions.size() * sizeof(float),
+		GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT | GL_MAP_PERSISTENT_BIT);
 }

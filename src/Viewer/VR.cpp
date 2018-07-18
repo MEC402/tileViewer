@@ -1,5 +1,30 @@
-#include "stdafx.h"
 #include "VR.h"
+
+#ifdef OCULUS
+
+static glm::mat4x4 OVRtoGLM(OVR::Matrix4f src)
+{
+	src.Transpose();
+	glm::mat4x4 dst;
+	for (unsigned int i = 0; i < 4; ++i) {
+		for (unsigned int j = 0; j < 4; ++j) {
+			dst[i][j] = src.M[i][j];
+		}
+	}
+	return dst;
+}
+
+static glm::vec3 OVRtoGLM(OVR::Vector3f src)
+{
+	glm::vec3 dst(src.x, src.y, src.z);
+	return dst;
+}
+
+static glm::quat OVRtoGLM(OVR::Quatf src)
+{
+	glm::quat dst(src.w, src.x, src.y, src.z);
+	return dst;
+}
 
 // Helpers
 struct OculusTextureBuffer
@@ -40,7 +65,7 @@ OculusTextureBuffer::OculusTextureBuffer(ovrSession session, OVR::Sizei size, in
 	desc.Width = size.w;
 	desc.Height = size.h;
 	desc.MipLevels = 1;
-	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 	desc.SampleCount = sampleCount;
 	desc.StaticImage = ovrFalse;
 
@@ -94,23 +119,23 @@ OculusTextureBuffer::OculusTextureBuffer(ovrSession session, OVR::Sizei size, in
 }
 
 OculusTextureBuffer::~OculusTextureBuffer()
+{
+	if (ColorTextureChain)
 	{
-		if (ColorTextureChain)
-		{
-			ovr_DestroyTextureSwapChain(Session, ColorTextureChain);
-			ColorTextureChain = nullptr;
-		}
-		if (DepthTextureChain)
-		{
-			ovr_DestroyTextureSwapChain(Session, DepthTextureChain);
-			DepthTextureChain = nullptr;
-		}
-		if (fboId)
-		{
-			glDeleteFramebuffers(1, &fboId);
-			fboId = 0;
-		}
+		ovr_DestroyTextureSwapChain(Session, ColorTextureChain);
+		ColorTextureChain = nullptr;
 	}
+	if (DepthTextureChain)
+	{
+		ovr_DestroyTextureSwapChain(Session, DepthTextureChain);
+		DepthTextureChain = nullptr;
+	}
+	if (fboId)
+	{
+		glDeleteFramebuffers(1, &fboId);
+		fboId = 0;
+	}
+}
 
 OVR::Sizei OculusTextureBuffer::GetSize() const
 {
@@ -137,7 +162,7 @@ void OculusTextureBuffer::SetRenderSurface()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, curDepthTexId, 0);
 
 	glViewport(0, 0, texSize.w, texSize.h);
-	glEnable(GL_FRAMEBUFFER_SRGB);
+	//glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
 void OculusTextureBuffer::UnsetRenderSurface()
@@ -254,7 +279,7 @@ void resizeMirrorTexture(VRDevice* vr, int mirrorWindowWidth, int mirrorWindowHe
 	memset(&desc, 0, sizeof(desc));
 	desc.Width = vr->mirrorWindowWidth;
 	desc.Height = vr->mirrorWindowHeight;
-	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+	desc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
 
 	// Create mirror texture and an FBO used to copy mirror texture to back buffer
 	vr->mirrorTexture = nullptr;
@@ -281,6 +306,20 @@ void resizeMirrorTexture(VRDevice* vr, int mirrorWindowWidth, int mirrorWindowHe
 	}
 }
 
+
+static void updateButton(VRControllerStates::Button* button, bool newState)
+{
+	if (newState) {
+		button->pressed = !button->down;
+		button->down = true;
+	}
+	else {
+		button->pressed = false;
+		button->down = false;
+	}
+}
+
+
 void updateVRDevice(VRDevice* vr)
 {
 	ovrSessionStatus sessionStatus;
@@ -289,15 +328,101 @@ void updateVRDevice(VRDevice* vr)
 		ovr_RecenterTrackingOrigin(vr->session);
 
 	// Call ovr_GetRenderDesc each frame to get the ovrEyeRenderDesc, as the returned values (e.g. HmdToEyePose) may change at runtime.
-	ovrEyeRenderDesc eyeRenderDesc[2];
-	eyeRenderDesc[0] = ovr_GetRenderDesc(vr->session, ovrEye_Left, vr->hmdDesc.DefaultEyeFov[0]);
-	eyeRenderDesc[1] = ovr_GetRenderDesc(vr->session, ovrEye_Right, vr->hmdDesc.DefaultEyeFov[1]);
+	vr->eyeRenderDesc[0] = ovr_GetRenderDesc(vr->session, ovrEye_Left, vr->hmdDesc.DefaultEyeFov[0]);
+	vr->eyeRenderDesc[1] = ovr_GetRenderDesc(vr->session, ovrEye_Right, vr->hmdDesc.DefaultEyeFov[1]);
 
 	// Get eye poses, feeding in correct IPD offset
-	ovrPosef HmdToEyePose[2] = { eyeRenderDesc[0].HmdToEyePose,
-		eyeRenderDesc[1].HmdToEyePose };
+	ovrPosef HmdToEyePose[2] = { vr->eyeRenderDesc[0].HmdToEyePose,
+		vr->eyeRenderDesc[1].HmdToEyePose };
 
-	ovr_GetEyePoses(vr->session, vr->frameIndex, ovrTrue, HmdToEyePose, vr->EyeRenderPose, &vr->sensorSampleTime);
+	ovrPosef useHmdToEyePose[2] = { vr->eyeRenderDesc[0].HmdToEyePose,
+		vr->eyeRenderDesc[1].HmdToEyePose };
+
+	double ftiming = ovr_GetPredictedDisplayTime(vr->session, 0);
+	vr->trackingState = ovr_GetTrackingState(vr->session, ftiming, ovrTrue);
+	ovr_CalcEyePoses(vr->trackingState.HeadPose.ThePose, useHmdToEyePose, vr->eyeRenderPose);
+
+	// Update controller states
+	ovrPosef* pose = &vr->trackingState.HandPoses[ovrHand_Right].ThePose;
+	vr->controllers.right.position = OVRtoGLM(OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z));
+	vr->controllers.right.rotation = OVRtoGLM(OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w));
+
+	pose = &vr->trackingState.HandPoses[ovrHand_Left].ThePose;
+	vr->controllers.left.position = OVRtoGLM(OVR::Vector3f(pose->Position.x, pose->Position.y, pose->Position.z));
+	vr->controllers.left.rotation = OVRtoGLM(OVR::Quatf(pose->Orientation.x, pose->Orientation.y, pose->Orientation.z, pose->Orientation.w));
+
+	ovrInputState inputState;
+	ovr_GetInputState(vr->session, ovrControllerType_Touch, &inputState);
+
+	updateButton(&vr->controllers.right.button1, inputState.Buttons & ovrButton_A);
+	updateButton(&vr->controllers.right.button2, inputState.Buttons & ovrButton_B);
+
+	updateButton(&vr->controllers.left.button1, inputState.Buttons & ovrButton_X);
+	updateButton(&vr->controllers.left.button2, inputState.Buttons & ovrButton_Y);
+
+	vr->controllers.right.thumbstickX = inputState.Thumbstick[ovrHand_Right].x;
+	vr->controllers.right.thumbstickY = inputState.Thumbstick[ovrHand_Right].y;
+	vr->controllers.right.indexFingerTrigger = inputState.IndexTrigger[ovrHand_Right];
+	vr->controllers.right.middleFingerTrigger = inputState.HandTrigger[ovrHand_Right];
+
+	vr->controllers.left.thumbstickX = inputState.Thumbstick[ovrHand_Left].x;
+	vr->controllers.left.thumbstickY = inputState.Thumbstick[ovrHand_Left].y;
+	vr->controllers.left.indexFingerTrigger = inputState.IndexTrigger[ovrHand_Left];
+	vr->controllers.left.middleFingerTrigger = inputState.HandTrigger[ovrHand_Left];
+
+	updateButton(&vr->controllers.left.thumbstickTouch, inputState.Touches & ovrButton_LThumb);
+	updateButton(&vr->controllers.right.thumbstickTouch, inputState.Touches & ovrButton_RThumb);
+}
+
+glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)
+{
+	OVR::Vector3f cameraPosition = OVR::Vector3f(cameraX, cameraY, cameraZ);
+	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(0);
+	OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(vr->eyeRenderPose[eyeIndex].Orientation);
+	OVR::Vector3f finalUp = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
+	OVR::Vector3f finalForward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
+	OVR::Vector3f shiftedEyePos = cameraPosition + rollPitchYaw.Transform(vr->eyeRenderPose[eyeIndex].Position);
+
+	OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
+	return OVRtoGLM(view);
+}
+
+glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex)
+{
+	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 10000.0f, ovrProjection_None);
+	vr->posTimewarpProjectionDesc = ovrTimewarpProjectionDesc_FromProjection(proj, ovrProjection_None);
+	return OVRtoGLM(proj);
+}
+
+glm::mat4x4 buildVROrthoMatrix(VRDevice* vr, int eyeIndex, float orthoDistance)
+{
+	OVR::Vector2f orthoScale = OVR::Vector2f(1.0f) / OVR::Vector2f(vr->eyeRenderDesc[eyeIndex].PixelsPerTanAngleAtCenter);
+	orthoScale = OVR::Vector2f(4.0f) / OVR::Vector2f(1.0f);
+	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 1000.0f, ovrProjection_LeftHanded);
+	return OVRtoGLM(ovrMatrix4f_OrthoSubProjection(proj, orthoScale, orthoDistance,	vr->eyeRenderDesc[eyeIndex].HmdToEyePose.Position.x));
+}
+
+glm::vec3 getVRHeadsetPosition(VRDevice* vr)
+{
+	OVR::Vector3f leftEye = vr->eyeRenderPose[0].Position;
+	OVR::Vector3f rightEye = vr->eyeRenderPose[1].Position;
+	OVR::Vector3f betweenEyes = leftEye + ((rightEye - leftEye) / 2);
+	return OVRtoGLM(betweenEyes);
+}
+
+glm::quat getVRHeadsetRotation(VRDevice* vr)
+{
+	return OVRtoGLM(vr->eyeRenderPose[0].Orientation);
+}
+
+glm::vec3 getVREyeDistance(VRDevice* vr)
+{
+	return OVRtoGLM(vr->eyeRenderPose[1].Position) - OVRtoGLM(vr->eyeRenderPose[0].Position);
+}
+
+VRControllerStates getVRControllerState(VRDevice* vr)
+{
+	return vr->controllers;
 }
 
 void bindEyeRenderSurface(VRDevice* vr, int eyeIndex)
@@ -326,7 +451,7 @@ void finishVRFrame(VRDevice* vr)
 		ld.DepthTexture[eye] = vr->eyeRenderTexture[eye]->DepthTextureChain;
 		ld.Viewport[eye] = OVR::Recti(vr->eyeRenderTexture[eye]->GetSize());
 		ld.Fov[eye] = vr->hmdDesc.DefaultEyeFov[eye];
-		ld.RenderPose[eye] = vr->EyeRenderPose[eye];
+		ld.RenderPose[eye] = vr->eyeRenderPose[eye];
 		ld.SensorSampleTime = vr->sensorSampleTime;
 	}
 	ovrLayerHeader* layers = &ld.Header;
@@ -345,27 +470,28 @@ void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer)
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
-OVR::Matrix4f buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ)
-{
-	OVR::Vector3f cameraPosition = OVR::Vector3f(cameraX, cameraY, cameraZ);
-	OVR::Matrix4f rollPitchYaw = OVR::Matrix4f::RotationY(0);
-	OVR::Matrix4f finalRollPitchYaw = rollPitchYaw * OVR::Matrix4f(vr->EyeRenderPose[eyeIndex].Orientation);
-	OVR::Vector3f finalUp = finalRollPitchYaw.Transform(OVR::Vector3f(0, 1, 0));
-	OVR::Vector3f finalForward = finalRollPitchYaw.Transform(OVR::Vector3f(0, 0, -1));
-	OVR::Vector3f shiftedEyePos = cameraPosition + rollPitchYaw.Transform(vr->EyeRenderPose[eyeIndex].Position);
-
-	OVR::Matrix4f view = OVR::Matrix4f::LookAtRH(shiftedEyePos, shiftedEyePos + finalForward, finalUp);
-	return view;
-}
-
-OVR::Matrix4f buildVRProjectionMatrix(VRDevice* vr, int eyeIndex)
-{
-	OVR::Matrix4f proj = ovrMatrix4f_Projection(vr->hmdDesc.DefaultEyeFov[eyeIndex], 0.2f, 1000.0f, ovrProjection_None);
-	vr->posTimewarpProjectionDesc = ovrTimewarpProjectionDesc_FromProjection(proj, ovrProjection_None);
-	return proj;
-}
 
 void destroyVRDevice(VRDevice* vr)
 {
 	ovr_Shutdown();
 }
+
+#else
+
+// If we don't want to compile with a VR library, these functions do nothing.
+bool createVRDevice(VRDevice* out_vr, int mirrorWindowWidth, int mirrorWindowHeight) { return false; }
+void resizeMirrorTexture(VRDevice* vr, int mirrorWindowWidth, int mirrorWindowHeight) {}
+void updateVRDevice(VRDevice* vr) {}
+glm::mat4x4 buildVRViewMatrix(VRDevice* vr, int eyeIndex, float cameraX, float cameraY, float cameraZ) { return glm::mat4x4(); }
+glm::mat4x4 buildVRProjectionMatrix(VRDevice* vr, int eyeIndex) { return glm::mat4x4(); }
+glm::vec3 getVRHeadsetPosition(VRDevice* vr) { return glm::vec3(); }
+glm::quat getVRHeadsetRotation(VRDevice* vr) { return glm::quat(); }
+VRControllerStates getVRControllerState(VRDevice* vr) { VRControllerStates c; return c; }
+void bindEyeRenderSurface(VRDevice* vr, int eyeIndex) {}
+void commitEyeRenderSurface(VRDevice* vr, int eyeIndex) {}
+void finishVRFrame(VRDevice* vr) {}
+void blitHeadsetView(VRDevice* vr, GLuint mirrorDisplayFramebuffer) {}
+void destroyVRDevice(VRDevice* vr) {}
+
+#endif // OCULUS
+
