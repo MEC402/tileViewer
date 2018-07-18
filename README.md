@@ -6,6 +6,7 @@ An OpenGL program for displaying tiled imagery from a remote URL on Large Format
 
 ## Windows
 Most of the following dependencies will come together as part of the library package, but for completeness sake they have been listed individually in full.
+
 Linux support is possible, but the appropriate libraries need to be found and a handful of WIN32 API calls will need replacements.
 
 ### DLL Dependencies
@@ -80,7 +81,7 @@ Place these inside the same directory as the compiled executable.
 
 Run the executable from a command prompt, possible flags are:
 | Name | Flag | Parameters |
-----------------------------
+| ---- | ---- | ---------- |
 | Start Fullscreen | -f | None |
 | Start Stereoscopic | -s | None |
 | Run in 5-Panel Powerwall Mode | -5 | None |
@@ -93,9 +94,13 @@ Run the executable from a command prompt, possible flags are:
 - An HTTP Web Server to remotely control the Viewer, change Panorama source URIs, etc
 - Another instance of the TileViewer running in Distributed Viewing mode
 The optional [u|d|l|r] flags are meant to indicate this Viewers relative position to the Host Viewer, in terms of direction and screen count.
+
 EX: u1r2 would mean "Up one screen length, right two screen lengths".
+
 The intent is to enable distributed viewing across large panel display setups that may not be run by a single device.
 
 ** Synchronized Viewing mode sets this instance of the TileViewer to relay display information to another instance in a 1:1 relationship.
+
 ** Distributed Viewing mode sets this instance of the TileViewer to relay offset display information to other instances to create multi-panel display effects.
+
 Both of these modes are "Hosts".  They should be connected to by other instances launched with the Remote flag enabled.
