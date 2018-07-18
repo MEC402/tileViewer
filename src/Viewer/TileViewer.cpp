@@ -1,5 +1,6 @@
 #include "TileViewer.h"
 #include "KinectControl.h"
+#include "OptMenu.h"
 
 KinectControl *kinect; // So we can call killkinect() at close and properly close our feed
 RemoteServent *remote; // So we can call killserver() at close and don't crash our viewer
@@ -44,8 +45,8 @@ int main(int argc, char **argv)
 
 		if (argv[i] == std::string("-b")) {
 			borderless = true;
-			width = std::stoi(argv[i + 1]);
-			height = std::stoi(argv[i + 2]);
+			width = std::stoi(argv[++i]);
+			height = std::stoi(argv[++i]);
 		}
 
 #ifdef KINECT
@@ -61,11 +62,11 @@ int main(int argc, char **argv)
 				const char *IP;
 				int Port;
 				const char *Name;
-				IP = argv[i + 1];
-				Port = std::stoi(argv[i + 2]);
-				Name = (argc > i + 3) ? argv[1 + 3] : "A Computer With No Name";
-				if (argc > i + 4)
-					remote = new RemoteServent(IP, Port, Name, std::string(argv[i + 4]));
+				IP = argv[++i];
+				Port = std::stoi(argv[++i]);
+				Name = (argc > i + 1) ? argv[++i] : "A Computer With No Name";
+				if (argc > i + 1)
+					remote = new RemoteServent(IP, Port, Name, std::string(argv[++i]));
 				else
 					remote = new RemoteServent(IP, Port, Name);
 			}
@@ -79,10 +80,10 @@ int main(int argc, char **argv)
 				const char *IP;
 				int Port;
 				const char *Name;
-				IP = argv[i + 1];
-				Port = std::stoi(argv[i + 2]);
-				Name = (argc > i + 3) ? argv[i + 3] : "A Computer With No Name";
-				if (argc > i+4 && argv[i+4] == std::string("-d"))
+				IP = argv[++i];
+				Port = std::stoi(argv[++i]);
+				Name = (argc > i + 1) ? argv[++i] : "A Computer With No Name";
+				if (argc > i + 1 && argv[++i] == std::string("-d"))
 					remote = new RemoteServent(IP, Port, Name, true, true);
 				else
 					remote = new RemoteServent(IP, Port, Name, true, false);
@@ -93,8 +94,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-
 	DEBUG_FLAG = false;
 
-	STViewer viewer(argv[argc - 1], stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
+	STViewer viewer(argv[argc-1], stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
 }

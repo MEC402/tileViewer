@@ -346,7 +346,7 @@ void RemoteServent::updateCamera(rapidjson::Value &body)
 		horzOffset = -2.0f;
 		break;
 	case D_LEFT:
-		vertOffset = 2.0f;
+		vertOffset = -2.0f;
 		horzOffset = -2.0f;
 		break;
 	case LEFT:

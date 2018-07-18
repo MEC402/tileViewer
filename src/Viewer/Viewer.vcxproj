@@ -442,6 +442,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="KinectControl.h" />
     <ClInclude Include="ObjLoader.h" />
+    <ClInclude Include="OptMenu.h" />
     <ClInclude Include="PanoInfo.h" />
     <ClInclude Include="RemoteServent.h" />
     <ClInclude Include="Render.h" />

@@ -95,6 +95,7 @@
     <ClInclude Include="RemoteServent.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="OptMenu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
