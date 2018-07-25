@@ -76,8 +76,8 @@ public:
 
 private:
 	const float FivePanelFOV{ 32.8093072f }; //Magic voodoo number pulled from spviewer codebase
-	const int FivePanelWidth{ 1080 };
-	const int FivePanelHeight{ 1920 };
+	const int FivePanelWidth{ 1920 };
+	const int FivePanelHeight{ 1080 };
 
 	const float tileRes{ 512.0f };
 	const float tileWidth{ 0.125f };

@@ -7,8 +7,6 @@ RemoteServent::RemoteServent(const char *IP, int port, const char *name, std::st
 	m_port(port),
 	m_name(name)
 {
-	// C++ doesn't allow string switches, and we won't necessarily have a single char
-	// Waterfall wheee!
 	if (position != "") {
 		for (int i = 0; i < position.length(); i += 2) {
 			int n = position[i + 1] - '0';

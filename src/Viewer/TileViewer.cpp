@@ -6,6 +6,7 @@ KinectControl *kinect; // So we can call killkinect() at close and properly clos
 RemoteServent *remote; // So we can call killserver() at close and don't crash our viewer
 std::vector<PanoInfo> panolist;
 bool DEBUG_FLAG;
+bool UPDATE = true;
 
 void killkinect()
 {

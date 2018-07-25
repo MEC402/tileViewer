@@ -26,6 +26,7 @@
 #define PRINT_GENERIC_ERROR(ERR) print_generic_error(__LINE__, __FUNCTION__, ERR);
 
 extern bool DEBUG_FLAG;
+extern bool UPDATE;
 
 inline void print_gl_errors(int line, const char *func)
 {
