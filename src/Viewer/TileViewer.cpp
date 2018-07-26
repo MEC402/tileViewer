@@ -31,71 +31,23 @@ int main(int argc, char **argv)
 	bool borderless = false;
 	int width = 1280; // Defaults
 	int height = 800;
+	char *filepath = NULL;
 	remote = NULL;
 	kinect = NULL;
 
-	for (int i = 0; i < argc; i++) {
-		if (argv[i] == std::string("-f"))
-			fullscreen = true;
+	ParseArgs(argc, argv, stereo, fullscreen, fivepanel, borderless, width, height, kinect, remote);
 
-		if (argv[i] == std::string("-s"))
-			stereo = true;
+	if (argc == 0)
+		filepath = Menu(argc, argv, stereo, fullscreen, fivepanel, borderless, width, height, kinect, remote);
+	else
+		filepath = argv[argc - 1];
 
-		if (argv[i] == std::string("-5"))
-			fivepanel = true;
+	if (kinect != NULL)
+		atexit(killkinect);
+	if (remote != NULL)
+		atexit(killremote);
 
-		if (argv[i] == std::string("-b")) {
-			borderless = true;
-			width = std::stoi(argv[++i]);
-			height = std::stoi(argv[++i]);
-		}
-
-#ifdef KINECT
-		if (argv[i] == std::string("-k")) {
-			kinect = new KinectControl;
-			//kinect->StartTrackingHands();
-			atexit(killkinect); // Cleanly shut down the kinect after closing all our GL stuff
-		}
-#endif
-		// TODO: The way we're checking arg count is terrible and NOT safe
-		if (argv[i] == std::string("-r")) {
-			if (argc > i + 2) {
-				const char *IP;
-				int Port;
-				const char *Name;
-				IP = argv[++i];
-				Port = std::stoi(argv[++i]);
-				Name = (argc > i + 1) ? argv[++i] : "A Computer With No Name";
-				if (argc > i + 1)
-					remote = new RemoteServent(IP, Port, Name, std::string(argv[++i]));
-				else
-					remote = new RemoteServent(IP, Port, Name);
-			}
-			else {
-				fprintf(stderr, "Invalid number of arguments available for remote.\nFlag Usage: -r <IP> <port> [name [u|d|l|r|]] (Panel distance to host, ex: u1r2 means up one right two panels)\nLaunching without remote\n");
-			}
-		}
-
-		if (argv[i] == std::string("-sv")) {
-			if (argc > i + 2) {
-				const char *IP;
-				int Port;
-				const char *Name;
-				IP = argv[++i];
-				Port = std::stoi(argv[++i]);
-				Name = (argc > i + 1) ? argv[++i] : "A Computer With No Name";
-				if (argc > i + 1 && argv[++i] == std::string("-d"))
-					remote = new RemoteServent(IP, Port, Name, true, true);
-				else
-					remote = new RemoteServent(IP, Port, Name, true, false);
-				atexit(killremote);
-			}
-			else {
-				fprintf(stderr, "Invalid number of arguments available for synchronized viewing.\nFlag Usage: -sv <IP> <port> [name [-d(istributed viewing)]]\nLaunching without remote\n");
-			}
-		}
-	}
 	DEBUG_FLAG = false;
 
-	STViewer viewer(argv[argc-1], stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
+	STViewer viewer(filepath, stereo, fivepanel, fullscreen, borderless, width, height, remote, kinect);
 }
