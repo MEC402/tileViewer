@@ -57,7 +57,7 @@ STViewer::STViewer(const char* panoURI, bool stereo, bool fivepanel, bool fullsc
 #endif
 	PRINT_DEBUG_MESSAGE("Initializing Annotations and GUI")
 	m_annotations.Create("en");
-	m_gui.Create(m_panolist);
+	workerPool->submit([&]() { m_gui.Create(m_panolist); });
 
 	Controls::SetViewer(this);
 
@@ -531,6 +531,10 @@ void STViewer::displayAnnotations()
 
 void STViewer::displayGUI()
 {
+	if (!m_gui.FinishedLoading)
+		return;
+
+	m_gui.LoadThumbnailTextures();
 	// Draw a new viewport to cover the whole scene
 	glViewport(0, 0, m_camera.ScreenWidth, m_camera.ScreenHeight);
 	// Reset projection to "only one screen"

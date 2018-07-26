@@ -1,12 +1,11 @@
 #include "GraphicalMenu.h"
-#include "stb_image.h"
+#include "InternetDownload.h"
 #include "Render.h"
+#include "VR.h"
+#include "stb_image.h"
 
 void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 {
-	Render::CreateQuadModel(&quad);
-	Render::CreateCubeModel(&cube);
-
 	std::vector<std::string> urls;
 	for (unsigned int i = 0; i < panoList.size(); ++i) {
 		urls.push_back(panoList[i].thumbAddress);
@@ -20,17 +19,40 @@ void GraphicalMenu::Create(std::vector<PanoInfo> panoList)
 	{
 		int width, height, nrChannels;
 		unsigned char* d = (unsigned char*)(stbi_load_from_memory((stbi_uc*)thumbnailFiles[i].data, thumbnailFiles[i].dataSize, &width, &height, &nrChannels, 0));
-
-		thumbnails[i] = Render::CreateTexture(THUMB_TX_SLOT, width, height, GL_RGB, d);
-
 		free(thumbnailFiles[i].data);
-		stbi_image_free(d);
+
+		ImageData *img = new ImageData{ 0 };
+		img->data = d;
+		img->width = width;
+		img->height = height;
+		thumbnailImages.push_back(img);
 	}
+	FinishedLoading = true;
+}
+
+void GraphicalMenu::LoadThumbnailTextures()
+{
+	static bool HasLoaded = false;
+	if (HasLoaded)
+		return;
+	HasLoaded = true;
+
+	Render::CreateQuadModel(&quad);
+	Render::CreateCubeModel(&cube);
+	for (int i = 0; i < thumbnailImages.size(); i++) {
+		ImageData *img = thumbnailImages.at(i);
+		thumbnails[i] = Render::CreateTexture(THUMB_TX_SLOT, img->width, img->height, GL_RGB, img->data);
+		img->Free();
+	}
+	thumbnailImages.clear();
 }
 
 void GraphicalMenu::Display(glm::quat headsetRotation, glm::mat4x4 viewProjection, Shader* shader, float radius, float panoSelection, bool tilt)
 {
-	if (thumbnailCount == 0) return;
+	if (thumbnailCount == 0)
+		return;
+	if (FinishedLoading)
+		LoadThumbnailTextures();
 
 	float tileSeparation = 0.4f;
 	float menuRotation = panoSelection*tileSeparation;

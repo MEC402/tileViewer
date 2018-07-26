@@ -147,8 +147,6 @@ GLuint Render::CreateTexture(int textureSlot, int width, int height, GLenum form
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	// Pros to Linear: Looks WAY WAY WAY WAY BETTER
-	// Cons to Linear: Minor border seams on panoramas are visible during loading, but largely invisible at max depth
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
